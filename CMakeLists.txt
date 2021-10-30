@@ -19,7 +19,7 @@ HunterGate(
 )
 
 
-project(opengl_template)
+project(PhysarumSim)
 
 
 set(CMAKE_CXX_STANDARD 20)
@@ -72,7 +72,7 @@ add_library(glad src/glad.c)
 
 file(GLOB GEGL_SOURCES src/geGL/*.cpp src/geGL/private/*.cpp)
 
-add_executable(opengl_template
+add_executable(PhysarumSim
         src/main.cpp
         src/utils/files.h
         src/utils/files.cpp
@@ -88,7 +88,7 @@ add_executable(opengl_template
         ${GEGL_SOURCES})
 
 
-target_link_libraries(opengl_template glad ${OPENGL_LIBRARIES} pf_common::pf_common pf_imgui::pf_imgui pf_mainloop::pf_mainloop pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog
+target_link_libraries(PhysarumSim glad ${OPENGL_LIBRARIES} pf_common::pf_common pf_imgui::pf_imgui pf_mainloop::pf_mainloop pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog
         )
 
 if(WIN32)
