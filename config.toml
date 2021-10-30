@@ -1,0 +1,10 @@
+[window]
+width = 1200
+height = 900
+title = "OpenGL"
+
+[files]
+resources_path = 'C:\Users\xflajs00\CLionProjects\opengl_template\resources'
+
+[imgui]
+path_icons = 'C:\Users\xflajs00\CLionProjects\opengl_template\resources\icons'
