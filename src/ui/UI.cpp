@@ -21,6 +21,10 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   windowSim = &imguiInterface->createWindow("sim_window", "Simulation");
   windowSim->setIsDockable(true);
   windowSim->setCollapsible(true);
+  simMenuBar = &windowSim->getMenuBar();
+  fileSimSubmenu = &simMenuBar->addSubmenu("file_sim_submenu", "File");
+  saveSimConfigButton = &fileSimSubmenu->addButtonItem("save_sim_button", "Save");
+  loadSimConfigButton = &fileSimSubmenu->addButtonItem("load_sim_button", "Load");
   playPauseButton = &windowSim->createChild<Button>("btn_play_pause", "Start");
   applyOnChangeCheckbox = &windowSim->createChild<Checkbox>("apply_change_checkbox", "Apply on change");
   simControlGroup = &windowSim->createChild<Group>("group_sim_control", "Simulation controls", Persistent::Yes, AllowCollapse::Yes);
@@ -42,12 +46,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   particleInitCombobox->setValue(physarum::ParticleStart::Random);
   restartSimButton = &simControlGroup->createChild<Button>("restart_sim", "Restart");
   trailControlGroup = &windowSim->createChild<Group>("group_trail_control", "Trail controls", Persistent::Yes, AllowCollapse::Yes);
-  kernelSizeRadioGroup = &trailControlGroup->createChild<RadioGroup>("radio_group_kernel_size", "Kernel size", std::vector<std::unique_ptr<RadioButton>>{}, std::nullopt, Persistent::Yes);
-  kernelSizeRadioGroup->addButton("1", "1", false);
-  kernelSizeRadioGroup->addButton("3", "3", true);
-  kernelSizeRadioGroup->addButton("5", "5", false);
-  kernelSizeRadioGroup->addButton("7", "7", false);
-  kernelSizeRadioGroup->addButton("9", "9", false);
+  kernelSizeCombobox = &trailControlGroup->createChild<Combobox<int>>("combobox_kernel_size", "Kernel size", "select", std::vector<int>{1, 3, 5, 7, 9}, ComboBoxCount::Items8, Persistent::Yes);
+  kernelSizeCombobox->setSelectedItem(3);
   diffuseRateDrag = &trailControlGroup->createChild<DragInput<float>>("drag_diffuse_rate", "Diffuse rate", 0.1f, 0.0f, 100.f, 3.f, Persistent::Yes);
   decayRateDrag = &trailControlGroup->createChild<DragInput<float>>("drag_decay_rate", "Decay rate", 0.01f, 0.0f, 1.f, .2f, Persistent::Yes);
   trailColorEdit = &trailControlGroup->createChild<ColorEdit<glm::vec4>>("trail_color_edit", "Trail color", glm::vec4{1.0}, Persistent::Yes);
@@ -71,7 +71,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   trailWeightSpeedDrag->addValueListener([&](auto) {
     valueChange();
   });
-  kernelSizeRadioGroup->addValueListener([&](auto) {
+  kernelSizeCombobox->addValueListener([&](auto) {
     valueChange();
   });
   diffuseRateDrag->addValueListener([&](auto) {
@@ -88,25 +88,63 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     onConfigChange(getConfig());
   });
 
+  saveSimConfigButton->addClickListener([&] {
+    imguiInterface->openFileDialog(
+        "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
+        [&](const auto &selected) {
+          const auto &dst = selected[0];
+          const auto data = getConfig().toToml();
+          std::ofstream ostream{dst};
+          ostream << data;
+        },
+        [] {}, ui::ig::Size{500, 400});
+  });
+
+  loadSimConfigButton->addClickListener([&] {
+    imguiInterface->openFileDialog(
+        "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
+        [&](const auto &selected) {
+          const auto &dst = selected[0];
+          const auto config = physarum::SimConfig::FromToml(toml::parse_file(std::filesystem::absolute(dst).string()));
+          loadFromConfig(config);
+        },
+        [] {}, ui::ig::Size{500, 400});
+  });
+
   imguiInterface->setStateFromConfig();
 }
 
 pf::physarum::SimConfig pf::ogl::UI::getConfig() const {
-  return {
+  auto result = physarum::SimConfig{
       .senseAngle = senseAngleDrag->getValue(),
       .senseDistance = senseDistanceDrag->getValue(),
       .turnSpeed = turnSpeedDrag->getValue(),
       .movementSpeed = movementSpeedDrag->getValue(),
       .trailWeight = trailWeightSpeedDrag->getValue(),
-      .blurKernelSize = std::atoi(std::string{kernelSizeRadioGroup->getValue()}.c_str()),
+      .blurKernelSize = kernelSizeCombobox->getValue(),
       .diffuseRate = diffuseRateDrag->getValue(),
       .decayRate = decayRateDrag->getValue(),
       .particleStart = particleInitCombobox->getValue(),
       .particleCount = particleCountInput->getValue()};
+  return result;
 }
 
 void pf::ogl::UI::valueChange() {
   if (applyOnChangeCheckbox->getValue()) {
     onConfigChange(getConfig());
   }
+}
+void pf::ogl::UI::loadFromConfig(const pf::physarum::SimConfig &config) {
+  senseAngleDrag->setValue(config.senseAngle);
+  senseDistanceDrag->setValue(config.senseDistance);
+  turnSpeedDrag->setValue(config.turnSpeed);
+  movementSpeedDrag->setValue(config.movementSpeed);
+  trailWeightSpeedDrag->setValue(config.trailWeight);
+  kernelSizeCombobox->setValue(config.blurKernelSize);
+  diffuseRateDrag->setValue(config.diffuseRate);
+  decayRateDrag->setValue(config.decayRate);
+  particleInitCombobox->setValue(config.particleStart);
+  particleCountInput->setValue(config.particleCount);
+
+  onConfigChange(getConfig());
 }

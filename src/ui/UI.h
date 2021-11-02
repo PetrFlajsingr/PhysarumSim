@@ -24,6 +24,10 @@ class UI {
 
   // clang-format off
   ui::ig::Window *windowSim;
+    ui::ig::WindowMenuBar *simMenuBar;
+      ui::ig::SubMenu *fileSimSubmenu;
+        ui::ig::MenuButtonItem *saveSimConfigButton;
+        ui::ig::MenuButtonItem *loadSimConfigButton;
     ui::ig::Button *playPauseButton;
     ui::ig::Checkbox *applyOnChangeCheckbox;
     ui::ig::Group *simControlGroup;
@@ -39,7 +43,7 @@ class UI {
       ui::ig::Button *restartSimButton;
       // reset btn
     ui::ig::Group *trailControlGroup;
-      ui::ig::RadioGroup *kernelSizeRadioGroup;
+      ui::ig::Combobox<int> *kernelSizeCombobox;
       ui::ig::DragInput<float> *diffuseRateDrag;
       ui::ig::DragInput<float> *decayRateDrag;
     ui::ig::ColorEdit<glm::vec4> *trailColorEdit; // add
@@ -49,6 +53,7 @@ class UI {
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
 
   [[nodiscard]] physarum::SimConfig getConfig() const;
+  void loadFromConfig(const physarum::SimConfig &config);
 
   std::function<void(physarum::SimConfig)> onConfigChange = [](auto){};
 

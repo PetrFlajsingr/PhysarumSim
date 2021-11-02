@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
 
   bool isAttractorActive = false;
   window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::MouseButtonAction action, const Flags<glfw::ModifierKey> &mods) {
+    if (ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured()) { return; }
     if (btn == glfw::MouseButton::Left) {
       isAttractorActive = action == glfw::MouseButtonAction::Press;
     }
@@ -96,6 +97,7 @@ int main(int argc, char *argv[]) {
   ui.trailColorEdit->addValueListener([&](const auto &color) {
     renderer.setColor(color.xyz);
   }, true);
+
 
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     if (window->shouldClose()) {
