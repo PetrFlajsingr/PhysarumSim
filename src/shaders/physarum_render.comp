@@ -1,0 +1,23 @@
+#version 460 core
+
+layout(local_size_x=8, local_size_y=8)in;
+
+layout(r32f, binding = 0) uniform image2D texTrail;
+layout(rgba32f, binding = 1) uniform image2D texRender;
+
+uniform vec3 color;
+
+void main() {
+    const ivec2 dimensions = imageSize(texRender);
+
+    if (gl_GlobalInvocationID.x >= dimensions.x) {
+        return;
+    }
+    if (gl_GlobalInvocationID.y >= dimensions.y) {
+        return;
+    }
+    const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+    const vec3 resColor = imageLoad(texTrail, texCoord).r * color;
+
+    imageStore(texRender, texCoord, vec4(resColor, 1.0));
+}

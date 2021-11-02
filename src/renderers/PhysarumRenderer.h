@@ -5,13 +5,14 @@
 #ifndef OPENGL_TEMPLATE_SRC_TRIANGLERENDERER_H
 #define OPENGL_TEMPLATE_SRC_TRIANGLERENDERER_H
 
-#include "Renderer.h"
 #include <filesystem>
 #include <geGL/Buffer.h>
 #include <geGL/Program.h>
 #include <geGL/Shader.h>
 #include <geGL/VertexArray.h>
 #include <glad/glad.h>
+#include <glm/vec3.hpp>
+#include <simulation/PhysarumSimulator.h>
 
 namespace pf::ogl {
 
@@ -27,22 +28,30 @@ inline const unsigned int indices[] = {
     1, 2, 3};
 }// namespace details
 
-class DemoRenderer : public Renderer {
+class PhysarumRenderer {
  public:
-  DemoRenderer(const std::filesystem::path &shaderDir);
+  PhysarumRenderer(const std::filesystem::path &shaderDir, std::shared_ptr<Texture> trailTexture, glm::ivec2 renderResolution);
 
-  std::optional<std::string> init() override;
-  void render() override;
+  void render();
+
+  void setTrailTexture(const std::shared_ptr<Texture> &trailTexture);
+
+  void setColor(const glm::vec3 &color);
 
  private:
   std::filesystem::path shaderDir;
 
-  std::shared_ptr<Buffer> vbo;
-  std::shared_ptr<Buffer> ebo;
-  std::shared_ptr<VertexArray> vao;
-  std::shared_ptr<Shader> vertexShader;
-  std::shared_ptr<Shader> fragmentShader;
-  std::shared_ptr<Program> program;
+  std::shared_ptr<Program> renderTextureProgram;
+  std::shared_ptr<Program> renderQuadProgram;
+
+  std::shared_ptr<Buffer> quadVBO;
+  std::shared_ptr<VertexArray> quadVAO;
+
+  std::shared_ptr<Texture> renderTexture;
+  std::shared_ptr<Texture> trailTexture;
+
+  glm::vec3 color{1.0f};
+  glm::ivec2 renderResolution;
 };
 
 }// namespace pf::ogl

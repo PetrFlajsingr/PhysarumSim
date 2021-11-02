@@ -76,16 +76,24 @@ add_executable(PhysarumSim
         src/main.cpp
         src/utils/files.h
         src/utils/files.cpp
-        src/ui/DemoImGui.cpp
-        src/ui/DemoImGui.h
+        src/ui/UI.cpp
+        src/ui/UI.h
         ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/ImGuiGlfwOpenGLInterface.cpp
         ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_glfw.cpp
         ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_opengl3.cpp
-        src/renderers/DemoRenderer.cpp src/renderers/DemoRenderer.h
-        src/renderers/Renderer.h
+        src/renderers/PhysarumRenderer.cpp src/renderers/PhysarumRenderer.h
         src/geGL/Shader.cpp
         src/geGL/Shader.h
-        ${GEGL_SOURCES})
+        ${GEGL_SOURCES}
+        src/simulation/PhysarumSimulator.cpp
+        src/simulation/PhysarumSimulator.h
+        src/simulation/Particle.h
+        src/utils/rand.h
+        src/simulation/generators/ParticleGenerator.h
+        src/simulation/generators/RandomParticleGenerator.cpp
+        src/simulation/generators/RandomParticleGenerator.h
+        src/simulation/generators/PointParticleGenerator.cpp
+        src/simulation/generators/PointParticleGenerator.h src/simulation/SimConfig.h)
 
 
 target_link_libraries(PhysarumSim glad ${OPENGL_LIBRARIES} pf_common::pf_common pf_imgui::pf_imgui pf_mainloop::pf_mainloop pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog
@@ -97,21 +105,16 @@ if(WIN32)
             "${PROJECT_SOURCE_DIR}/dlls"
             $<TARGET_FILE_DIR:${PROJECT_NAME}>)
 endif()
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${PROJECT_SOURCE_DIR}/config.toml"
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>/config.toml)
+#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy
+#        "${PROJECT_SOURCE_DIR}/config.toml"
+#        $<TARGET_FILE_DIR:${PROJECT_NAME}>/config.toml)
 
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${PROJECT_SOURCE_DIR}/src/shaders/simple_shader.frag"
-        "${PROJECT_SOURCE_DIR}/resources/shaders/simple_shader.frag")
-
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        "${PROJECT_SOURCE_DIR}/src/shaders/simple_shader.vert"
-        "${PROJECT_SOURCE_DIR}/resources/shaders/simple_shader.vert")
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${PROJECT_SOURCE_DIR}/src/shaders"
+        "${PROJECT_SOURCE_DIR}/resources/shaders")
 
 
 #get_cmake_property(_variableNames VARIABLES)

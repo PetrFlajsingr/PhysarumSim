@@ -1,13 +1,17 @@
-#include "renderers/DemoRenderer.h"
-#include "ui/DemoImGui.h"
+#include "renderers/PhysarumRenderer.h"
+#include "simulation/generators/PointParticleGenerator.h"
+#include "simulation/generators/RandomParticleGenerator.h"
+#include "ui/UI.h"
 #include "utils/files.h"
 #include <filesystem>
 #include <fmt/format.h>
 #include <magic_enum.hpp>
+#include <numbers>
 #include <pf_glfw/GLFW.h>
 #include <pf_mainloop/MainLoop.h>
 #include <toml++/toml.h>
-#include <ui/DemoImGui.h>
+#include <ui/UI.h>
+#include <utils/rand.h>
 
 /**
  * Load toml config located next to the exe - config.toml
@@ -34,14 +38,18 @@ void saveConfig(toml::table config, pf::ui::ig::ImGuiInterface &imguiInterface) 
 }
 
 int main(int argc, char *argv[]) {
+  using namespace pf;
   const auto config = loadConfig();
   const auto resourcesFolder = std::filesystem::path{config["files"]["resources_path"].value<std::string>().value()};
 
+  const glm::ivec2 windowSize{config["window"]["width"].value<int>().value(),
+                        config["window"]["height"].value<int>().value()};
+
   fmt::print("Initializing window and OpenGL\n");
-  pf::glfw::GLFW glfw{};
-  auto window = glfw.createWindow({.width = 1200,
-                                   .height = 900,
-                                   .title = "OpenGL",
+  glfw::GLFW glfw{};
+  auto window = glfw.createWindow({.width = static_cast<size_t>(windowSize.x),
+                                   .height = static_cast<size_t>(windowSize.y),
+                                   .title = config["window"]["title"].value<std::string>().value(),
                                    .majorOpenGLVersion = 4,
                                    .minorOpenGLVersion = 6});
   window->setCurrent();
@@ -50,41 +58,73 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  auto demoUI = pf::ogl::DemoImGui{*config["imgui"].as_table(), window->getHandle()};
+  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle()};
 
-  window->setInputIgnorePredicate([&] { return demoUI.imguiInterface->isWindowHovered() || demoUI.imguiInterface->isKeyboardCaptured(); });
+  window->setInputIgnorePredicate([&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
 
-  pf::ogl::DemoRenderer renderer{resourcesFolder / "shaders"};
-  if (const auto initResult = renderer.init(); initResult.has_value()) {
-    fmt::print(stderr, "Error during initialization: {}\n", initResult.value());
-    return -1;
-  }
+  const auto shaderFolder = resourcesFolder / "shaders";
 
-  window->setMouseClickCallback([&](pf::glfw::MouseButton btn, pf::Flags<pf::glfw::ModifierKey> mods) {
-    std::string txt = fmt::format("Clicked {} button", magic_enum::enum_name(btn));
-    if (mods.is(pf::glfw::ModifierKey::Shift)) {
-      txt += " with shift";
+  auto sim = std::make_unique<physarum::PhysarumSimulator>(ui.getConfig(), shaderFolder, windowSize);
+
+  ui.onConfigChange = [&](const physarum::SimConfig &config) {
+    sim->setConfig(config);
+  };
+
+  ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
+
+  bool isAttractorActive = false;
+  window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::MouseButtonAction action, const Flags<glfw::ModifierKey> &mods) {
+    if (btn == glfw::MouseButton::Left) {
+      isAttractorActive = action == glfw::MouseButtonAction::Press;
     }
-    if (mods.is(pf::glfw::ModifierKey::Control)) {
-      txt += " with Control";
-    }
-    demoUI.imguiInterface->showNotification(pf::ui::ig::NotificationType::Info, txt);
   });
 
-  pf::MainLoop::Get()->setOnMainLoop([&](auto) {
-    if (window->shouldClose()) {
-      pf::MainLoop::Get()->stop();
+  bool isSimPaused = true;
+  ui.playPauseButton->addClickListener([&] {
+    isSimPaused = !isSimPaused;
+    if (isSimPaused) {
+      ui.playPauseButton->setLabel("Start");
+    } else {
+      ui.playPauseButton->setLabel("Pause");
     }
+  });
+
+  ui.restartSimButton->addClickListener([&] {
+    sim->restart(ui.getConfig());
+  });
+
+  ui.trailColorEdit->addValueListener([&](const auto &color) {
+    renderer.setColor(color.xyz);
+  }, true);
+
+  MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
+    if (window->shouldClose()) {
+      MainLoop::Get()->stop();
+    }
+
+    const float currentTime = std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
+    const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
+
+    if (!isSimPaused) {
+      for (int i = 0; i < ui.simSpeedDrag->getValue(); ++i) {
+        if (isAttractorActive) {
+          const auto cursorPos = window->getCursorPosition();
+          sim->attractParticlesToPoint(glm::ivec2{cursorPos.x, windowSize.y - cursorPos.y});
+        }
+        sim->simulate(currentTime, timeDelta);
+      }
+    }
+
     renderer.render();
-    demoUI.imguiInterface->render();
+    ui.imguiInterface->render();
     window->swapBuffers();
     glfw.pollEvents();
   });
 
   fmt::print("Starting main loop\n");
-  pf::MainLoop::Get()->run();
+  MainLoop::Get()->run();
   fmt::print("Main loop ended\n");
 
-  saveConfig(config, *demoUI.imguiInterface);
+  saveConfig(config, *ui.imguiInterface);
   return 0;
 }

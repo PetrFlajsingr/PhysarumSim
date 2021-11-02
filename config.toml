@@ -1,10 +1,52 @@
-[window]
-width = 1200
-height = 900
-title = "OpenGL"
-
 [files]
-resources_path = 'C:\Users\xflajs00\CLionProjects\opengl_template\resources'
+resources_path = 'C:\Users\xflajs00\CLionProjects\PhysarumSim\resources'
 
 [imgui]
-path_icons = 'C:\Users\xflajs00\CLionProjects\opengl_template\resources\icons'
+path_icons = 'C:\Users\xflajs00\CLionProjects\PhysarumSim\resources\icons'
+
+[imgui.combobox_particle_start]
+selected = 'Point'
+
+[imgui.drag_decay_rate]
+value = 0.10000000149011612
+
+[imgui.drag_diffuse_rate]
+value = 4.199999809265137
+
+[imgui.drag_move_speed]
+value = 31.399999618530273
+
+[imgui.drag_sense_distance]
+value = 26.0
+
+[imgui.drag_trail_weight]
+value = 7.099999904632568
+
+[imgui.drag_turn_speed]
+value = 2.700000047683716
+
+[imgui.group_sim_control]
+collapsed = false
+
+[imgui.group_trail_control]
+collapsed = false
+
+[imgui.input_particle_count]
+value = 100000
+
+[imgui.radio_group_kernel_size]
+selected = 1
+
+[imgui.sense_angle_drag]
+value = 23.600000381469727
+
+[imgui.sense_angle_slider]
+value = 0.5061454772949219
+
+[imgui.trail_color_edit]
+color = [ 0.0, 0.2235294133424759, 0.7568627595901489, 1.0 ]
+
+[window]
+height = 1080
+title = 'Physarum'
+width = 1920
