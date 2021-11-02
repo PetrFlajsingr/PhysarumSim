@@ -85,3 +85,7 @@ void pf::ogl::PhysarumRenderer::setTrailTexture(const std::shared_ptr<Texture> &
 void pf::ogl::PhysarumRenderer::setColor(const glm::vec3 &color) {
   PhysarumRenderer::color = color;
 }
+
+const std::shared_ptr<Texture> &pf::ogl::PhysarumRenderer::getRenderTexture() const {
+  return renderTexture;
+}

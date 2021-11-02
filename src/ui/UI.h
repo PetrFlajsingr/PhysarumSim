@@ -12,6 +12,7 @@
 #include <toml++/toml.h>
 #include "simulation/SimConfig.h"
 #include <pf_common/enums.h>
+#include <geGL/Texture.h>
 
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::physarum)
 
@@ -48,7 +49,12 @@ class UI {
       ui::ig::DragInput<float> *decayRateDrag;
     ui::ig::ColorEdit<glm::vec4> *trailColorEdit; // add
     ui::ig::Button *applyButton;
+  ui::ig::Window *imagesWindow;
+    ui::ig::StretchLayout *outImageStretch;
+    ui::ig::Image *outImage = nullptr;
   // clang-format on
+
+  void setOutImage(std::shared_ptr<Texture> texture);
 
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
 

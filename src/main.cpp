@@ -58,19 +58,22 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
+  const auto shaderFolder = resourcesFolder / "shaders";
+
+
   auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle()};
 
   window->setInputIgnorePredicate([&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
 
-  const auto shaderFolder = resourcesFolder / "shaders";
-
   auto sim = std::make_unique<physarum::PhysarumSimulator>(ui.getConfig(), shaderFolder, windowSize);
+
+  ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
+
+  ui.setOutImage(renderer.getRenderTexture());
 
   ui.onConfigChange = [&](const physarum::SimConfig &config) {
     sim->setConfig(config);
   };
-
-  ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
 
   bool isAttractorActive = false;
   window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::MouseButtonAction action, const Flags<glfw::ModifierKey> &mods) {

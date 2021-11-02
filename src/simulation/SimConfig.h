@@ -13,7 +13,9 @@ namespace pf::physarum {
 
 enum class ParticleStart {
   Random,
-  Point
+  Point,
+  InwardCircle,
+  RandomCircle
 };
 
 struct SimConfig {

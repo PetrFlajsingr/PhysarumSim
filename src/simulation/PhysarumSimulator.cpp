@@ -5,6 +5,8 @@
 #include "PhysarumSimulator.h"
 #include <glm/geometric.hpp>
 #include <pf_common/RAII.h>
+#include <simulation/generators/InwardCircleParticleGenerator.h>
+#include <simulation/generators/RandomCircleParticleGenerator.h>
 
 void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->use();
@@ -57,6 +59,8 @@ void pf::physarum::PhysarumSimulator::reinit(const pf::physarum::SimConfig &conf
   switch (config.particleStart) {
     case ParticleStart::Random: generator = std::make_unique<RandomParticleGenerator>(textureSize); break;
     case ParticleStart::Point: generator = std::make_unique<PointParticleGenerator>(textureSize / 2u); break;
+    case ParticleStart::InwardCircle: generator = std::make_unique<InwardCircleParticleGenerator>(textureSize); break;
+    case ParticleStart::RandomCircle: generator = std::make_unique<RandomCircleParticleGenerator>(textureSize); break;
   }
   const auto particles = generator->generateParticles(particleCount);
   particleBuffer = std::make_shared<Buffer>(particles.size() * sizeof(Particle), particles.data());

@@ -38,6 +38,8 @@ class PhysarumRenderer {
 
   void setColor(const glm::vec3 &color);
 
+  const std::shared_ptr<Texture> &getRenderTexture() const;
+
  private:
   std::filesystem::path shaderDir;
 

@@ -93,7 +93,7 @@ add_executable(PhysarumSim
         src/simulation/generators/RandomParticleGenerator.cpp
         src/simulation/generators/RandomParticleGenerator.h
         src/simulation/generators/PointParticleGenerator.cpp
-        src/simulation/generators/PointParticleGenerator.h src/simulation/SimConfig.h)
+        src/simulation/generators/PointParticleGenerator.h src/simulation/SimConfig.h src/simulation/generators/InwardCircleParticleGenerator.cpp src/simulation/generators/InwardCircleParticleGenerator.h src/simulation/generators/RandomCircleParticleGenerator.cpp src/simulation/generators/RandomCircleParticleGenerator.h)
 
 
 target_link_libraries(PhysarumSim glad ${OPENGL_LIBRARIES} pf_common::pf_common pf_imgui::pf_imgui pf_mainloop::pf_mainloop pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog

@@ -53,6 +53,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   trailColorEdit = &trailControlGroup->createChild<ColorEdit<glm::vec4>>("trail_color_edit", "Trail color", glm::vec4{1.0}, Persistent::Yes);
   applyButton = &windowSim->createChild<Button>("button_apply", "Apply");
 
+  imagesWindow = &imguiInterface->createWindow("image_window", "Images");
+  outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
+
   senseAngleDrag->addValueListener([&](auto) {
     valueChange();
   });
@@ -147,4 +150,9 @@ void pf::ogl::UI::loadFromConfig(const pf::physarum::SimConfig &config) {
   particleCountInput->setValue(config.particleCount);
 
   onConfigChange(getConfig());
+}
+
+void pf::ogl::UI::setOutImage(std::shared_ptr<Texture> texture) {
+  using namespace ui::ig;
+  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID)texture->getId(), Size{200, 100});
 }
