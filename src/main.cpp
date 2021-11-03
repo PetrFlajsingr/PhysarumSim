@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
   const auto resourcesFolder = std::filesystem::path{config["files"]["resources_path"].value<std::string>().value()};
 
   const glm::ivec2 windowSize{config["window"]["width"].value<int>().value(),
-                        config["window"]["height"].value<int>().value()};
+                              config["window"]["height"].value<int>().value()};
 
   fmt::print("Initializing window and OpenGL\n");
   glfw::GLFW glfw{};
@@ -59,7 +59,6 @@ int main(int argc, char *argv[]) {
   }
 
   const auto shaderFolder = resourcesFolder / "shaders";
-
 
   auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle()};
 
@@ -80,7 +79,13 @@ int main(int argc, char *argv[]) {
     if (ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured()) { return; }
     if (btn == glfw::MouseButton::Left) {
       isAttractorActive = action == glfw::MouseButtonAction::Press;
+      sim->setAttractorEnabled(isAttractorActive);
+      const auto cursorPos = window->getCursorPosition();
+      sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
     }
+  });
+  window->setCursorPositionCallback([&](const auto &cursorPos) {
+    sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
   });
 
   bool isSimPaused = true;
@@ -99,8 +104,8 @@ int main(int argc, char *argv[]) {
 
   ui.trailColorEdit->addValueListener([&](const auto &color) {
     renderer.setColor(color.xyz);
-  }, true);
-
+  },
+                                      true);
 
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     if (window->shouldClose()) {
@@ -112,10 +117,6 @@ int main(int argc, char *argv[]) {
 
     if (!isSimPaused) {
       for (int i = 0; i < ui.simSpeedDrag->getValue(); ++i) {
-        if (isAttractorActive) {
-          const auto cursorPos = window->getCursorPosition();
-          sim->attractParticlesToPoint(glm::ivec2{cursorPos.x, windowSize.y - cursorPos.y});
-        }
         sim->simulate(currentTime, timeDelta);
       }
     }

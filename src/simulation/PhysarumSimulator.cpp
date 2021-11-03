@@ -20,6 +20,9 @@ void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTim
   simulateProgram->set1f("maxTrailValue", config.maxTrailValue);
   simulateProgram->set1i("particleCount", static_cast<int>(particleCount));
   simulateProgram->set1i("sensorSize", config.sensorSize);
+  simulateProgram->set1i("sensorSize", config.sensorSize);
+  simulateProgram->set1i("enableAttractor", attractorEnabled ? 1 : 0);
+  simulateProgram->set2fv("attractorPosition", &attractorPosition[0]);
   trailTexture->bindImage(1);
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   simulateProgram->dispatch(particleCount / 64 + 1);
@@ -77,20 +80,9 @@ void pf::physarum::PhysarumSimulator::restart(const pf::physarum::SimConfig &con
   setConfig(config);
   reinit(config);
 }
-
-void pf::physarum::PhysarumSimulator::attractParticlesToPoint(glm::vec2 point) {
-  // TODO: move to shader
-  const auto voidPtr = particleBuffer->map();
-  RAII unmap{[&] { particleBuffer->unmap();}};
-
-  const auto particlePtr = reinterpret_cast<Particle*>(voidPtr);
-  auto particleSpan = std::span{particlePtr, particleCount};
-  for (auto &particle : particleSpan) {
-    const auto distance = glm::distance(particle.position, point);
-    if (distance > attractorDist) { continue; }
-    const auto power = (1.f - distance / attractorDist) * 1.f;
-    const auto direction = glm::normalize(point - particle.position);
-    const auto posDelta = direction * power;
-    particle.position += posDelta;
-  }
+void pf::physarum::PhysarumSimulator::setAttractorPosition(const glm::vec2 &attractorPosition) {
+  PhysarumSimulator::attractorPosition = attractorPosition;
+}
+void pf::physarum::PhysarumSimulator::setAttractorEnabled(bool attractorEnabled) {
+  PhysarumSimulator::attractorEnabled = attractorEnabled;
 }

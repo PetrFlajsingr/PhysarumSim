@@ -64,7 +64,8 @@ class PhysarumSimulator {
 
   void restart(const SimConfig &config);
 
-  void attractParticlesToPoint(glm::vec2 point);
+  void setAttractorPosition(const glm::vec2 &attractorPosition);
+  void setAttractorEnabled(bool attractorEnabled);
 
  private:
   void reinit(const SimConfig &config);
@@ -72,7 +73,9 @@ class PhysarumSimulator {
   SimConfig config;
   std::uint32_t particleCount;
   glm::uvec2 textureSize;
-  float attractorDist = 200.f;
+
+  glm::vec2 attractorPosition{};
+  bool attractorEnabled = false;
 
   std::shared_ptr<Buffer> particleBuffer;
   std::shared_ptr<Texture> trailTexture;
