@@ -33,7 +33,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   senseDistanceDrag = &simControlGroup->createChild<DragInput<float>>("drag_sense_distance", "Sense distance", 1.0f, 0.1f, 1000.f, 35.f, Persistent::Yes);
   turnSpeedDrag = &simControlGroup->createChild<DragInput<float>>("drag_turn_speed", "Turn speed", 0.1f, 0.f, 100.f, 2.f, Persistent::Yes);
   movementSpeedDrag = &simControlGroup->createChild<DragInput<float>>("drag_move_speed", "Movement speed", 0.1f, -100.f, 100.f, 20.f, Persistent::Yes);
-  trailWeightSpeedDrag = &simControlGroup->createChild<DragInput<float>>("drag_trail_weight", "Trail weight", 0.1f, 0.f, 1000.f, 5.f, Persistent::Yes);
+  trailWeightDrag = &simControlGroup->createChild<DragInput<float>>("drag_trail_weight", "Trail weight", 0.1f, 0.f, 1000.f, 5.f, Persistent::Yes);
   sep1 = &simControlGroup->createChild<Separator>("sep1");
   particleCountInput = &simControlGroup->createChild<Input<int>>("input_particle_count", "Particle count", 100, 1'000, 10'000, Persistent::Yes);
   particleCountInput->addValueListener([&](const auto value) {
@@ -50,10 +50,12 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   kernelSizeCombobox->setSelectedItem(3);
   diffuseRateDrag = &trailControlGroup->createChild<DragInput<float>>("drag_diffuse_rate", "Diffuse rate", 0.1f, 0.0f, 100.f, 3.f, Persistent::Yes);
   decayRateDrag = &trailControlGroup->createChild<DragInput<float>>("drag_decay_rate", "Decay rate", 0.01f, 0.0f, 1.f, .2f, Persistent::Yes);
+  maxTrailValueDrag = &trailControlGroup->createChild<DragInput<float>>("drag_max_trail", "Max trail value", 0.01f, 0.01f, 10.f, 1.f, Persistent::Yes);
   trailColorEdit = &trailControlGroup->createChild<ColorEdit<glm::vec4>>("trail_color_edit", "Trail color", glm::vec4{1.0}, Persistent::Yes);
   applyButton = &windowSim->createChild<Button>("button_apply", "Apply");
 
   imagesWindow = &imguiInterface->createWindow("image_window", "Images");
+  imagesWindow->setIsDockable(true);
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
   senseAngleDrag->addValueListener([&](auto) {
@@ -71,7 +73,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   movementSpeedDrag->addValueListener([&](auto) {
     valueChange();
   });
-  trailWeightSpeedDrag->addValueListener([&](auto) {
+  trailWeightDrag->addValueListener([&](auto) {
     valueChange();
   });
   kernelSizeCombobox->addValueListener([&](auto) {
@@ -81,6 +83,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     valueChange();
   });
   decayRateDrag->addValueListener([&](auto) {
+    valueChange();
+  });
+  maxTrailValueDrag->addValueListener([&](auto) {
     valueChange();
   });
   trailColorEdit->addValueListener([&](auto) {
@@ -123,10 +128,11 @@ pf::physarum::SimConfig pf::ogl::UI::getConfig() const {
       .senseDistance = senseDistanceDrag->getValue(),
       .turnSpeed = turnSpeedDrag->getValue(),
       .movementSpeed = movementSpeedDrag->getValue(),
-      .trailWeight = trailWeightSpeedDrag->getValue(),
+      .trailWeight = trailWeightDrag->getValue(),
       .blurKernelSize = kernelSizeCombobox->getValue(),
       .diffuseRate = diffuseRateDrag->getValue(),
       .decayRate = decayRateDrag->getValue(),
+      .maxTrailValue = maxTrailValueDrag->getValue(),
       .particleStart = particleInitCombobox->getValue(),
       .particleCount = particleCountInput->getValue()};
   return result;
@@ -142,10 +148,11 @@ void pf::ogl::UI::loadFromConfig(const pf::physarum::SimConfig &config) {
   senseDistanceDrag->setValue(config.senseDistance);
   turnSpeedDrag->setValue(config.turnSpeed);
   movementSpeedDrag->setValue(config.movementSpeed);
-  trailWeightSpeedDrag->setValue(config.trailWeight);
+  trailWeightDrag->setValue(config.trailWeight);
   kernelSizeCombobox->setValue(config.blurKernelSize);
   diffuseRateDrag->setValue(config.diffuseRate);
   decayRateDrag->setValue(config.decayRate);
+  maxTrailValueDrag->setValue(config.maxTrailValue);
   particleInitCombobox->setValue(config.particleStart);
   particleCountInput->setValue(config.particleCount);
 
@@ -154,5 +161,7 @@ void pf::ogl::UI::loadFromConfig(const pf::physarum::SimConfig &config) {
 
 void pf::ogl::UI::setOutImage(std::shared_ptr<Texture> texture) {
   using namespace ui::ig;
-  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID)texture->getId(), Size{200, 100});
+  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID)texture->getId(), Size{200, 100}, IsButton::No, [] {
+    return std::pair(ImVec2{0, 1}, ImVec2{1, 0});
+  });
 }

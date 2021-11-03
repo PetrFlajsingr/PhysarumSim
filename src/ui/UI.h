@@ -37,7 +37,7 @@ class UI {
       ui::ig::DragInput<float> *senseDistanceDrag;
       ui::ig::DragInput<float> *turnSpeedDrag;
       ui::ig::DragInput<float> *movementSpeedDrag;
-      ui::ig::DragInput<float> *trailWeightSpeedDrag;
+      ui::ig::DragInput<float> *trailWeightDrag;
       ui::ig::Separator *sep1;
       ui::ig::Input<int> *particleCountInput;
       ui::ig::Combobox<physarum::ParticleStart> *particleInitCombobox;
@@ -47,6 +47,7 @@ class UI {
       ui::ig::Combobox<int> *kernelSizeCombobox;
       ui::ig::DragInput<float> *diffuseRateDrag;
       ui::ig::DragInput<float> *decayRateDrag;
+      ui::ig::DragInput<float> *maxTrailValueDrag;
     ui::ig::ColorEdit<glm::vec4> *trailColorEdit; // add
     ui::ig::Button *applyButton;
   ui::ig::Window *imagesWindow;

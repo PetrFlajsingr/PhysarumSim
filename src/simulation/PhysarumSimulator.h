@@ -32,6 +32,10 @@ class PhysarumSimulator {
     trailTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     trailTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+    trailDiffuseTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_R32F, 0, textureSize.x, textureSize.y);
+    trailDiffuseTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    trailDiffuseTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
     const auto simShaderSrc = readFile(shaderDir / "physarum_sim.comp");
     if (!simShaderSrc.has_value()) {
       throw std::runtime_error("Could not load 'physarum_sim.comp'");
@@ -68,10 +72,11 @@ class PhysarumSimulator {
   SimConfig config;
   std::uint32_t particleCount;
   glm::uvec2 textureSize;
-  float attractorDist = 500.f;
+  float attractorDist = 200.f;
 
   std::shared_ptr<Buffer> particleBuffer;
   std::shared_ptr<Texture> trailTexture;
+  std::shared_ptr<Texture> trailDiffuseTexture;
 
   // display in renderer - render trail texture to another texture and present on a quad
 

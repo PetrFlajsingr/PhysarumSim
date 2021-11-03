@@ -27,6 +27,7 @@ struct SimConfig {
   int blurKernelSize;
   float diffuseRate;
   float decayRate;
+  float maxTrailValue;
   ParticleStart particleStart;
   int particleCount;
 
@@ -40,6 +41,7 @@ struct SimConfig {
         .blurKernelSize = src["blurKernelSize"].value<int>().value(),
         .diffuseRate = src["diffuseRate"].value<float>().value(),
         .decayRate = src["decayRate"].value<float>().value(),
+        .maxTrailValue = src["maxTrailValue"].value<float>().value(),
         .particleStart = static_cast<ParticleStart>(src["particleStart"].value<int>().value()),
         .particleCount = src["particleCount"].value<int>().value()};
   }
@@ -54,6 +56,7 @@ struct SimConfig {
          {"blurKernelSize", blurKernelSize},
          {"diffuseRate", diffuseRate},
          {"decayRate", decayRate},
+         {"maxTrailValue", maxTrailValue},
          {"particleStart", static_cast<int>(particleStart)},
          {"particleCount", particleCount}}};
   }

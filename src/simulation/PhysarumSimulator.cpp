@@ -17,10 +17,11 @@ void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTim
   simulateProgram->set1f("turnSpeed", config.turnSpeed);
   simulateProgram->set1f("movementSpeed", config.movementSpeed);
   simulateProgram->set1f("trailWeight", config.trailWeight);
+  simulateProgram->set1f("maxTrailValue", config.maxTrailValue);
   simulateProgram->set1i("particleCount", static_cast<int>(particleCount));
   trailTexture->bindImage(1);
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
-  simulateProgram->dispatch(particleCount / 8);
+  simulateProgram->dispatch(particleCount / 64 + 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   diffuseTrailProgram->use();
@@ -29,8 +30,10 @@ void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTim
   diffuseTrailProgram->set1f("diffuseRate", config.diffuseRate);
   diffuseTrailProgram->set1f("decayRate", config.decayRate);
   trailTexture->bindImage(0);
+  trailDiffuseTexture->bindImage(1);
   diffuseTrailProgram->dispatch(textureSize.x / 8, textureSize.y / 8);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+  std::swap(trailTexture, trailDiffuseTexture);
 }
 
 uint32_t pf::physarum::PhysarumSimulator::getParticleCount() const {
@@ -75,6 +78,7 @@ void pf::physarum::PhysarumSimulator::restart(const pf::physarum::SimConfig &con
 }
 
 void pf::physarum::PhysarumSimulator::attractParticlesToPoint(glm::vec2 point) {
+  // TODO: move to shader
   const auto voidPtr = particleBuffer->map();
   RAII unmap{[&] { particleBuffer->unmap();}};
 

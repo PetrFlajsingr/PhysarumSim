@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(local_size_x=8) in;
+layout(local_size_x=64) in;
 
 struct Particle {
     vec2 position;
@@ -21,6 +21,7 @@ uniform float movementSpeed;
 uniform float deltaT;
 uniform float time;
 uniform float trailWeight;
+uniform float maxTrailValue;
 
 vec2 rotate(vec2 v, float a) {
     float s = sin(a);
@@ -106,7 +107,7 @@ void main() {
     } else {
         const ivec2 tCoord = ivec2(newPos);
         const float prevTrail = imageLoad(texTrail, tCoord).r;
-        imageStore(texTrail, tCoord, vec4(prevTrail + trailWeight * deltaT));
+        imageStore(texTrail, tCoord, vec4(min(maxTrailValue, prevTrail + trailWeight * deltaT)));
     }
     particles[gl_GlobalInvocationID.x].position = newPos;
 }
