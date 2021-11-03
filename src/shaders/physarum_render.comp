@@ -18,7 +18,7 @@ void main() {
     }
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
     const float trailValue = imageLoad(texTrail, texCoord).r;
-    const vec3 resColor = trailValue * color * 10;
+    const vec3 resColor = trailValue * color;
 
     imageStore(texRender, texCoord, vec4(resColor, 1.0));
 }

@@ -12,6 +12,8 @@ layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
 layout(r32f, binding = 1) uniform image2D texTrail;
 
 #define PI 3.1415
+#define TRUE 1
+#define FALSE 0
 
 uniform float senseAngle;
 uniform float senseDistance;
@@ -23,6 +25,9 @@ uniform float time;
 uniform float trailWeight;
 uniform float maxTrailValue;
 uniform int sensorSize;
+
+uniform int enableAttractor;
+uniform vec2 attractorPosition;
 
 vec2 rotate(vec2 v, float a) {
     float s = sin(a);
@@ -76,6 +81,18 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize) {
     return tmp;
 }
 
+vec2 attractorDelta(Particle particle) {
+    const float ATT_DIST = 250;
+    if (enableAttractor == FALSE) { return vec2(0, 0); }
+    vec2 dir = attractorPosition - particle.position;
+    const float dist = length(dir);
+    if (dist < ATT_DIST) {
+        dir = normalize(dir);
+        return (1 - dist / ATT_DIST) * dir;
+    }
+    return vec2(0, 0);
+}
+
 void main() {
     if (gl_GlobalInvocationID.x >= particleCount) { return; }
 
@@ -118,7 +135,8 @@ void main() {
         const float prevTrail = imageLoad(texTrail, tCoord).r;
         imageStore(texTrail, tCoord, vec4(min(maxTrailValue, prevTrail + trailWeight * deltaT)));
     }
-    particles[gl_GlobalInvocationID.x].position = newPos;
+    const vec2 attractionDelta = attractorDelta(particle);
+    particles[gl_GlobalInvocationID.x].position = newPos + attractionDelta;
 }
 
 
