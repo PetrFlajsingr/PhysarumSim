@@ -31,6 +31,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   simSpeedDrag = &simControlGroup->createChild<DragInput<int>>("sim_speed_drag", "Simulation speed", 1, 1, 10, 1, Persistent::Yes);
   senseAngleDrag = &simControlGroup->createChild<DragInput<float>>("sense_angle_drag", "Sense angle", 0.1f, -180.f, 180.f, 30.f, Persistent::Yes);
   senseDistanceDrag = &simControlGroup->createChild<DragInput<float>>("drag_sense_distance", "Sense distance", 1.0f, 0.1f, 1000.f, 35.f, Persistent::Yes);
+  sensorSizeCombobox = &simControlGroup->createChild<Combobox<int>>("combobox_sensor_size", "Sensor size", "select", std::vector<int>{1, 3, 5, 7, 9}, ComboBoxCount::Items8, Persistent::Yes);
+  sensorSizeCombobox->setSelectedItem(1);
   turnSpeedDrag = &simControlGroup->createChild<DragInput<float>>("drag_turn_speed", "Turn speed", 0.1f, 0.f, 100.f, 2.f, Persistent::Yes);
   movementSpeedDrag = &simControlGroup->createChild<DragInput<float>>("drag_move_speed", "Movement speed", 0.1f, -100.f, 100.f, 20.f, Persistent::Yes);
   trailWeightDrag = &simControlGroup->createChild<DragInput<float>>("drag_trail_weight", "Trail weight", 0.1f, 0.f, 1000.f, 5.f, Persistent::Yes);
@@ -77,6 +79,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     valueChange();
   });
   kernelSizeCombobox->addValueListener([&](auto) {
+    valueChange();
+  });
+  sensorSizeCombobox->addValueListener([&](auto) {
     valueChange();
   });
   diffuseRateDrag->addValueListener([&](auto) {
@@ -134,7 +139,9 @@ pf::physarum::SimConfig pf::ogl::UI::getConfig() const {
       .decayRate = decayRateDrag->getValue(),
       .maxTrailValue = maxTrailValueDrag->getValue(),
       .particleStart = particleInitCombobox->getValue(),
-      .particleCount = particleCountInput->getValue()};
+      .particleCount = particleCountInput->getValue(),
+      .sensorSize = sensorSizeCombobox->getValue()
+  };
   return result;
 }
 
@@ -155,6 +162,7 @@ void pf::ogl::UI::loadFromConfig(const pf::physarum::SimConfig &config) {
   maxTrailValueDrag->setValue(config.maxTrailValue);
   particleInitCombobox->setValue(config.particleStart);
   particleCountInput->setValue(config.particleCount);
+  sensorSizeCombobox->setValue(config.sensorSize);
 
   onConfigChange(getConfig());
 }

@@ -35,6 +35,7 @@ class UI {
       ui::ig::DragInput<int> *simSpeedDrag;
       ui::ig::DragInput<float> *senseAngleDrag;
       ui::ig::DragInput<float> *senseDistanceDrag;
+      ui::ig::Combobox<int> *sensorSizeCombobox;
       ui::ig::DragInput<float> *turnSpeedDrag;
       ui::ig::DragInput<float> *movementSpeedDrag;
       ui::ig::DragInput<float> *trailWeightDrag;

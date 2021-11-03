@@ -30,6 +30,7 @@ struct SimConfig {
   float maxTrailValue;
   ParticleStart particleStart;
   int particleCount;
+  int sensorSize;
 
   inline static SimConfig FromToml(const toml::table &src) {
     return {
@@ -43,7 +44,8 @@ struct SimConfig {
         .decayRate = src["decayRate"].value<float>().value(),
         .maxTrailValue = src["maxTrailValue"].value<float>().value(),
         .particleStart = static_cast<ParticleStart>(src["particleStart"].value<int>().value()),
-        .particleCount = src["particleCount"].value<int>().value()};
+        .particleCount = src["particleCount"].value<int>().value(),
+        .sensorSize = src["sensorSize"].value<int>().value()};
   }
 
   inline toml::table toToml() const {
@@ -58,7 +60,8 @@ struct SimConfig {
          {"decayRate", decayRate},
          {"maxTrailValue", maxTrailValue},
          {"particleStart", static_cast<int>(particleStart)},
-         {"particleCount", particleCount}}};
+         {"particleCount", particleCount},
+         {"sensorSize", sensorSize}}};
   }
 };
 

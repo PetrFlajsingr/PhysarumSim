@@ -19,6 +19,7 @@ void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTim
   simulateProgram->set1f("trailWeight", config.trailWeight);
   simulateProgram->set1f("maxTrailValue", config.maxTrailValue);
   simulateProgram->set1i("particleCount", static_cast<int>(particleCount));
+  simulateProgram->set1i("sensorSize", config.sensorSize);
   trailTexture->bindImage(1);
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   simulateProgram->dispatch(particleCount / 64 + 1);

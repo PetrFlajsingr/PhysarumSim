@@ -22,6 +22,7 @@ uniform float deltaT;
 uniform float time;
 uniform float trailWeight;
 uniform float maxTrailValue;
+uniform int sensorSize;
 
 vec2 rotate(vec2 v, float a) {
     float s = sin(a);
@@ -62,9 +63,17 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize) {
     const vec2 sensorPos = particle.position + sensorDir * senseDistance;
     const ivec2 iSensorPos = ivec2(sensorPos);
 
-    // todo sensor size
+    const int halfSensorSize = sensorSize / 2;
     const ivec2 texSensorPos = ivec2(min(texSize.x - 1, max(0, iSensorPos.x)), min(texSize.y - 1, max(0, iSensorPos.y)));
-    return imageLoad(texTrail, texSensorPos).r;
+
+    float tmp = 0;
+    for (int x = -halfSensorSize; x <= halfSensorSize; ++x) {
+        for (int y = -halfSensorSize; y <= halfSensorSize; ++y) {
+            tmp += imageLoad(texTrail, texSensorPos + ivec2(x, y)).r;
+        }
+    }
+
+    return tmp;
 }
 
 void main() {
