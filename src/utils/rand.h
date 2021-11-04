@@ -5,8 +5,9 @@
 #ifndef PHYSARUMSIM_SRC_UTILS_RAND_H
 #define PHYSARUMSIM_SRC_UTILS_RAND_H
 
-#include <random>
+#include <glm/vec3.hpp>
 #include <numbers>
+#include <random>
 
 inline float random(float min, float max) {
   std::random_device rd;
@@ -19,6 +20,10 @@ inline glm::vec2 randomUnitCircle() {
   const auto theta = 2 * std::numbers::pi_v<float> * random(0.f, 1.f);
   const auto r = std::sqrt(random(0.f, 1.f));
   return {r * std::cos(theta), r * sin(theta)};
+}
+
+inline glm::vec3 randomVec3(float min, float max) {
+  return {random(min, max), random(min, max), random(min, max)};
 }
 
 #endif//PHYSARUMSIM_SRC_UTILS_RAND_H

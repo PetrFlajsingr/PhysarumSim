@@ -24,15 +24,15 @@ namespace pf::physarum {
 
 class PhysarumSimulator {
  public:
-  explicit PhysarumSimulator(const SimConfig &config,
+  explicit PhysarumSimulator(const PopulationConfig &config,
                              const std::filesystem::path &shaderDir,
                              glm::uvec2 textureSize) : config(config),
                                                        textureSize(textureSize) {
-    trailTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_R32F, 0, textureSize.x, textureSize.y);
+    trailTexture = std::make_shared<Texture>(GL_TEXTURE_2D_ARRAY, GL_R32F, 0, textureSize.x, textureSize.y, 1);
     trailTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     trailTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    trailDiffuseTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_R32F, 0, textureSize.x, textureSize.y);
+    trailDiffuseTexture = std::make_shared<Texture>(GL_TEXTURE_2D_ARRAY, GL_R32F, 0, textureSize.x, textureSize.y, 1);
     trailDiffuseTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     trailDiffuseTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -59,18 +59,18 @@ class PhysarumSimulator {
   [[nodiscard]] const std::shared_ptr<Buffer> &getParticleBuffer() const;
   [[nodiscard]] const std::shared_ptr<Texture> &getTrailTexture() const;
 
-  [[nodiscard]] const SimConfig &getConfig() const;
-  void setConfig(const SimConfig &config);
+  [[nodiscard]] const PopulationConfig &getConfig() const;
+  void setConfig(const PopulationConfig &config);
 
-  void restart(const SimConfig &config);
+  void restart(const PopulationConfig &config);
 
   void setAttractorPosition(const glm::vec2 &attractorPosition);
   void setAttractorEnabled(bool attractorEnabled);
 
  private:
-  void reinit(const SimConfig &config);
+  void reinit(const PopulationConfig &config);
 
-  SimConfig config;
+  PopulationConfig config;
   std::uint32_t particleCount;
   glm::uvec2 textureSize;
 

@@ -2,8 +2,8 @@
 
 layout(local_size_x=8, local_size_y=8)in;
 
-layout(r32f, binding = 0) uniform image2D texTrail;
-layout(r32f, binding = 1) uniform image2D texTrailDiffuse;
+layout(r32f, binding = 0) uniform image2DArray texTrail;
+layout(r32f, binding = 1) uniform image2DArray texTrailDiffuse;
 
 
 uniform float deltaT;
@@ -13,15 +13,16 @@ uniform float decayRate;
 
 
 void main() {
-    const ivec2 texSize = imageSize(texTrail);
+    const ivec2 texSize = imageSize(texTrail).xy;
     if (gl_GlobalInvocationID.x < 0 || gl_GlobalInvocationID.x >= texSize.x) {
         return;
     }
     if (gl_GlobalInvocationID.y < 0 || gl_GlobalInvocationID.y >= texSize.y) {
         return;
     }
+    const uint speciesId = gl_GlobalInvocationID.z;
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
-    const float trailValue = imageLoad(texTrail, texCoord).r;
+    const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
 
     const int halfKernelSize = kernelSize / 2;
     float tmp = 0;
@@ -29,7 +30,7 @@ void main() {
         for (int y = -halfKernelSize; y <= halfKernelSize; ++y) {
             int idxX = int(min(texSize.x - 1, max(0, texCoord.x + x)));
             int idxY = int(min(texSize.y - 1, max(0, texCoord.y + y)));
-            tmp += imageLoad(texTrail, ivec2(idxX, idxY)).r;
+            tmp += imageLoad(texTrail, ivec3(idxX, idxY, speciesId)).r;
         }
     }
     float col = tmp / (kernelSize * kernelSize);
@@ -37,5 +38,5 @@ void main() {
     const float diffuseW = clamp(diffuseRate * deltaT, 0.f, 1.f);
     col = trailValue * (1.0 - diffuseW) + col * diffuseW;
 
-    imageStore(texTrailDiffuse, texCoord, vec4(max(0, col - decayRate * deltaT)));
+    imageStore(texTrailDiffuse, ivec3(texCoord, speciesId), vec4(max(0, col - decayRate * deltaT)));
 }

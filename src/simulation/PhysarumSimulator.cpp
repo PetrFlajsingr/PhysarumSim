@@ -25,7 +25,7 @@ void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTim
   simulateProgram->set2fv("attractorPosition", &attractorPosition[0]);
   trailTexture->bindImage(1);
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
-  simulateProgram->dispatch(particleCount / 64 + 1);
+  simulateProgram->dispatch(particleCount / 64 + 1, 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   diffuseTrailProgram->use();
@@ -35,7 +35,7 @@ void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTim
   diffuseTrailProgram->set1f("decayRate", config.decayRate);
   trailTexture->bindImage(0);
   trailDiffuseTexture->bindImage(1);
-  diffuseTrailProgram->dispatch(textureSize.x / 8, textureSize.y / 8);
+  diffuseTrailProgram->dispatch(textureSize.x / 8, textureSize.y / 8, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   std::swap(trailTexture, trailDiffuseTexture);
 }
@@ -52,15 +52,15 @@ const std::shared_ptr<Texture> &pf::physarum::PhysarumSimulator::getTrailTexture
   return trailTexture;
 }
 
-const pf::physarum::SimConfig &pf::physarum::PhysarumSimulator::getConfig() const {
+const pf::physarum::PopulationConfig &pf::physarum::PhysarumSimulator::getConfig() const {
   return config;
 }
 
-void pf::physarum::PhysarumSimulator::setConfig(const pf::physarum::SimConfig &config) {
+void pf::physarum::PhysarumSimulator::setConfig(const pf::physarum::PopulationConfig &config) {
   PhysarumSimulator::config = config;
 }
 
-void pf::physarum::PhysarumSimulator::reinit(const pf::physarum::SimConfig &config) {
+void pf::physarum::PhysarumSimulator::reinit(const pf::physarum::PopulationConfig &config) {
   particleCount = config.particleCount;
   std::unique_ptr<ParticleGenerator> generator = nullptr;
   switch (config.particleStart) {
@@ -76,7 +76,7 @@ void pf::physarum::PhysarumSimulator::reinit(const pf::physarum::SimConfig &conf
   trailTexture->setData2D(empty.data());
 }
 
-void pf::physarum::PhysarumSimulator::restart(const pf::physarum::SimConfig &config) {
+void pf::physarum::PhysarumSimulator::restart(const pf::physarum::PopulationConfig &config) {
   setConfig(config);
   reinit(config);
 }

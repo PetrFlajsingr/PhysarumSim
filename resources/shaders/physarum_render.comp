@@ -2,7 +2,7 @@
 
 layout(local_size_x=8, local_size_y=8)in;
 
-layout(r32f, binding = 0) uniform image2D texTrail;
+layout(r32f, binding = 0) uniform image2DArray texTrail;
 layout(rgba32f, binding = 1) uniform image2D texRender;
 
 uniform vec3 color;
@@ -17,7 +17,7 @@ void main() {
         return;
     }
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
-    const float trailValue = imageLoad(texTrail, texCoord).r;
+    const float trailValue = imageLoad(texTrail, ivec3(texCoord, 0)).r;
     const vec3 resColor = trailValue * color;
 
     imageStore(texRender, texCoord, vec4(resColor, 1.0));
