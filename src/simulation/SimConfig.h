@@ -39,8 +39,10 @@ class PopulationColor {
   [[nodiscard]] const glm::vec3 &getGradientStart() const;
   [[nodiscard]] const glm::vec3 &getGradientEnd() const;
   [[nodiscard]] bool isEnableTrailMult() const;
-  float getStartHue() const;
+  [[nodiscard]] float getStartHue() const;
+  [[nodiscard]] float getTrailPow() const;
 
+  void setTrailPow(float trailPow);
   void setStartHue(float startHue);
   void setEnableTrailMult(bool enableTrailMult);
   void setType(ColorType type);
@@ -66,6 +68,8 @@ class PopulationColor {
   float startHue = 0.0f;
 
   bool enableTrailMult = true;
+
+  float trailPow = 1.f;
 };
 
 enum class ParticleStart {

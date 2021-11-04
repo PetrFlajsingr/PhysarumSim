@@ -72,6 +72,7 @@ void pf::ogl::PhysarumRenderer::render() {
   renderTextureProgram->use();
   renderTextureProgram->set1i("multiplyByTrailValue", enableTrailMult ? 1 : 0);
   renderTextureProgram->set3fv("backgroundColor", &backgroundColor[0]);
+  renderTextureProgram->set1f("trailPow", trailPow);
   trailTexture->bindImage(0);
   renderTexture->bindImage(1);
   colorLUTBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
@@ -110,4 +111,7 @@ void pf::ogl::PhysarumRenderer::setEnableTrailMult(bool enableTrailMult) {
 
 void pf::ogl::PhysarumRenderer::setBackgroundColor(const glm::vec3 &backgroundColor) {
   PhysarumRenderer::backgroundColor = backgroundColor;
+}
+void pf::ogl::PhysarumRenderer::setTrailPow(float trailPow) {
+  PhysarumRenderer::trailPow = trailPow;
 }

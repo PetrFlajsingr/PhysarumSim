@@ -14,11 +14,12 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
     : Element(name),
       ValueObservable(physarum::PopulationColor{ColorType::Simple}),
       Savable(persistent),
-      layout(name + "layout", LayoutDirection::TopToBottom, Size{Width::Auto(), 120}, ShowBorder::Yes) {
+      layout(name + "layout", LayoutDirection::TopToBottom, Size{Width::Auto(), 140}, ShowBorder::Yes) {
 
   enableTrailMultiplyCheckbox = &layout.createChild<Checkbox>(getName() + "enable_trail_mult_checkbox", "Enable trail multiplication", true);
   colorTypeCombobox = &layout.createChild<Combobox<ColorType>>(getName() + "combobox_color_type", "Color type", "Select", magic_enum::enum_values<ColorType>());
   colorTypeCombobox->setSelectedItem(ColorType::Simple);
+  trailPowDrag = &layout.createChild<DragInput<float>>(getName() + "trail_pow_drag", "Trail render mod", .01f, 0.1f, 10.f, 1.f);
 
   stack = &layout.createChild<StackedLayout>(name + "stack", Size::Auto());
 
@@ -52,6 +53,7 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
   gradientStartColorEdit->addValueListener([onChange](auto) { onChange(); });
   gradientEndColorEdit->addValueListener([onChange](auto) { onChange(); });
   hueSlider->addValueListener([onChange](auto) { onChange(); });
+  trailPowDrag->addValueListener([onChange](auto) { onChange(); });
   randomizeButton->addClickListener([onChange] { onChange(); });
 }
 
@@ -76,6 +78,7 @@ PopulationColor SpeciesColorPanel::getColor() const {
   result.setGradientEnd(gradientEndColorEdit->getValue());
   result.setEnableTrailMult(enableTrailMultiplyCheckbox->getValue());
   result.setStartHue(hueSlider->getValue());
+  result.setTrailPow(trailPowDrag->getValue());
   return result;
 }
 
@@ -86,6 +89,7 @@ void SpeciesColorPanel::setColor(const physarum::PopulationColor &color) {
   gradientEndColorEdit->setValue(color.getGradientEnd());
   enableTrailMultiplyCheckbox->setValue(color.isEnableTrailMult());
   hueSlider->setValue(color.getStartHue());
+  trailPowDrag->setValue(color.getTrailPow());
   setValue(color);
 }
 

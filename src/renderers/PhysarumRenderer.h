@@ -39,6 +39,7 @@ class PhysarumRenderer {
 
   void setColorLUT(const std::array<glm::vec3, 256> &lut, std::size_t index);
   void setEnableTrailMult(bool enableTrailMult);
+  void setTrailPow(float trailPow);
 
   void setBackgroundColor(const glm::vec3 &backgroundColor);
 
@@ -61,6 +62,7 @@ class PhysarumRenderer {
 
   glm::ivec2 renderResolution;
   glm::vec3 backgroundColor;
+  float trailPow = 1.f;
 };
 
 }// namespace pf::ogl

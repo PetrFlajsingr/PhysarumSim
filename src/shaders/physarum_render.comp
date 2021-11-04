@@ -11,6 +11,7 @@ layout(binding = 2, std430)buffer ColorLUT{ vec4 colorLUT[]; };
 
 uniform vec3 color;
 uniform int multiplyByTrailValue;
+uniform float trailPow;
 
 uniform vec3 backgroundColor = vec3(1, 1, 1);
 
@@ -26,7 +27,8 @@ void main() {
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
     const float trailValue = imageLoad(texTrail, ivec3(texCoord, 0)).r;
 
-    const vec3 color = colorLUT[uint(trailValue * 255)].xyz;
+    //const vec3 color = colorLUT[uint(trailValue * 255)].xyz;
+    const vec3 color = colorLUT[uint(pow(trailValue, trailPow) * 255)].xyz;
 
     vec3 resColor = color * (trailValue == 0 ? 0 : 1);
     if (multiplyByTrailValue == TRUE) {

@@ -67,15 +67,20 @@ int main(int argc, char *argv[]) {
   auto sim = std::make_unique<physarum::PhysarumSimulator>(ui.getConfig(), shaderFolder, windowSize);
 
   ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
-  renderer.setColorLUT(ui.getConfig().color.getColorLUT(), 0);
-  renderer.setEnableTrailMult(ui.getConfig().color.isEnableTrailMult());
+  {
+    auto conf = ui.getConfig();
+    renderer.setColorLUT(conf.color.getColorLUT(), 0);
+    renderer.setEnableTrailMult(conf.color.isEnableTrailMult());
+    renderer.setTrailPow(conf.color.getTrailPow());
+  }
 
   ui.setOutImage(renderer.getRenderTexture());
 
   ui.onConfigChange = [&](const physarum::PopulationConfig &config) {
     sim->setConfig(config);
-    renderer.setColorLUT(ui.getConfig().color.getColorLUT(), 0);
-    renderer.setEnableTrailMult(ui.getConfig().color.isEnableTrailMult());
+    renderer.setColorLUT(config.color.getColorLUT(), 0);
+    renderer.setEnableTrailMult(config.color.isEnableTrailMult());
+    renderer.setTrailPow(config.color.getTrailPow());
   };
 
   bool isAttractorActive = false;
