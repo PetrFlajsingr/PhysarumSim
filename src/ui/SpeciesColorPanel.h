@@ -7,7 +7,9 @@
 
 #include <pf_imgui/elements/ColorChooser.h>
 #include <pf_imgui/elements/Combobox.h>
+#include <pf_imgui/elements/Checkbox.h>
 #include <pf_imgui/elements/Button.h>
+#include <pf_imgui/elements/Slider.h>
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/Savable.h>
 #include <pf_imgui/interface/ValueObservable.h>
@@ -39,15 +41,19 @@ class SpeciesColorPanel : public ui::ig::Element,
 
   ui::ig::BoxLayout layout;
 
+  ui::ig::Checkbox *enableTrailMultiplyCheckbox;
   ui::ig::Combobox<physarum::ColorType> *colorTypeCombobox;
   ui::ig::StackedLayout *stack;
 
   ui::ig::ColorEdit<glm::vec3> *simpleColorEdit;
 
+  // TODO: slider for gradient
   ui::ig::ColorEdit<glm::vec3> *gradientStartColorEdit;
   ui::ig::ColorEdit<glm::vec3> *gradientEndColorEdit;
 
   ui::ig::Button *randomizeButton;
+
+  ui::ig::Slider<float> *hueSlider;
 };
 
 }

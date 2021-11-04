@@ -6,6 +6,7 @@
 #define OPENGL_TEMPLATE_SRC_TRIANGLERENDERER_H
 
 #include <filesystem>
+#include <array>
 #include <geGL/Buffer.h>
 #include <geGL/Program.h>
 #include <geGL/Shader.h>
@@ -36,9 +37,12 @@ class PhysarumRenderer {
 
   void setTrailTexture(const std::shared_ptr<Texture> &trailTexture);
 
-  void setColor(const glm::vec3 &color);
+  void setColorLUT(const std::array<glm::vec3, 256> &lut, std::size_t index);
+  void setEnableTrailMult(bool enableTrailMult);
 
-  const std::shared_ptr<Texture> &getRenderTexture() const;
+  void setBackgroundColor(const glm::vec3 &backgroundColor);
+
+  [[nodiscard]] const std::shared_ptr<Texture> &getRenderTexture() const;
 
  private:
   std::filesystem::path shaderDir;
@@ -52,8 +56,11 @@ class PhysarumRenderer {
   std::shared_ptr<Texture> renderTexture;
   std::shared_ptr<Texture> trailTexture;
 
-  glm::vec3 color{1.0f};
+  std::shared_ptr<Buffer> colorLUTBuffer;
+  bool enableTrailMult = true;
+
   glm::ivec2 renderResolution;
+  glm::vec3 backgroundColor;
 };
 
 }// namespace pf::ogl

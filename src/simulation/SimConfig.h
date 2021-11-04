@@ -20,6 +20,10 @@ enum class ColorType {
   Simple, TwoColorGradient, Random/*, Heatmap*/, Rainbow
 };
 
+enum class FilterType {
+  Median = 0, Blur = 1
+};
+
 class PopulationColor {
  public:
   PopulationColor() = default;
@@ -34,7 +38,11 @@ class PopulationColor {
   [[nodiscard]] const glm::vec3 &getSimpleColor() const;
   [[nodiscard]] const glm::vec3 &getGradientStart() const;
   [[nodiscard]] const glm::vec3 &getGradientEnd() const;
+  [[nodiscard]] bool isEnableTrailMult() const;
+  float getStartHue() const;
 
+  void setStartHue(float startHue);
+  void setEnableTrailMult(bool enableTrailMult);
   void setType(ColorType type);
   void setSimpleColor(const glm::vec3 &simpleColor);
   void setGradientStart(const glm::vec3 &gradientStart);
@@ -54,6 +62,10 @@ class PopulationColor {
 
   glm::vec3 gradientStart{1.f};
   glm::vec3 gradientEnd{1.f};
+
+  float startHue = 0.0f;
+
+  bool enableTrailMult = true;
 };
 
 enum class ParticleStart {
@@ -77,6 +89,7 @@ struct PopulationConfig {
   int particleCount;
   int sensorSize;
   PopulationColor color;
+  FilterType filterType;
 
   static PopulationConfig FromToml(const toml::table &src);
   [[nodiscard]] toml::table toToml() const;

@@ -38,6 +38,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   speciesWindow = &imguiInterface->createWindow("species_window", "Species");
   speciesWindow->setIsDockable(true);
+  speciesWindow->setCollapsible(true);
+  backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background", glm::vec3{.0f}, Persistent::Yes);
   speciesButtonLayout = &speciesWindow->createChild<BoxLayout>("species_buttons_layout", LayoutDirection::LeftToRight, Size{Width::Fill(), 30}, AllowCollapse::No, ShowBorder::No, Persistent::Yes);
   addSpeciesButton = &speciesButtonLayout->createChild<Button>("add_species_layout", "Add species");
   removeSpeciesButton = &speciesButtonLayout->createChild<Button>("remove_species_layout", "Remove species");

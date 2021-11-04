@@ -14,8 +14,9 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
     : Element(name),
       ValueObservable(physarum::PopulationColor{ColorType::Simple}),
       Savable(persistent),
-      layout(name + "layout", LayoutDirection::TopToBottom, Size{Width::Auto(), 90}, ShowBorder::Yes) {
+      layout(name + "layout", LayoutDirection::TopToBottom, Size{Width::Auto(), 120}, ShowBorder::Yes) {
 
+  enableTrailMultiplyCheckbox = &layout.createChild<Checkbox>(getName() + "enable_trail_mult_checkbox", "Enable trail multiplication", true);
   colorTypeCombobox = &layout.createChild<Combobox<ColorType>>(getName() + "combobox_color_type", "Color type", "Select", magic_enum::enum_values<ColorType>());
   colorTypeCombobox->setSelectedItem(ColorType::Simple);
 
@@ -31,7 +32,8 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
   auto &randomStack = stack->pushStack();
   randomizeButton = &randomStack.createChild<Button>(name + "randomize_button", "Randomize");
 
-  stack->pushStack();
+  auto &rainbowStack = stack->pushStack();
+  hueSlider = &rainbowStack.createChild<Slider<float>>(name +"hue_slider", "Starting hue", 0.f, 360.f, 0.f);
 
   const auto onChange = [this] {
     setValue(getColor());
@@ -45,9 +47,11 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
     }
     onChange();
   }, true);
+  enableTrailMultiplyCheckbox->addValueListener([onChange](auto) { onChange(); });
   simpleColorEdit->addValueListener([onChange](auto) { onChange(); });
   gradientStartColorEdit->addValueListener([onChange](auto) { onChange(); });
   gradientEndColorEdit->addValueListener([onChange](auto) { onChange(); });
+  hueSlider->addValueListener([onChange](auto) { onChange(); });
   randomizeButton->addClickListener([onChange] { onChange(); });
 }
 
@@ -70,6 +74,8 @@ PopulationColor SpeciesColorPanel::getColor() const {
   result.setSimpleColor(simpleColorEdit->getValue());
   result.setGradientStart(gradientStartColorEdit->getValue());
   result.setGradientEnd(gradientEndColorEdit->getValue());
+  result.setEnableTrailMult(enableTrailMultiplyCheckbox->getValue());
+  result.setStartHue(hueSlider->getValue());
   return result;
 }
 
@@ -78,6 +84,8 @@ void SpeciesColorPanel::setColor(const physarum::PopulationColor &color) {
   simpleColorEdit->setValue(color.getSimpleColor());
   gradientStartColorEdit->setValue(color.getGradientStart());
   gradientEndColorEdit->setValue(color.getGradientEnd());
+  enableTrailMultiplyCheckbox->setValue(color.isEnableTrailMult());
+  hueSlider->setValue(color.getStartHue());
   setValue(color);
 }
 

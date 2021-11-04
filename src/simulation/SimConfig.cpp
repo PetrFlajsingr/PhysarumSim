@@ -45,9 +45,10 @@ std::array<glm::vec3, 256> PopulationColor::getRandomLUT() const {
 
 std::array<glm::vec3, 256> PopulationColor::getRainbowLUT() const {
   auto result = std::array<glm::vec3, 256>{};
-  auto hsvCol = glm::vec3{0, 1, 1};
+  auto hsvCol = glm::vec3{startHue, 1, 1};
   for (int i = 0; i < 256; ++i) {
-    hsvCol.r += 1 / 256.f;
+    hsvCol.r += 1 / 256.f * 360;
+    hsvCol.r -= static_cast<int>(hsvCol.r / 360) * 360.f;
     result[i] = glm::rgbColor(hsvCol);
   }
   return result;
@@ -59,6 +60,8 @@ PopulationColor PopulationColor::FromToml(const toml::table &src) {
   result.simpleColor = ui::ig::deserializeGlmVec<glm::vec3>(*src["simpleColor"].as_array());
   result.gradientStart = ui::ig::deserializeGlmVec<glm::vec3>(*src["gradientStart"].as_array());
   result.gradientEnd = ui::ig::deserializeGlmVec<glm::vec3>(*src["gradientEnd"].as_array());
+  result.enableTrailMult = src["enableTrailMult"].value<bool>().value();
+  result.startHue = src["startHue"].value<float>().value();
   return result;
 }
 
@@ -69,6 +72,8 @@ toml::table PopulationColor::toToml() const {
           {"simpleColor", ui::ig::serializeGlmVec(simpleColor)},
           {"gradientStart", ui::ig::serializeGlmVec(gradientStart)},
           {"gradientEnd", ui::ig::serializeGlmVec(gradientEnd)},
+          {"enableTrailMult", enableTrailMult},
+          {"startHue", startHue},
       }};
 }
 
@@ -77,11 +82,12 @@ bool PopulationColor::operator==(const PopulationColor &rhs) const {
   if (!isSameType) {
     return false;
   }
+  if (enableTrailMult != rhs.enableTrailMult) { return false; }
   switch (type) {
     case ColorType::Simple: return simpleColor == rhs.simpleColor;
     case ColorType::TwoColorGradient: return gradientStart == rhs.gradientStart && gradientEnd == rhs.gradientEnd;
     case ColorType::Random: return false;
-    case ColorType::Rainbow: return true;
+    case ColorType::Rainbow: return startHue == rhs.startHue;
   }
   return false;
 }
@@ -113,6 +119,18 @@ void PopulationColor::setGradientEnd(const glm::vec3 &gradientEnd) {
 void PopulationColor::setType(ColorType type) {
   PopulationColor::type = type;
 }
+bool PopulationColor::isEnableTrailMult() const {
+  return enableTrailMult;
+}
+void PopulationColor::setEnableTrailMult(bool enableTrailMult) {
+  PopulationColor::enableTrailMult = enableTrailMult;
+}
+float PopulationColor::getStartHue() const {
+  return startHue;
+}
+void PopulationColor::setStartHue(float startHue) {
+  PopulationColor::startHue = startHue;
+}
 
 PopulationConfig PopulationConfig::FromToml(const toml::table &src) {
   return {
@@ -128,7 +146,9 @@ PopulationConfig PopulationConfig::FromToml(const toml::table &src) {
       .particleStart = static_cast<ParticleStart>(src["particleStart"].value<int>().value()),
       .particleCount = src["particleCount"].value<int>().value(),
       .sensorSize = src["sensorSize"].value<int>().value(),
-      .color = PopulationColor::FromToml(*src["color"].as_table())};
+      .color = PopulationColor::FromToml(*src["color"].as_table()),
+      .filterType = static_cast<FilterType>(src["filterType"].value<int>().value()),
+  };
 }
 
 toml::table PopulationConfig::toToml() const {
@@ -145,14 +165,16 @@ toml::table PopulationConfig::toToml() const {
        {"particleStart", static_cast<int>(particleStart)},
        {"particleCount", particleCount},
        {"sensorSize", sensorSize},
-       {"color", color.toToml()}}};
+       {"color", color.toToml()},
+       {"filterType", static_cast<int>(filterType)},
+      }};
 }
 
 bool PopulationConfig::operator==(const PopulationConfig &rhs) const {
   return senseAngle == rhs.senseAngle && senseDistance == rhs.senseDistance && turnSpeed == rhs.turnSpeed && movementSpeed == rhs.movementSpeed
       && trailWeight == rhs.trailWeight && blurKernelSize == rhs.blurKernelSize && diffuseRate == rhs.diffuseRate && decayRate == rhs.decayRate
       && maxTrailValue == rhs.maxTrailValue && particleStart == rhs.particleStart && particleCount == rhs.particleCount && sensorSize == rhs.sensorSize
-      && color == rhs.color;
+      && color == rhs.color && filterType == rhs.filterType;
 }
 
 bool PopulationConfig::operator!=(const PopulationConfig &rhs) const {

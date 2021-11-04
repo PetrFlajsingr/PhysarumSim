@@ -8,6 +8,7 @@
 namespace pf {
 
 using namespace ui::ig;
+using namespace physarum;
 
 SpeciesPanel::SpeciesPanel(const std::string &name,
                            ui::ig::Persistent persistent)
@@ -26,7 +27,7 @@ void SpeciesPanel::renderImpl() {
 }
 
 void SpeciesPanel::unserialize_impl(const toml::table &src) {
-  auto config = physarum::PopulationConfig::FromToml(src);
+  auto config = PopulationConfig::FromToml(src);
   nameInputText->setValue(src["name"].value_or(""));
   setConfig(config);
 }
@@ -37,8 +38,8 @@ toml::table SpeciesPanel::serialize_impl() {
   return result;
 }
 
-physarum::PopulationConfig SpeciesPanel::getConfig() const {
-  auto result = physarum::PopulationConfig{
+PopulationConfig SpeciesPanel::getConfig() const {
+  auto result = PopulationConfig{
       .senseAngle = senseAngleDrag->getValue(),
       .senseDistance = senseDistanceDrag->getValue(),
       .turnSpeed = turnSpeedDrag->getValue(),
@@ -51,24 +52,26 @@ physarum::PopulationConfig SpeciesPanel::getConfig() const {
       .particleStart = particleInitCombobox->getValue(),
       .particleCount = particleCountInput->getValue(),
       .sensorSize = sensorSizeCombobox->getValue(),
-      .color = colorPanel->getValue()};
+      .color = colorPanel->getValue(),
+      .filterType = filterTypeCombobox->getValue()};
   return result;
 }
 
-void SpeciesPanel::setConfig(const physarum::PopulationConfig &config) {
+void SpeciesPanel::setConfig(const PopulationConfig &config) {
   senseAngleDrag->setValue(config.senseAngle);
   senseDistanceDrag->setValue(config.senseDistance);
   turnSpeedDrag->setValue(config.turnSpeed);
   movementSpeedDrag->setValue(config.movementSpeed);
   trailWeightDrag->setValue(config.trailWeight);
-  kernelSizeCombobox->setValue(config.blurKernelSize);
+  kernelSizeCombobox->setSelectedItem(config.blurKernelSize);
   diffuseRateDrag->setValue(config.diffuseRate);
   decayRateDrag->setValue(config.decayRate);
   maxTrailValueDrag->setValue(config.maxTrailValue);
-  particleInitCombobox->setValue(config.particleStart);
+  particleInitCombobox->setSelectedItem(config.particleStart);
   particleCountInput->setValue(config.particleCount);
   sensorSizeCombobox->setValue(config.sensorSize);
   colorPanel->setColor(config.color);
+  filterTypeCombobox->setSelectedItem(config.filterType);
 }
 
 void SpeciesPanel::createElements() {
@@ -76,8 +79,8 @@ void SpeciesPanel::createElements() {
 
   root.createChild<Separator>(getName() + "sep0");
 
-  particleInitCombobox = &root.createChild<Combobox<physarum::ParticleStart>>(getName() + "combobox_particle_start", "Init type", "Select", magic_enum::enum_values<physarum::ParticleStart>());
-  particleInitCombobox->setSelectedItem(physarum::ParticleStart::Random);
+  particleInitCombobox = &root.createChild<Combobox<ParticleStart>>(getName() + "combobox_particle_start", "Init type", "Select", magic_enum::enum_values<ParticleStart>());
+  particleInitCombobox->setSelectedItem(ParticleStart::Random);
   particleCountInput = &root.createChild<Input<int>>(getName() + "input_particle_count", "Particle count", 100, 1'000, 10'000);
   particleCountInput->addValueListener([&](const auto value) {
     static auto previousValue = value;
@@ -98,6 +101,8 @@ void SpeciesPanel::createElements() {
 
   root.createChild<Separator>(getName() + "sep2");
 
+  filterTypeCombobox = &root.createChild<Combobox<FilterType>>(getName() + "combobox_filter_size", "Filter", "select", magic_enum::enum_values<FilterType>());
+  filterTypeCombobox->setSelectedItem(FilterType::Blur);
   kernelSizeCombobox = &root.createChild<Combobox<int>>(getName() + "combobox_kernel_size", "Kernel size", "select", std::vector<int>{1, 3, 5, 7, 9});
   kernelSizeCombobox->setSelectedItem(3);
   diffuseRateDrag = &root.createChild<DragInput<float>>(getName() + "drag_diffuse_rate", "Diffuse rate", 0.1f, 0.0f, 100.f, 3.f);
@@ -123,6 +128,11 @@ void SpeciesPanel::registerListeners() {
   decayRateDrag->addValueListener(setChange);
   maxTrailValueDrag->addValueListener(setChange);
   colorPanel->addValueListener(setChange);
+  filterTypeCombobox->addValueListener(setChange);
+
+  filterTypeCombobox->addValueListener([&](const auto value) {
+    kernelSizeCombobox->setVisibility(value == FilterType::Blur ? Visibility::Visible : Visibility::Invisible);
+  });
 }
 
 }// namespace pf

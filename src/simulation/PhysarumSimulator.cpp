@@ -33,6 +33,7 @@ void pf::physarum::PhysarumSimulator::simulate(float currentTime, float deltaTim
   diffuseTrailProgram->set1i("kernelSize", config.blurKernelSize);
   diffuseTrailProgram->set1f("diffuseRate", config.diffuseRate);
   diffuseTrailProgram->set1f("decayRate", config.decayRate);
+  diffuseTrailProgram->set1i("filterType", static_cast<int>(config.filterType));
   trailTexture->bindImage(0);
   trailDiffuseTexture->bindImage(1);
   diffuseTrailProgram->dispatch(textureSize.x / 8, textureSize.y / 8, 1);
@@ -73,7 +74,8 @@ void pf::physarum::PhysarumSimulator::reinit(const pf::physarum::PopulationConfi
   particleBuffer = std::make_shared<Buffer>(particles.size() * sizeof(Particle), particles.data());
 
   std::vector<float> empty(textureSize.x * textureSize.y, 0);
-  trailTexture->setData2D(empty.data());
+  trailTexture->setData3D(empty.data());
+  //trailTexture->setData2D(empty.data());
 }
 
 void pf::physarum::PhysarumSimulator::restart(const pf::physarum::PopulationConfig &config) {

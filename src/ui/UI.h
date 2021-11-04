@@ -39,6 +39,7 @@ class UI {
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
   ui::ig::Window *speciesWindow;
+    ui::ig::ColorEdit<glm::vec3> *backgroundColorEdit;
     ui::ig::BoxLayout *speciesButtonLayout;
       ui::ig::Button *addSpeciesButton;
       ui::ig::Button *removeSpeciesButton;

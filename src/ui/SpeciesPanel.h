@@ -51,6 +51,7 @@ class SpeciesPanel : public ui::ig::Element,
   ui::ig::DragInput<float> *turnSpeedDrag;
   ui::ig::DragInput<float> *movementSpeedDrag;
   ui::ig::DragInput<float> *trailWeightDrag;
+  ui::ig::Combobox<physarum::FilterType> *filterTypeCombobox;
   ui::ig::Combobox<int> *kernelSizeCombobox;
   ui::ig::DragInput<float> *diffuseRateDrag;
   ui::ig::DragInput<float> *decayRateDrag;
