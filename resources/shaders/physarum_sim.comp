@@ -69,9 +69,6 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
     for (int x = -halfSensorSize; x <= halfSensorSize; ++x) {
         for (int y = -halfSensorSize; y <= halfSensorSize; ++y) {
             tmp += imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), speciesId)).r;
-            if (speciesId == 0) {
-                tmp -= imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), speciesId + 1)).r;
-            }
         }
     }
 

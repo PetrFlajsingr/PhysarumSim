@@ -8,6 +8,7 @@
 
 pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   using namespace ui::ig;
+  using namespace enum_operators;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(ImGuiGlfwOpenGLConfig{
       .windowHandle = windowHandle,
       .flags = {},
@@ -18,10 +19,23 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
       .defaultFontSize = 13.f});
   setDarkStyle(*imguiInterface);
 
+  appMenuBar = &imguiInterface->getMenuBar();
+  viewSubmenu = &appMenuBar->addSubmenu("app_view_submenu", "View");
+  auto &viewSimWin = viewSubmenu->addCheckboxItem("show_sim_menu", "Simulation", true, Persistent::Yes);
+  auto &viewImagesWin = viewSubmenu->addCheckboxItem("show_images_menu", "Images", true, Persistent::Yes);
+  auto &viewSpeciesWin = viewSubmenu->addCheckboxItem("show_species_menu", "Species", true, Persistent::Yes);
+
   windowSim = &imguiInterface->createWindow("sim_window", "Simulation");
+  viewSimWin.addValueListener([&](bool value) {
+    windowSim->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                              true);
+  windowSim->addCloseListener([&]() {
+    viewSimWin.setValue(false);
+  });
+  windowSim->setCloseable(true);
   windowSim->setIsDockable(true);
-  windowSim->setCollapsible(true);
-/*  simMenuBar = &windowSim->getMenuBar();
+  /*  simMenuBar = &windowSim->getMenuBar();
   fileSimSubmenu = &simMenuBar->addSubmenu("file_sim_submenu", "File");
   saveSimConfigButton = &fileSimSubmenu->addButtonItem("save_sim_button", "Save");
   loadSimConfigButton = &fileSimSubmenu->addButtonItem("load_sim_button", "Load");*/
@@ -31,10 +45,26 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   restartSimButton = &simControlGroup->createChild<Button>("restart_sim", "Restart");
 
   imagesWindow = &imguiInterface->createWindow("image_window", "Images");
+  viewImagesWin.addValueListener([&](bool value) {
+    imagesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                                 true);
+  imagesWindow->addCloseListener([&]() {
+    viewImagesWin.setValue(false);
+  });
+  imagesWindow->setCloseable(true);
   imagesWindow->setIsDockable(true);
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
   speciesWindow = &imguiInterface->createWindow("species_window", "Species");
+  viewSpeciesWin.addValueListener([&](bool value) {
+    speciesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                                  true);
+  speciesWindow->addCloseListener([&]() {
+    viewSpeciesWin.setValue(false);
+  });
+  speciesWindow->setCloseable(true);
   speciesWindow->setIsDockable(true);
   speciesWindow->setCollapsible(true);
   backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background", glm::vec3{.0f}, Persistent::Yes);
@@ -43,19 +73,37 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   speciesTabBar = &speciesWindow->createChild<TabBar>("species_tabbar", true);
   addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", "+", TabMod::ForceRight);
   addSpeciesButton->addClickListener([&] {
-    imguiInterface->openInputDialog("Species name", "Input species name", [&] (const auto input) {
+    imguiInterface->openInputDialog(
+        "Species name", "Input species name", [&](const auto input) {
           auto &tab = speciesTabBar->addTab(input + "_species_tab", input, true);
-          auto panel = speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>("species1"));
-    }, []{});
+          speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(input + "_panel"));
+
+          tab.addOpenListener([&, input](bool open) {
+            if (open) { return;}
+            imguiInterface->createMsgDlg("Remove species?", fmt::format("Do you want to remove species '{}'", input), MessageButtons::Yes | MessageButtons::No,
+                [&tab] (auto btn) {
+                                   if (btn == MessageButtons::No) {tab.setOpen();}
+                                   return true;});
+          }); }, [] {});
   });
 
-  /*auto &species2Tab = speciesTabBar->addTab("tab_test2", "Species 2");
-  auto species2Panel = speciesPanels.emplace_back(&species1Tab.createChild<SpeciesPanel>("species2", Persistent::Yes));*/
+  restartSimButton->addClickListener([&] {
+    auto closedTabs = speciesTabBar->getTabs() | std::views::filter([](const auto &tab) {
+                        return !tab.isOpen();
+                      });
+    for (auto &tab : closedTabs) {
+      speciesPanels.erase(std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_panel"; }));
+      tab.removeChild(tab.getLabel() + "_panel");
+    }
+
+    auto closedTabNames = closedTabs | std::views::transform(&Tab::getName) | ranges::to_vector;
+    std::ranges::for_each(closedTabNames, [&](const auto &tabName) {
+      speciesTabBar->removeTab(tabName);
+    });
+  });
 
 
-
-
- /* saveSimConfigButton->addClickListener([&] {
+  /* saveSimConfigButton->addClickListener([&] {
     imguiInterface->openFileDialog(
         "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {

@@ -15,6 +15,7 @@
 #include <geGL/Texture.h>
 #include "SpeciesPanel.h"
 
+ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ui::ig)
 
 namespace pf::ogl {
 
@@ -24,6 +25,9 @@ class UI {
   UI(const toml::table &config, GLFWwindow *windowHandle);
 
   // clang-format off
+  ui::ig::AppMenuBar *appMenuBar;
+    ui::ig::SubMenu *viewSubmenu;
+
   ui::ig::Window *windowSim;
   /*  ui::ig::WindowMenuBar *simMenuBar;
       ui::ig::SubMenu *fileSimSubmenu;

@@ -78,6 +78,7 @@ void pf::ogl::PhysarumRenderer::render() {
   renderTextureProgram->use();
   renderTextureProgram->set3fv("backgroundColor", &backgroundColor[0]);
   renderTextureProgram->set1i("speciesCount", speciesCount);
+  renderTextureProgram->set1i("blendType", static_cast<int>(blendType));
   trailTexture->bindImage(0);
   renderTexture->bindImage(1);
   colorLUTBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
@@ -125,6 +126,9 @@ void pf::ogl::PhysarumRenderer::setConfig(const pf::physarum::PopulationColor &c
     const auto bufferSpan = std::span{reinterpret_cast<details::SpeciesShaderRenderSettings *>(bufferData), colorLUTBuffer->getSize() / sizeof(details::SpeciesShaderRenderSettings)};
     bufferSpan[index] = settings;
     setColorLUT(config.getColorLUT(), index);
+}
+void pf::ogl::PhysarumRenderer::setBlendType(pf::ogl::BlendType blendType) {
+  PhysarumRenderer::blendType = blendType;
 }
 
 pf::ogl::details::SpeciesShaderRenderSettings::SpeciesShaderRenderSettings(const pf::physarum::PopulationColor &src) {

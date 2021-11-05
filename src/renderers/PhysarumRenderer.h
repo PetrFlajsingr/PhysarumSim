@@ -18,6 +18,10 @@
 
 namespace pf::ogl {
 
+enum class BlendType {
+  Additive = 0, AlphaMix = 1, Layered = 2
+};
+
 namespace details {
 inline const float vertices[] = {
     0.5f, 0.5f, 0.0f,
@@ -44,6 +48,7 @@ class PhysarumRenderer {
   void setColorLUT(const std::array<glm::vec3, 256> &lut, std::size_t index);
 
   void setBackgroundColor(const glm::vec3 &backgroundColor);
+  void setBlendType(BlendType blendType);
 
   [[nodiscard]] const std::shared_ptr<Texture> &getRenderTexture() const;
 
@@ -66,6 +71,7 @@ class PhysarumRenderer {
   glm::vec3 backgroundColor;
 
   int speciesCount;
+  BlendType blendType = BlendType::AlphaMix;
 };
 
 namespace details {
