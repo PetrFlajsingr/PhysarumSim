@@ -79,6 +79,7 @@ class PhysarumSimulator {
   std::shared_ptr<Texture> trailTexture;
   std::shared_ptr<Texture> trailDiffuseTexture;
   std::shared_ptr<Buffer> speciesSettingsBuffer;
+  std::shared_ptr<Buffer> speciesDiffuseSettingsBuffer;
 
   // display in renderer - render trail texture to another texture and present on a quad
 
@@ -105,6 +106,14 @@ struct SpeciesShaderSettings {
   int sensorSize;
   SpeciesShaderSettings() = default;
   SpeciesShaderSettings(const PopulationConfig &src);
+};
+struct SpeciesShaderDiffuseSettings {
+  int kernelSize;
+  float diffuseRate;
+  float decayRate;
+  int filterType;
+  SpeciesShaderDiffuseSettings() = default;
+  SpeciesShaderDiffuseSettings(const PopulationConfig &src);
 };
 }// namespace details
 

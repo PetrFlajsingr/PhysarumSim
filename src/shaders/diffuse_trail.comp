@@ -2,20 +2,24 @@
 
 layout(local_size_x=8, local_size_y=8)in;
 
-layout(r32f, binding = 0) uniform image2DArray texTrail;
-layout(r32f, binding = 1) uniform image2DArray texTrailDiffuse;
-
-
 #define FILTER_TYPE int
 #define FILTER_MEDIAN 0
 #define FILTER_BLUR 1
 
+struct Settings {
+    int kernelSize;
+    float diffuseRate;
+    float decayRate;
+    FILTER_TYPE filterType;
+};
+
+layout(r32f, binding = 0) uniform image2DArray texTrail;
+layout(r32f, binding = 1) uniform image2DArray texTrailDiffuse;
+layout(binding = 2, std430)buffer SpeciesSettings{Settings settings[]; };
+
 
 uniform float deltaT;
-uniform int kernelSize;
-uniform float diffuseRate;
-uniform float decayRate;
-uniform FILTER_TYPE filterType;
+
 
 float boxBlur(ivec2 center, int size, ivec2 texSize) {
     const uint speciesId = gl_GlobalInvocationID.z;
@@ -28,7 +32,7 @@ float boxBlur(ivec2 center, int size, ivec2 texSize) {
             tmp += imageLoad(texTrail, ivec3(idxX, idxY, speciesId)).r;
         }
     }
-    return tmp / (kernelSize * kernelSize);
+    return tmp / (size * size);
 }
 
 void sort2(inout float a0, inout float a1) {
@@ -86,18 +90,19 @@ void main() {
         return;
     }
     const uint speciesId = gl_GlobalInvocationID.z;
+    const Settings sSettings = settings[speciesId];
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
     const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
 
     float col;
-    if (filterType == FILTER_BLUR) {
-        col = boxBlur(texCoord, kernelSize, texSize);
-    } else if (filterType == FILTER_MEDIAN) {
+    if (sSettings.filterType == FILTER_BLUR) {
+        col = boxBlur(texCoord, sSettings.kernelSize, texSize);
+    } else if (sSettings.filterType == FILTER_MEDIAN) {
         col = median(texCoord, texSize);
     }
 
-    const float diffuseW = clamp(diffuseRate * deltaT, 0.f, 1.f) + kernelSize * 0.000001;
+    const float diffuseW = clamp(sSettings.diffuseRate * deltaT, 0.f, 1.f);
     col = trailValue * (1.0 - diffuseW) + col * diffuseW;
 
-    imageStore(texTrailDiffuse, ivec3(texCoord, speciesId), vec4(max(0, col - decayRate * deltaT)));
+    imageStore(texTrailDiffuse, ivec3(texCoord, speciesId), vec4(max(0, col - sSettings.decayRate * deltaT)));
 }

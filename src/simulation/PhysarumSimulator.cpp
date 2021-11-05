@@ -24,12 +24,9 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
 
   diffuseTrailProgram->use();
   diffuseTrailProgram->set1f("deltaT", deltaTime);
-  diffuseTrailProgram->set1i("kernelSize", config.blurKernelSize);
-  diffuseTrailProgram->set1f("diffuseRate", config.diffuseRate);
-  diffuseTrailProgram->set1f("decayRate", config.decayRate);
-  diffuseTrailProgram->set1i("filterType", static_cast<int>(config.filterType));
   trailTexture->bindImage(0);
   trailDiffuseTexture->bindImage(1);
+  speciesDiffuseSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
   diffuseTrailProgram->dispatch(textureSize.x / 8, textureSize.y / 8, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
   std::swap(trailTexture, trailDiffuseTexture);
@@ -51,6 +48,8 @@ void PhysarumSimulator::setConfig(const PopulationConfig &config) {
   PhysarumSimulator::config = config;
   const auto shaderConfig = details::SpeciesShaderSettings{config};
   speciesSettingsBuffer->setData(&shaderConfig, sizeof(details::SpeciesShaderSettings));
+  const auto shaderDiffuseConfig = details::SpeciesShaderDiffuseSettings{config};
+  speciesDiffuseSettingsBuffer->setData(&shaderDiffuseConfig, sizeof(details::SpeciesShaderDiffuseSettings));
 }
 
 void PhysarumSimulator::reinit(const PopulationConfig &config) {
@@ -69,6 +68,8 @@ void PhysarumSimulator::reinit(const PopulationConfig &config) {
   //trailTexture->setData2D(empty.data());
   const auto shaderConfig = details::SpeciesShaderSettings{config};
   speciesSettingsBuffer = std::make_shared<Buffer>(sizeof(details::SpeciesShaderSettings), &shaderConfig);
+  const auto shaderDiffuseConfig = details::SpeciesShaderDiffuseSettings{config};
+  speciesDiffuseSettingsBuffer = std::make_shared<Buffer>(sizeof(details::SpeciesShaderDiffuseSettings), &shaderDiffuseConfig);
 }
 
 void PhysarumSimulator::restart(const PopulationConfig &config) {
@@ -95,4 +96,10 @@ details::SpeciesShaderSettings::SpeciesShaderSettings(const PopulationConfig &sr
   sensorSize = src.sensorSize;
 }
 
+details::SpeciesShaderDiffuseSettings::SpeciesShaderDiffuseSettings(const PopulationConfig &src) {
+  kernelSize = src.blurKernelSize;
+  diffuseRate = src.diffuseRate;
+  decayRate = src.decayRate;
+  filterType = static_cast<int>(src.filterType);
+}
 }// namespace pf::physarum
