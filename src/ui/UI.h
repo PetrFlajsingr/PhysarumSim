@@ -5,17 +5,19 @@
 #ifndef OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 #define OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 
+#include "SpeciesPanel.h"
+#include "simulation/SimConfig.h"
 #include <GLFW/glfw3.h>
+#include <geGL/Texture.h>
+#include <pf_common/enums.h>
 #include <pf_imgui/ImGuiInterface.h>
 #include <pf_imgui/elements.h>
 #include <pf_imgui/layouts/layouts.h>
+#include <renderers/PhysarumRenderer.h>
 #include <toml++/toml.h>
-#include "simulation/SimConfig.h"
-#include <pf_common/enums.h>
-#include <geGL/Texture.h>
-#include "SpeciesPanel.h"
 
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ui::ig)
+ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 
 namespace pf::ogl {
 
@@ -41,6 +43,7 @@ class UI {
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
   ui::ig::Window *speciesWindow;
+    ui::ig::Combobox<BlendType> *blendTypeCombobox;
     ui::ig::ColorEdit<glm::vec3> *backgroundColorEdit;
     ui::ig::BoxLayout *speciesButtonLayout;
     ui::ig::TabBar *speciesTabBar;

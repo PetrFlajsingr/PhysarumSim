@@ -125,6 +125,10 @@ int main(int argc, char *argv[]) {
     renderer.setBackgroundColor(color);
   },
                                            true);
+  ui.blendTypeCombobox->addValueListener([&](const auto blendType) {
+    renderer.setBlendType(blendType);
+  },
+                                          true);
 
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     if (window->shouldClose()) {

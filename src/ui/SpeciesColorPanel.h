@@ -42,7 +42,6 @@ class SpeciesColorPanel : public ui::ig::Element,
 
   ui::ig::BoxLayout layout;
 
-  ui::ig::Checkbox *enableTrailMultiplyCheckbox;
   ui::ig::Combobox<physarum::ColorType> *colorTypeCombobox;
   ui::ig::DragInput<float> *trailPowDrag;
 
@@ -50,7 +49,6 @@ class SpeciesColorPanel : public ui::ig::Element,
 
   ui::ig::ColorEdit<glm::vec3> *simpleColorEdit;
 
-  // TODO: slider for gradient
   ui::ig::ColorEdit<glm::vec3> *gradientStartColorEdit;
   ui::ig::ColorEdit<glm::vec3> *gradientEndColorEdit;
 

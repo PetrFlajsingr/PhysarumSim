@@ -16,7 +16,6 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
       Savable(persistent),
       layout(name + "layout", LayoutDirection::TopToBottom, Size{Width::Auto(), 140}, ShowBorder::Yes) {
 
-  enableTrailMultiplyCheckbox = &layout.createChild<Checkbox>(getName() + "enable_trail_mult_checkbox", "Enable trail multiplication", true);
   colorTypeCombobox = &layout.createChild<Combobox<ColorType>>(getName() + "combobox_color_type", "Color type", "Select", magic_enum::enum_values<ColorType>());
   colorTypeCombobox->setSelectedItem(ColorType::Simple);
   trailPowDrag = &layout.createChild<DragInput<float>>(getName() + "trail_pow_drag", "Trail render mod", .01f, 0.1f, 10.f, 1.f);
@@ -48,7 +47,6 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
     }
     onChange();
   }, true);
-  enableTrailMultiplyCheckbox->addValueListener([onChange](auto) { onChange(); });
   simpleColorEdit->addValueListener([onChange](auto) { onChange(); });
   gradientStartColorEdit->addValueListener([onChange](auto) { onChange(); });
   gradientEndColorEdit->addValueListener([onChange](auto) { onChange(); });

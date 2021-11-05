@@ -67,6 +67,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   speciesWindow->setCloseable(true);
   speciesWindow->setIsDockable(true);
   speciesWindow->setCollapsible(true);
+  blendTypeCombobox = &speciesWindow->createChild<Combobox<BlendType>>("blend_type_combobox", "Blend type", "Select", magic_enum::enum_values<BlendType>(), ComboBoxCount::Items8, Persistent::Yes);
+  blendTypeCombobox->setSelectedItem(BlendType::AlphaMix);
   backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background", glm::vec3{.0f}, Persistent::Yes);
   speciesButtonLayout = &speciesWindow->createChild<BoxLayout>("species_buttons_layout", LayoutDirection::LeftToRight, Size{Width::Fill(), 30}, AllowCollapse::No, ShowBorder::No, Persistent::Yes);
 
