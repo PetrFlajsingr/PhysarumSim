@@ -3,7 +3,6 @@
 layout(local_size_x=8, local_size_y=8)in;
 
 struct Settings {
-    int multiplyByTrailValue;
     float trailPow;
 };
 
@@ -16,8 +15,8 @@ layout(binding = 3, std430)buffer SpeciesSettings{Settings settings[]; };
 #define FALSE 0
 
 
-uniform int speciesId;
 uniform vec3 backgroundColor = vec3(1, 1, 1);
+uniform int speciesCount;
 
 void main() {
     const ivec2 dimensions = imageSize(texRender);
@@ -28,11 +27,36 @@ void main() {
     if (gl_GlobalInvocationID.y >= dimensions.y) {
         return;
     }
-    const Settings sSettings = settings[speciesId];
+    const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+
+    vec3 finColor = vec3(0);
+    int nonZero = 0;
+    for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
+        const Settings sSettings = settings[speciesId];
+        const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+
+        if (trailValue == 0) {
+            continue;
+        }
+        ++nonZero;
+
+        const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255) + speciesId * 256].xyz;
+
+        vec3 resColor = color * (trailValue == 0 ? 0 : 1);
+        resColor = mix(backgroundColor, resColor, trailValue);
+        finColor += resColor;
+    }
+    finColor /= nonZero;
+    if (nonZero == 0) {
+        finColor = backgroundColor;
+    }
+    imageStore(texRender, texCoord, vec4(finColor, 1.0));
+
+    /*const Settings sSettings = settings[speciesId];
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
     const float trailValue = imageLoad(texTrail, ivec3(texCoord, 0)).r;
 
-    const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255)].xyz;
+    const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255) + speciesCount * 256].xyz;
 
     vec3 resColor = color * (trailValue == 0 ? 0 : 1);
     if (sSettings.multiplyByTrailValue == TRUE) {
@@ -41,6 +65,5 @@ void main() {
         resColor = trailValue == 0 ? backgroundColor : resColor;
     }
 
-
-    imageStore(texRender, texCoord, vec4(resColor, 1.0));
+    imageStore(texRender, texCoord, vec4(resColor, 1.0));*/
 }

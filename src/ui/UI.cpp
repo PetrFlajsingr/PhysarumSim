@@ -39,12 +39,15 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   speciesWindow->setCollapsible(true);
   backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background", glm::vec3{.0f}, Persistent::Yes);
   speciesButtonLayout = &speciesWindow->createChild<BoxLayout>("species_buttons_layout", LayoutDirection::LeftToRight, Size{Width::Fill(), 30}, AllowCollapse::No, ShowBorder::No, Persistent::Yes);
-  addSpeciesButton = &speciesButtonLayout->createChild<Button>("add_species_layout", "Add species");
-  removeSpeciesButton = &speciesButtonLayout->createChild<Button>("remove_species_layout", "Remove species");
-  speciesTabBar = &speciesWindow->createChild<TabBar>("species_tabbar", true);
 
-  auto &species1Tab = speciesTabBar->addTab("tab_test", "Species 1");
-  auto species1Panel = speciesPanels.emplace_back(&species1Tab.createChild<SpeciesPanel>("species1", Persistent::Yes));
+  speciesTabBar = &speciesWindow->createChild<TabBar>("species_tabbar", true);
+  addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", "+", TabMod::ForceRight);
+  addSpeciesButton->addClickListener([&] {
+    imguiInterface->openInputDialog("Species name", "Input species name", [&] (const auto input) {
+          auto &tab = speciesTabBar->addTab(input + "_species_tab", input, true);
+          auto panel = speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>("species1"));
+    }, []{});
+  });
 
   /*auto &species2Tab = speciesTabBar->addTab("tab_test2", "Species 2");
   auto species2Panel = speciesPanels.emplace_back(&species1Tab.createChild<SpeciesPanel>("species2", Persistent::Yes));*/

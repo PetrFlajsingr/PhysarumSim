@@ -5,6 +5,7 @@
 #ifndef PHYSARUMSIM_SRC_UI_SPECIESPANEL_H
 #define PHYSARUMSIM_SRC_UI_SPECIESPANEL_H
 
+#include "SpeciesColorPanel.h"
 #include <pf_imgui/elements/ColorChooser.h>
 #include <pf_imgui/elements/Combobox.h>
 #include <pf_imgui/elements/DragInput.h>
@@ -15,7 +16,6 @@
 #include <pf_imgui/interface/ValueObservable.h>
 #include <pf_imgui/layouts/BoxLayout.h>
 #include <simulation/SimConfig.h>
-#include "SpeciesColorPanel.h"
 
 namespace pf {
 
@@ -23,14 +23,10 @@ class SpeciesPanel : public ui::ig::Element,
                      public ui::ig::ValueObservable<physarum::PopulationConfig>,
                      public ui::ig::Savable {
  public:
-  SpeciesPanel(const std::string &name, ui::ig::Persistent persistent);
+  SpeciesPanel(const std::string &name, ui::ig::Persistent persistent = ui::ig::Persistent::No);
 
   [[nodiscard]] physarum::PopulationConfig getConfig() const;
   void setConfig(const physarum::PopulationConfig &config);
-
-  void addNameListener(std::invocable<std::string_view> auto &&listener) {
-    nameInputText->addValueListener(std::forward<decltype(listener)>(listener));
-  }
 
  protected:
   void unserialize_impl(const toml::table &src) override;
@@ -45,7 +41,6 @@ class SpeciesPanel : public ui::ig::Element,
   void registerListeners();
 
   ui::ig::BoxLayout root;
-  ui::ig::InputText *nameInputText;
   ui::ig::DragInput<float> *senseAngleDrag;
   ui::ig::DragInput<float> *senseDistanceDrag;
   ui::ig::DragInput<float> *turnSpeedDrag;
@@ -60,7 +55,6 @@ class SpeciesPanel : public ui::ig::Element,
   ui::ig::Input<int> *particleCountInput;
   ui::ig::Combobox<int> *sensorSizeCombobox;
   SpeciesColorPanel *colorPanel;
-
 };
 
 }// namespace pf

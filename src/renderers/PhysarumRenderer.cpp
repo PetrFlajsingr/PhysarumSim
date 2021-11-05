@@ -70,16 +70,14 @@ void pf::ogl::PhysarumRenderer::init(const std::vector<physarum::PopulationColor
   for (std::size_t i = 0; i < populations.size(); ++i) {
     setConfig(populations[i], i);
   }
+  speciesCount = populations.size();
 }
 
 
 void pf::ogl::PhysarumRenderer::render() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   renderTextureProgram->use();
-  //renderTextureProgram->set1i("multiplyByTrailValue", enableTrailMult ? 1 : 0);
   renderTextureProgram->set3fv("backgroundColor", &backgroundColor[0]);
-  //renderTextureProgram->set1f("trailPow", trailPow);
+  renderTextureProgram->set1i("speciesCount", speciesCount);
   trailTexture->bindImage(0);
   renderTexture->bindImage(1);
   colorLUTBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
@@ -130,6 +128,5 @@ void pf::ogl::PhysarumRenderer::setConfig(const pf::physarum::PopulationColor &c
 }
 
 pf::ogl::details::SpeciesShaderRenderSettings::SpeciesShaderRenderSettings(const pf::physarum::PopulationColor &src) {
-  multiplyByTrailValue = src.isEnableTrailMult();
   trailPow = src.getTrailPow();
 }

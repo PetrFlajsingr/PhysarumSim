@@ -64,11 +64,12 @@ class PhysarumRenderer {
 
   glm::ivec2 renderResolution;
   glm::vec3 backgroundColor;
+
+  int speciesCount;
 };
 
 namespace details {
 struct SpeciesShaderRenderSettings {
-  int multiplyByTrailValue;
   float trailPow;
   SpeciesShaderRenderSettings() = default;
   SpeciesShaderRenderSettings(const physarum::PopulationColor &src);

@@ -28,13 +28,11 @@ void SpeciesPanel::renderImpl() {
 
 void SpeciesPanel::unserialize_impl(const toml::table &src) {
   auto config = PopulationConfig::FromToml(src);
-  nameInputText->setValue(src["name"].value_or(""));
   setConfig(config);
 }
 
 toml::table SpeciesPanel::serialize_impl() {
   auto result = getConfig().toToml();
-  result.insert("name", nameInputText->getValue());
   return result;
 }
 
@@ -75,8 +73,6 @@ void SpeciesPanel::setConfig(const PopulationConfig &config) {
 }
 
 void SpeciesPanel::createElements() {
-  nameInputText = &root.createChild<InputText>(getName() + "name_input", "Population name", "New population");
-
   root.createChild<Separator>(getName() + "sep0");
 
   particleInitCombobox = &root.createChild<Combobox<ParticleStart>>(getName() + "combobox_particle_start", "Init type", "Select", magic_enum::enum_values<ParticleStart>());

@@ -39,15 +39,20 @@ class UI {
   ui::ig::Window *speciesWindow;
     ui::ig::ColorEdit<glm::vec3> *backgroundColorEdit;
     ui::ig::BoxLayout *speciesButtonLayout;
-      ui::ig::Button *addSpeciesButton;
-      ui::ig::Button *removeSpeciesButton;
     ui::ig::TabBar *speciesTabBar;
+      ui::ig::TabButton *addSpeciesButton;
       std::vector<SpeciesPanel*> speciesPanels;
   // clang-format on
 
   void setOutImage(std::shared_ptr<Texture> texture);
 
+  Subscription addResetListener(std::invocable auto &&listener) {
+      return resetObservable.addListener(std::forward<decltype(listener)>(listener));
+  }
+
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
+ private:
+  ui::ig::Observable_impl<SpeciesPanel*> resetObservable;
 
 };
 

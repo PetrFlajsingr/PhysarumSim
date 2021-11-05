@@ -72,6 +72,7 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
   });
   particleBuffer = std::make_shared<Buffer>(allParticles.size() * sizeof(Particle), allParticles.data());
 
+  // TODO: fix zero init
   trailTexture = std::make_shared<Texture>(GL_TEXTURE_2D_ARRAY, GL_R32F, 0, textureSize.x, textureSize.y, populationsCount);
   trailTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   trailTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
