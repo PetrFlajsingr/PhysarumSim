@@ -5,8 +5,8 @@
 #ifndef OPENGL_TEMPLATE_SRC_TRIANGLERENDERER_H
 #define OPENGL_TEMPLATE_SRC_TRIANGLERENDERER_H
 
-#include <filesystem>
 #include <array>
+#include <filesystem>
 #include <geGL/Buffer.h>
 #include <geGL/Program.h>
 #include <geGL/Shader.h>
@@ -14,6 +14,7 @@
 #include <glad/glad.h>
 #include <glm/vec3.hpp>
 #include <simulation/PhysarumSimulator.h>
+#include <simulation/SimConfig.h>
 
 namespace pf::ogl {
 
@@ -33,13 +34,14 @@ class PhysarumRenderer {
  public:
   PhysarumRenderer(const std::filesystem::path &shaderDir, std::shared_ptr<Texture> trailTexture, glm::ivec2 renderResolution);
 
+  void init(const std::vector<physarum::PopulationColor> &populations);
+
   void render();
 
   void setTrailTexture(const std::shared_ptr<Texture> &trailTexture);
 
+  void setConfig(const physarum::PopulationColor &config, std::size_t index);
   void setColorLUT(const std::array<glm::vec3, 256> &lut, std::size_t index);
-  void setEnableTrailMult(bool enableTrailMult);
-  void setTrailPow(float trailPow);
 
   void setBackgroundColor(const glm::vec3 &backgroundColor);
 
@@ -58,12 +60,21 @@ class PhysarumRenderer {
   std::shared_ptr<Texture> trailTexture;
 
   std::shared_ptr<Buffer> colorLUTBuffer;
-  bool enableTrailMult = true;
+  std::shared_ptr<Buffer> speciesSettingsBuffer;
 
   glm::ivec2 renderResolution;
   glm::vec3 backgroundColor;
-  float trailPow = 1.f;
 };
+
+namespace details {
+struct SpeciesShaderRenderSettings {
+  int multiplyByTrailValue;
+  float trailPow;
+  SpeciesShaderRenderSettings() = default;
+  SpeciesShaderRenderSettings(const physarum::PopulationColor &src);
+};
+
+}
 
 }// namespace pf::ogl
 

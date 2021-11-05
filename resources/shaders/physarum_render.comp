@@ -2,17 +2,21 @@
 
 layout(local_size_x=8, local_size_y=8)in;
 
+struct Settings {
+    int multiplyByTrailValue;
+    float trailPow;
+};
+
 layout(r32f, binding = 0) uniform image2DArray texTrail;
 layout(rgba32f, binding = 1) uniform image2D texRender;
 layout(binding = 2, std430)buffer ColorLUT{ vec4 colorLUT[]; };
+layout(binding = 3, std430)buffer SpeciesSettings{Settings settings[]; };
 
 #define TRUE 1
 #define FALSE 0
 
-uniform vec3 color;
-uniform int multiplyByTrailValue;
-uniform float trailPow;
 
+uniform int speciesId;
 uniform vec3 backgroundColor = vec3(1, 1, 1);
 
 void main() {
@@ -24,14 +28,14 @@ void main() {
     if (gl_GlobalInvocationID.y >= dimensions.y) {
         return;
     }
+    const Settings sSettings = settings[speciesId];
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
     const float trailValue = imageLoad(texTrail, ivec3(texCoord, 0)).r;
 
-    //const vec3 color = colorLUT[uint(trailValue * 255)].xyz;
-    const vec3 color = colorLUT[uint(pow(trailValue, trailPow) * 255)].xyz;
+    const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255)].xyz;
 
     vec3 resColor = color * (trailValue == 0 ? 0 : 1);
-    if (multiplyByTrailValue == TRUE) {
+    if (sSettings.multiplyByTrailValue == TRUE) {
         resColor = mix(backgroundColor, resColor, trailValue);
     } else {
         resColor = trailValue == 0 ? backgroundColor : resColor;

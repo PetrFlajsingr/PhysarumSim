@@ -26,11 +26,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   saveSimConfigButton = &fileSimSubmenu->addButtonItem("save_sim_button", "Save");
   loadSimConfigButton = &fileSimSubmenu->addButtonItem("load_sim_button", "Load");*/
   playPauseButton = &windowSim->createChild<Button>("btn_play_pause", "Start");
-  applyOnChangeCheckbox = &windowSim->createChild<Checkbox>("apply_change_checkbox", "Apply on change");
   simControlGroup = &windowSim->createChild<Group>("group_sim_control", "Simulation controls", Persistent::Yes, AllowCollapse::Yes);
   simSpeedDrag = &simControlGroup->createChild<DragInput<int>>("sim_speed_drag", "Simulation speed", 1, 1, 10, 1, Persistent::Yes);
   restartSimButton = &simControlGroup->createChild<Button>("restart_sim", "Restart");
-  applyButton = &windowSim->createChild<Button>("button_apply", "Apply");
 
   imagesWindow = &imguiInterface->createWindow("image_window", "Images");
   imagesWindow->setIsDockable(true);
@@ -47,13 +45,12 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   auto &species1Tab = speciesTabBar->addTab("tab_test", "Species 1");
   auto species1Panel = speciesPanels.emplace_back(&species1Tab.createChild<SpeciesPanel>("species1", Persistent::Yes));
-  species1Panel->addValueListener([this](const auto &config) {
-    valueChange(config);
-  });
 
-  applyButton->addClickListener([&] {
-    onConfigChange(getConfig());
-  });
+  /*auto &species2Tab = speciesTabBar->addTab("tab_test2", "Species 2");
+  auto species2Panel = speciesPanels.emplace_back(&species1Tab.createChild<SpeciesPanel>("species2", Persistent::Yes));*/
+
+
+
 
  /* saveSimConfigButton->addClickListener([&] {
     imguiInterface->openFileDialog(
@@ -79,21 +76,6 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   });*/
 
   imguiInterface->setStateFromConfig();
-}
-
-pf::physarum::PopulationConfig pf::ogl::UI::getConfig() const {
-  return speciesPanels[0]->getConfig();
-}
-
-void pf::ogl::UI::valueChange(const pf::physarum::PopulationConfig &config) {
-  if (applyOnChangeCheckbox->getValue()) {
-    onConfigChange(config);
-  }
-}
-void pf::ogl::UI::loadFromConfig(const pf::physarum::PopulationConfig &config) {
-  speciesPanels[0]->setConfig(config);
-
-  onConfigChange(getConfig());
 }
 
 void pf::ogl::UI::setOutImage(std::shared_ptr<Texture> texture) {

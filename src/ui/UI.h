@@ -30,11 +30,9 @@ class UI {
         ui::ig::MenuButtonItem *saveSimConfigButton;
         ui::ig::MenuButtonItem *loadSimConfigButton;*/ // TODO: move this to species window
     ui::ig::Button *playPauseButton;
-    ui::ig::Checkbox *applyOnChangeCheckbox;
     ui::ig::Group *simControlGroup;
       ui::ig::DragInput<int> *simSpeedDrag;
       ui::ig::Button *restartSimButton;
-    ui::ig::Button *applyButton;
   ui::ig::Window *imagesWindow;
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
@@ -51,13 +49,6 @@ class UI {
 
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
 
-  [[nodiscard]] physarum::PopulationConfig getConfig() const;
-  void loadFromConfig(const physarum::PopulationConfig &config);
-
-  std::function<void(physarum::PopulationConfig)> onConfigChange = [](auto){};
-
- private:
-  void valueChange(const pf::physarum::PopulationConfig &config);
 };
 
 }// namespace pf::ogl

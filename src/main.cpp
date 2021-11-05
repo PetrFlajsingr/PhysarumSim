@@ -64,24 +64,20 @@ int main(int argc, char *argv[]) {
 
   window->setInputIgnorePredicate([&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
 
-  auto sim = std::make_unique<physarum::PhysarumSimulator>(ui.getConfig(), shaderFolder, windowSize);
+  auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, windowSize);
 
   ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
-  {
-    auto conf = ui.getConfig();
-    renderer.setColorLUT(conf.color.getColorLUT(), 0);
-    renderer.setEnableTrailMult(conf.color.isEnableTrailMult());
-    renderer.setTrailPow(conf.color.getTrailPow());
-  }
+
+  renderer.init({ui.speciesPanels[0]->getConfig().color});
+  sim->initialize({ui.speciesPanels[0]->getConfig()});
+  renderer.setTrailTexture(sim->getTrailTexture());
 
   ui.setOutImage(renderer.getRenderTexture());
 
-  ui.onConfigChange = [&](const physarum::PopulationConfig &config) {
-    sim->setConfig(config);
-    renderer.setColorLUT(config.color.getColorLUT(), 0);
-    renderer.setEnableTrailMult(config.color.isEnableTrailMult());
-    renderer.setTrailPow(config.color.getTrailPow());
-  };
+  ui.speciesPanels[0]->addValueListener([&](const physarum::PopulationConfig &config) {
+    sim->updateConfig(config, 0);
+    renderer.setConfig(config.color, 0);
+  });
 
   bool isAttractorActive = false;
   window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::MouseButtonAction action, const Flags<glfw::ModifierKey> &mods) {
@@ -108,12 +104,15 @@ int main(int argc, char *argv[]) {
   });
 
   ui.restartSimButton->addClickListener([&] {
-    sim->restart(ui.getConfig());
+    renderer.init({ui.speciesPanels[0]->getConfig().color});
+    sim->initialize({ui.speciesPanels[0]->getConfig()});
+    renderer.setTrailTexture(sim->getTrailTexture());
   });
 
   ui.backgroundColorEdit->addValueListener([&](const auto &color) {
     renderer.setBackgroundColor(color);
-  }, true);
+  },
+                                           true);
 
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     if (window->shouldClose()) {
