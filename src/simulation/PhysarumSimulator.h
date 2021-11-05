@@ -55,7 +55,6 @@ class PhysarumSimulator {
 
   void simulate(float currentTime, float deltaTime);
 
-  [[nodiscard]] uint32_t getParticleCount() const;
   [[nodiscard]] const std::shared_ptr<Buffer> &getParticleBuffer() const;
   [[nodiscard]] const std::shared_ptr<Texture> &getTrailTexture() const;
 
@@ -71,7 +70,6 @@ class PhysarumSimulator {
   void reinit(const PopulationConfig &config);
 
   PopulationConfig config;
-  std::uint32_t particleCount;
   glm::uvec2 textureSize;
 
   glm::vec2 attractorPosition{};
@@ -80,6 +78,7 @@ class PhysarumSimulator {
   std::shared_ptr<Buffer> particleBuffer;
   std::shared_ptr<Texture> trailTexture;
   std::shared_ptr<Texture> trailDiffuseTexture;
+  std::shared_ptr<Buffer> speciesSettingsBuffer;
 
   // display in renderer - render trail texture to another texture and present on a quad
 
@@ -93,6 +92,21 @@ class PhysarumSimulator {
   std::shared_ptr<Shader> diffuseTrailShader;
   std::shared_ptr<Program> diffuseTrailProgram;
 };
+
+namespace details {
+struct SpeciesShaderSettings {
+  float senseAngle;
+  float senseDistance;
+  float turnSpeed;
+  int particleCount;
+  float movementSpeed;
+  float trailWeight;
+  float maxTrailValue;
+  int sensorSize;
+  SpeciesShaderSettings() = default;
+  SpeciesShaderSettings(const PopulationConfig &src);
+};
+}// namespace details
 
 }// namespace pf::physarum
 
