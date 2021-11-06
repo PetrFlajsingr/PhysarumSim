@@ -94,7 +94,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     imguiInterface->openInputDialog(
         "Species name", "Input species name", [&](const auto input) {
           auto &tab = speciesTabBar->addTab(input + "_species_tab", input, true);
-          speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(input + "_panel", Persistent::Yes));
+          speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(input + "_species_panel", Persistent::Yes));
 
           tab.addOpenListener([&, input](bool open) {
             if (open) { return;}
@@ -110,8 +110,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
                         return !tab.isOpen();
                       });
     for (auto &tab : closedTabs) {
-      speciesPanels.erase(std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_panel"; }));
-      tab.removeChild(tab.getLabel() + "_panel");
+      speciesPanels.erase(std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_species_panel"; }));
+      tab.removeChild(tab.getLabel() + "_species_panel");
     }
 
     auto closedTabNames = closedTabs | std::views::transform(&Tab::getName) | ranges::to_vector;
@@ -206,8 +206,8 @@ void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
       continue;
     }
     const auto speciesName = name.substr(0, name.length() - speciesPanelPostfix.length());
-    auto &tab = speciesTabBar->addTab(name, speciesName, true);
-    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + speciesPanelPostfix, Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
+    auto &tab = speciesTabBar->addTab(speciesName + + "_species_tab", speciesName, true);
+    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(speciesName + speciesPanelPostfix, Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
 
   }
 }
