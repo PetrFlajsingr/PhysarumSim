@@ -6,6 +6,7 @@
 #define PHYSARUMSIM_SRC_UI_SPECIESPANEL_H
 
 #include "SpeciesColorPanel.h"
+#include "SpeciesInteractionListbox.h"
 #include <pf_imgui/elements/ColorChooser.h>
 #include <pf_imgui/elements/Combobox.h>
 #include <pf_imgui/elements/DragInput.h>
@@ -20,7 +21,6 @@
 namespace pf {
 
 
-// TODO: interactions
 class SpeciesPanel : public ui::ig::Element,
                      public ui::ig::ValueObservable<physarum::PopulationConfig>,
                      public ui::ig::Savable {
@@ -58,6 +58,7 @@ class SpeciesPanel : public ui::ig::Element,
   ui::ig::Input<int> *particleCountInput;
   ui::ig::Combobox<int> *sensorSizeCombobox;
   SpeciesColorPanel *colorPanel;
+  SpeciesInteractionListbox *interactionsListbox;
 };
 
 }// namespace pf

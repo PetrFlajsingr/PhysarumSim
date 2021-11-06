@@ -23,7 +23,7 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 namespace pf::ogl {
 
 
-
+// FIXME: indices of species get messed up on removal->restart, so the events need to be cancelled and rebuild
 class UI {
  public:
   UI(const toml::table &config, GLFWwindow *windowHandle);

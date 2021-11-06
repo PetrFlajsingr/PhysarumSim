@@ -20,6 +20,23 @@ enum class MouseInteraction {
   None = 0, Attract = 1, Repel = 2
 };
 
+enum class SpeciesInteraction {
+  None = 0, Follow = 1, Avoid = 2
+};
+
+struct SpeciesInteractionConfig {
+  SpeciesInteraction interactionType;
+  float factor;
+  std::string speciesName;
+
+  static SpeciesInteractionConfig FromToml(const toml::table &src);
+  [[nodiscard]] toml::table toToml() const;
+
+  bool operator==(const SpeciesInteractionConfig &rhs) const;
+  bool operator!=(const SpeciesInteractionConfig &rhs) const;
+};
+
+
 enum class ColorType {
   Simple, TwoColorGradient, Random/*, Heatmap*/, Rainbow
 };

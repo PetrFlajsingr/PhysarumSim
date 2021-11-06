@@ -183,22 +183,49 @@ bool PopulationConfig::operator==(const PopulationConfig &rhs) const {
 bool PopulationConfig::operator!=(const PopulationConfig &rhs) const {
   return !(rhs == *this);
 }
+
 bool InteractionConfig::operator==(const InteractionConfig &rhs) const {
   return interactionType == rhs.interactionType && distance == rhs.distance && power == rhs.power;
 }
+
 bool InteractionConfig::operator!=(const InteractionConfig &rhs) const {
   return !(rhs == *this);
 }
+
 InteractionConfig InteractionConfig::FromToml(const toml::table &src) {
   return {
       .interactionType = static_cast<MouseInteraction>(src["interactionType"].value<int>().value()),
       .distance = src["distance"].value<float>().value(),
       .power = src["power"].value<float>().value()};
 }
+
 toml::table InteractionConfig::toToml() const {
   return toml::table{
       {{"interactionType", static_cast<int>(interactionType)},
        {"distance", distance},
        {"power", power}}};
+}
+
+bool SpeciesInteractionConfig::operator==(const SpeciesInteractionConfig &rhs) const {
+  return interactionType == rhs.interactionType && factor == rhs.factor && speciesName == rhs.speciesName;
+}
+
+bool SpeciesInteractionConfig::operator!=(const SpeciesInteractionConfig &rhs) const {
+  return !(rhs == *this);
+}
+
+SpeciesInteractionConfig SpeciesInteractionConfig::FromToml(const toml::table &src) {
+  return {
+      .interactionType = static_cast<SpeciesInteraction>(src["interactionType"].value<int>().value()),
+      .factor = src["factor"].value<float>().value(),
+      .speciesName = src["speciesName"].value<std::string>().value(),
+  };
+}
+toml::table SpeciesInteractionConfig::toToml() const {
+  return toml::table{{
+      {"interactionType", static_cast<int>(interactionType)},
+      {"factor", factor},
+      {"speciesName", speciesName},
+  }};
 }
 }// namespace pf::physarum

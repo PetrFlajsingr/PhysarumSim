@@ -106,7 +106,7 @@ add_executable(PhysarumSim
         src/simulation/SimConfig.cpp
         src/utils/FPSCounter.cpp
         src/utils/FPSCounter.h
-        src/ui/MouseInteractionPanel.cpp src/ui/MouseInteractionPanel.h)
+        src/ui/MouseInteractionPanel.cpp src/ui/MouseInteractionPanel.h src/ui/SpeciesInteractionListbox.cpp src/ui/SpeciesInteractionListbox.h)
 
 
 target_link_libraries(PhysarumSim glad ${OPENGL_LIBRARIES} pf_common::pf_common pf_imgui::pf_imgui pf_mainloop::pf_mainloop pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog

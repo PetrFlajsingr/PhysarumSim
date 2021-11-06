@@ -108,6 +108,9 @@ void SpeciesPanel::createElements() {
   maxTrailValueDrag = &root.createChild<DragInput<float>>(getName() + "drag_max_trail", "Max trail value", 0.01f, 0.01f, 10.f, 1.f);
 
   colorPanel = &root.createChild<SpeciesColorPanel>(getName() + "color_panel");
+
+  interactionsListbox = &root.createChild<SpeciesInteractionListbox>(getName() + "inter_listbox", "Interactions", Size{Width::Auto(), 100});
+  interactionsListbox->addItem(SpeciesInteractionConfig{SpeciesInteraction::Avoid, 1.f, "Test"});
 }
 
 void SpeciesPanel::registerListeners() {
