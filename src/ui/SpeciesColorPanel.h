@@ -51,6 +51,7 @@ class SpeciesColorPanel : public ui::ig::Element,
 
   ui::ig::ColorEdit<glm::vec3> *gradientStartColorEdit;
   ui::ig::ColorEdit<glm::vec3> *gradientEndColorEdit;
+  ui::ig::Button *flipGradientButton;
 
   ui::ig::Button *randomizeButton;
 

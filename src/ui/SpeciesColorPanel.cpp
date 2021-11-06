@@ -28,6 +28,12 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name,
   auto &gradientStack = stack->pushStack();
   gradientStartColorEdit = &gradientStack.createChild<ColorEdit<glm::vec3>>(name + "grad_start_color_edit", "Gradient start", glm::vec3{1.f});
   gradientEndColorEdit = &gradientStack.createChild<ColorEdit<glm::vec3>>(name + "grad_end_color_edit", "Gradient end", glm::vec3{1.f});
+  flipGradientButton = &gradientStack.createChild<Button>(name + "flip_gradient_button", "Flip");
+  flipGradientButton->addClickListener([&] {
+    const auto col1 = gradientStartColorEdit->getValue();
+    gradientStartColorEdit->setValue(gradientEndColorEdit->getValue());
+    gradientEndColorEdit->setValue(col1);
+  });
 
   auto &randomStack = stack->pushStack();
   randomizeButton = &randomStack.createChild<Button>(name + "randomize_button", "Randomize");
