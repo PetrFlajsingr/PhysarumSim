@@ -22,6 +22,7 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 namespace pf::ogl {
 
 
+// TODO: tooltips
 class UI {
  public:
   UI(const toml::table &config, GLFWwindow *windowHandle);
@@ -55,7 +56,7 @@ class UI {
       std::vector<SpeciesPanel*> speciesPanels;
   // clang-format on
 
-  void setOutImage(std::shared_ptr<Texture> texture);
+  void setOutImage(const std::shared_ptr<Texture>& texture);
 
   Subscription addResetListener(std::invocable auto &&listener) {
       return resetObservable.addListener(std::forward<decltype(listener)>(listener));

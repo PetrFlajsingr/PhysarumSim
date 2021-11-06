@@ -16,10 +16,9 @@ SpeciesPanel::SpeciesPanel(const std::string &name,
       ValueObservable({}),
       Savable(persistent),
       root({name + "_root", LayoutDirection::TopToBottom, Size::Auto(), AllowCollapse::No, ShowBorder::Yes, persistent}) {
-
   createElements();
-
   registerListeners();
+  createTooltips();
 }
 
 void SpeciesPanel::renderImpl() {
@@ -133,6 +132,23 @@ void SpeciesPanel::registerListeners() {
   filterTypeCombobox->addValueListener([&](const auto value) {
     kernelSizeCombobox->setVisibility(value == FilterType::Blur ? Visibility::Visible : Visibility::Invisible);
   });
+}
+
+void SpeciesPanel::createTooltips() {
+  particleInitCombobox->setTooltip("Initial particle distribution");
+  particleCountInput->setTooltip("Count of particles in the population");
+  senseAngleDrag->setTooltip("Angle offset of trail sensor");
+  senseDistanceDrag->setTooltip("Distance offset of trail sensor");
+  sensorSizeCombobox->setTooltip("Size of trail sensor (kernel)");
+  turnSpeedDrag->setTooltip("Turning speed of the particle");
+  movementSpeedDrag->setTooltip("Movement speed of the particle");
+  maxSteerRandomnessDrag->setTooltip("Maximum random change during turning");
+  trailWeightDrag->setTooltip("Amount of trail stored in each trail");
+  filterTypeCombobox->setTooltip("Type of filter applied for diffusion");
+  kernelSizeCombobox->setTooltip("Size of filter's kernel");
+  diffuseRateDrag->setTooltip("Speed of trail diffusion");
+  decayRateDrag->setTooltip("Speed of trail decay");
+  maxTrailValueDrag->setTooltip("Highest possible trail value - may cause color artifacts");
 }
 
 }// namespace pf

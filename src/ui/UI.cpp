@@ -143,7 +143,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
         [] {}, ui::ig::Size{500, 400});
   });
 
-  updateSpeciesTabBarFromConfig(config);
+  updateSpeciesTabBarFromConfig(config); // TODO: fix loading already saved, but currently removed tabs
 
   if (speciesPanels.empty()) {
     addDefaultSpecies();
@@ -152,7 +152,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   imguiInterface->setStateFromConfig();
 }
 
-void pf::ogl::UI::setOutImage(std::shared_ptr<Texture> texture) {
+void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture>& texture) {
   using namespace ui::ig;
   outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080}, IsButton::No, [] {
     return std::pair(ImVec2{0, 1}, ImVec2{1, 0});
@@ -169,6 +169,7 @@ void pf::ogl::UI::setAllWinVisibility(bool visible) {
   viewImagesWin->setValue(visible);
   viewSpeciesWin->setValue(visible);
 }
+
 toml::table pf::ogl::UI::speciesToToml() const {
   toml::table result{};
   auto openTabs = speciesTabBar->getTabs() | std::views::filter([](const auto &tab) {

@@ -19,6 +19,8 @@
 
 namespace pf {
 
+
+// TODO: interactions
 class SpeciesPanel : public ui::ig::Element,
                      public ui::ig::ValueObservable<physarum::PopulationConfig>,
                      public ui::ig::Savable {
@@ -37,8 +39,8 @@ class SpeciesPanel : public ui::ig::Element,
 
  private:
   void createElements();
-
   void registerListeners();
+  void createTooltips();
 
   ui::ig::BoxLayout root;
   ui::ig::DragInput<float> *senseAngleDrag;
