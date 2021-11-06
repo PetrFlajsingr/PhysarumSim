@@ -40,6 +40,10 @@ class SpeciesColorPanel : public ui::ig::Element,
   constexpr static auto RANDOM_INDEX = 2;
   constexpr static auto RAINBOW_INDEX = 3;
 
+  void createChildren();
+  void registerListeners();
+  void addTooltips();
+
   ui::ig::BoxLayout layout;
 
   ui::ig::Combobox<physarum::ColorType> *colorTypeCombobox;
