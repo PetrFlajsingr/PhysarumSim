@@ -25,12 +25,21 @@ layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
 layout(r32f, binding = 1) uniform image2DArray texTrail;
 layout(binding = 2, std430)buffer SpeciesSettings{Settings settings[]; };
 
+#define MOUSE_INTERACTION int
+#define MOUSE_NONE 0
+#define MOUSE_ATTRACT 1
+#define MOUSE_REPEL 2
+
 #define PI 3.1415
 #define TRUE 1
 #define FALSE 0
 
-uniform int enableAttractor;
-uniform vec2 attractorPosition;
+uniform int mouseInteractionActive;
+uniform MOUSE_INTERACTION mouseInteractionType;
+uniform vec2 mousePosition;
+uniform float mouseIntDistance;
+uniform float mouseIntPower;
+
 uniform float deltaT;
 uniform float time;
 
@@ -76,14 +85,15 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
     return tmp;
 }
 
-vec2 attractorDelta(Particle particle) {
-    const float ATT_DIST = 250;
-    if (enableAttractor == FALSE) { return vec2(0, 0); }
-    vec2 dir = attractorPosition - particle.position;
+vec2 mouseInteractionDelta(Particle particle) {
+    if (mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE) { return vec2(0, 0); }
+    vec2 dir = mousePosition - particle.position;
     const float dist = length(dir);
-    if (dist < ATT_DIST) {
+    if (dist < mouseIntDistance) {
         dir = normalize(dir);
-        return (1 - dist / ATT_DIST) * dir;
+        const float effect = (1 - dist / mouseIntDistance) * mouseIntPower;
+
+        return (int(mouseInteractionType == MOUSE_ATTRACT) * dir + int(mouseInteractionType == MOUSE_REPEL) * -dir) * effect;
     }
     return vec2(0, 0);
 }
@@ -133,7 +143,7 @@ void main() {
         const float prevTrail = imageLoad(texTrail, ivec3(tCoord, speciesId)).r;
         imageStore(texTrail, ivec3(tCoord, speciesId), vec4(min(sSettings.maxTrailValue, prevTrail + sSettings.trailWeight * deltaT)));
     }
-    const vec2 attractionDelta = attractorDelta(particle);
+    const vec2 attractionDelta = mouseInteractionDelta(particle);
     particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].position = newPos + attractionDelta;
 }
 

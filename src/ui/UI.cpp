@@ -7,9 +7,10 @@
 #include <pf_imgui/enums.h>
 #include <pf_imgui/styles/dark.h>
 
+using namespace pf::enum_operators;
+
 pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   using namespace ui::ig;
-  using namespace enum_operators;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(ImGuiGlfwOpenGLConfig{
       .windowHandle = windowHandle,
       .flags = {},
@@ -34,23 +35,52 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   viewSimWin = &viewSubmenu->addCheckboxItem("show_sim_menu", "Simulation", true, Persistent::Yes);
   viewImagesWin = &viewSubmenu->addCheckboxItem("show_images_menu", "Images", true, Persistent::Yes);
   viewSpeciesWin = &viewSubmenu->addCheckboxItem("show_species_menu", "Species", true, Persistent::Yes);
+  viewInfoWin = &viewSubmenu->addCheckboxItem("show_info_menu", "Info", true, Persistent::Yes);
+  viewInteractWin = &viewSubmenu->addCheckboxItem("show_interact_menu", "Interaction", true, Persistent::Yes);
 
-  windowSim = &imguiInterface->createWindow("sim_window", "Simulation");
+  interactionWindow = &imguiInterface->createWindow("interaction_window", "Interaction");
+  interactionWindow->addCloseListener([&]() {
+    viewInteractWin->setValue(false);
+  });
+  viewInteractWin->addValueListener([&](bool value) {
+    interactionWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                                true);
+  interactionWindow->setCloseable(true);
+  interactionWindow->setIsDockable(true);
+  mouseInteractionPanel = &interactionWindow->createChild<MouseInteractionPanel>("interaction_panel", Persistent::Yes);
+
+  infoWindow = &imguiInterface->createWindow("info_window", "Info");
+  fpsCurrentPlot = &infoWindow->createChild<SimplePlot>("fps_plot", "Fps current", PlotType::Lines,
+                                                        std::vector<float>{}, std::nullopt, 200, 0, FLT_MAX,
+                                                        Size{Width::Auto(), 30});
+  fpsAveragePlot = &infoWindow->createChild<SimplePlot>("fps_avg_plot", "Fps average", PlotType::Lines,
+                                                        std::vector<float>{}, std::nullopt, 200, 0, FLT_MAX,
+                                                        Size{Width::Auto(), 30});
+  fpsLabel = &infoWindow->createChild<Text>("fps_label", "Average FPS: {}");
+  infoWindow->addCloseListener([&]() {
+    viewInfoWin->setValue(false);
+  });
+  viewInfoWin->addValueListener([&](bool value) {
+    infoWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                                   true);
+  infoWindow->setCloseable(true);
+  infoWindow->setIsDockable(true);
+
+  simWindow = &imguiInterface->createWindow("sim_window", "Simulation");
   viewSimWin->addValueListener([&](bool value) {
-    windowSim->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+    simWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
                                true);
-  windowSim->addCloseListener([&]() {
+  simWindow->addCloseListener([&]() {
     viewSimWin->setValue(false);
   });
-  windowSim->setCloseable(true);
-  windowSim->setIsDockable(true);
-  /*  simMenuBar = &windowSim->getMenuBar();
-  fileSimSubmenu = &simMenuBar->addSubmenu("file_sim_submenu", "File");
-  saveSimConfigButton = &fileSimSubmenu->addButtonItem("save_sim_button", "Save");
-  loadSimConfigButton = &fileSimSubmenu->addButtonItem("load_sim_button", "Load");*/
-  playPauseButton = &windowSim->createChild<Button>("btn_play_pause", "Start");
-  simControlGroup = &windowSim->createChild<Group>("group_sim_control", "Simulation controls", Persistent::Yes, AllowCollapse::Yes);
+  simWindow->setCloseable(true);
+  simWindow->setIsDockable(true);
+
+  playPauseButton = &simWindow->createChild<Button>("btn_play_pause", "Start");
+  simControlGroup = &simWindow->createChild<Group>("group_sim_control", "Simulation controls", Persistent::Yes, AllowCollapse::Yes);
   simSpeedDrag = &simControlGroup->createChild<DragInput<int>>("sim_speed_drag", "Simulation speed", 1, 1, 10, 1, Persistent::Yes);
   restartSimButton = &simControlGroup->createChild<Button>("restart_sim", "Restart");
 
@@ -92,17 +122,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", "+", TabMod::ForceRight);
   addSpeciesButton->addClickListener([&] {
     imguiInterface->openInputDialog(
-        "Species name", "Input species name", [&](const auto input) {
-          auto &tab = speciesTabBar->addTab(input + "_species_tab", input, true);
-          speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(input + "_species_panel", Persistent::Yes));
-
-          tab.addOpenListener([&, input](bool open) {
-            if (open) { return;}
-            imguiInterface->createMsgDlg("Remove species?", fmt::format("Do you want to remove species '{}'", input), MessageButtons::Yes | MessageButtons::No,
-                [&tab] (auto btn) {
-                                   if (btn == MessageButtons::No) {tab.setOpen();}
-                                   return true;});
-          }); }, [] {});
+        "Species name", "Input species name", [&](const auto input) { createSpeciesTab(input); }, [] {});
   });
 
   restartSimButton->addClickListener([&] {
@@ -143,16 +163,18 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
         [] {}, ui::ig::Size{500, 400});
   });
 
-  updateSpeciesTabBarFromConfig(config); // TODO: fix loading already saved, but currently removed tabs
+  updateSpeciesTabBarFromConfig(config);// TODO: fix loading already saved, but currently removed tabs
 
   if (speciesPanels.empty()) {
     addDefaultSpecies();
   }
 
+  addSpeciesButton->setTooltip("Add new species");
+
   imguiInterface->setStateFromConfig();
 }
 
-void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture>& texture) {
+void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture> &texture) {
   using namespace ui::ig;
   outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080}, IsButton::No, [] {
     return std::pair(ImVec2{0, 1}, ImVec2{1, 0});
@@ -162,12 +184,16 @@ void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture>& texture) {
 void pf::ogl::UI::setAllWinVisibility(bool visible) {
   using namespace ui::ig;
   const auto vis = visible ? Visibility::Visible : Visibility::Invisible;
-  windowSim->setVisibility(vis);
+  simWindow->setVisibility(vis);
   speciesWindow->setVisibility(vis);
   imagesWindow->setVisibility(vis);
+  infoWindow->setVisibility(vis);
+  interactionWindow->setVisibility(vis);
   viewSimWin->setValue(visible);
   viewImagesWin->setValue(visible);
   viewSpeciesWin->setValue(visible);
+  viewInfoWin->setValue(visible);
+  viewInteractWin->setValue(visible);
 }
 
 toml::table pf::ogl::UI::speciesToToml() const {
@@ -188,14 +214,14 @@ void pf::ogl::UI::loadFromToml(const toml::table &src) {
   speciesPanels.clear();
   auto tabNames = speciesTabBar->getTabs() | std::views::transform([](const auto &tab) {
                     return tab.getName();
-                  }) | ranges::to_vector;
+                  })
+      | ranges::to_vector;
   for (const auto &tabName : tabNames) {
     speciesTabBar->removeTab(tabName);
   }
 
   for (const auto &[name, data] : src) {
-    auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
-    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
+    createSpeciesTab(name, *data.as_table());
   }
 }
 
@@ -207,14 +233,35 @@ void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
       continue;
     }
     const auto speciesName = name.substr(0, name.length() - speciesPanelPostfix.length());
-    auto &tab = speciesTabBar->addTab(speciesName + + "_species_tab", speciesName, true);
-    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(speciesName + speciesPanelPostfix, Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
-
+    createSpeciesTab(speciesName, *data.as_table());
   }
 }
 
 void pf::ogl::UI::addDefaultSpecies() {
+  createSpeciesTab("default");
+}
+
+void pf::ogl::UI::addSpeciesTabCloseConfirmation(pf::ui::ig::Tab &tab, const std::string &speciesName) {
   using namespace ui::ig;
-  auto &tab = speciesTabBar->addTab("default_species_tab", "default", true);
-  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>("default_species_panel", Persistent::Yes));
+  tab.addOpenListener([&, speciesName](bool open) {
+    if (open) { return; }
+    imguiInterface->createMsgDlg("Remove species?", fmt::format("Do you want to remove species '{}'", speciesName), MessageButtons::Yes | MessageButtons::No,
+                                 [&tab](auto btn) {
+                                   if (btn == MessageButtons::No) {tab.setOpen(true);}
+                                   return true; });
+  });
+}
+
+void pf::ogl::UI::createSpeciesTab(const std::string &name) {
+  using namespace ui::ig;
+  auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
+  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes));
+  addSpeciesTabCloseConfirmation(tab, name);
+}
+
+void pf::ogl::UI::createSpeciesTab(const std::string &name, const toml::table &src) {
+  using namespace ui::ig;
+  auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
+  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(src));
+  addSpeciesTabCloseConfirmation(tab, name);
 }

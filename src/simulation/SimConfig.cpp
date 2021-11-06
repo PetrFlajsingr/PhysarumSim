@@ -154,21 +154,22 @@ PopulationConfig PopulationConfig::FromToml(const toml::table &src) {
 
 toml::table PopulationConfig::toToml() const {
   return toml::table{
-      {{"senseAngle", senseAngle},
-       {"senseDistance", senseDistance},
-       {"turnSpeed", turnSpeed},
-       {"movementSpeed", movementSpeed},
-       {"trailWeight", trailWeight},
-       {"blurKernelSize", blurKernelSize},
-       {"diffuseRate", diffuseRate},
-       {"decayRate", decayRate},
-       {"maxTrailValue", maxTrailValue},
-       {"particleStart", static_cast<int>(particleStart)},
-       {"particleCount", particleCount},
-       {"sensorSize", sensorSize},
-       {"color", color.toToml()},
-       {"filterType", static_cast<int>(filterType)},
-       {"maxSteerRandomness", maxSteerRandomness},
+      {
+          {"senseAngle", senseAngle},
+          {"senseDistance", senseDistance},
+          {"turnSpeed", turnSpeed},
+          {"movementSpeed", movementSpeed},
+          {"trailWeight", trailWeight},
+          {"blurKernelSize", blurKernelSize},
+          {"diffuseRate", diffuseRate},
+          {"decayRate", decayRate},
+          {"maxTrailValue", maxTrailValue},
+          {"particleStart", static_cast<int>(particleStart)},
+          {"particleCount", particleCount},
+          {"sensorSize", sensorSize},
+          {"color", color.toToml()},
+          {"filterType", static_cast<int>(filterType)},
+          {"maxSteerRandomness", maxSteerRandomness},
       }};
 }
 
@@ -181,5 +182,23 @@ bool PopulationConfig::operator==(const PopulationConfig &rhs) const {
 
 bool PopulationConfig::operator!=(const PopulationConfig &rhs) const {
   return !(rhs == *this);
+}
+bool InteractionConfig::operator==(const InteractionConfig &rhs) const {
+  return interactionType == rhs.interactionType && distance == rhs.distance && power == rhs.power;
+}
+bool InteractionConfig::operator!=(const InteractionConfig &rhs) const {
+  return !(rhs == *this);
+}
+InteractionConfig InteractionConfig::FromToml(const toml::table &src) {
+  return {
+      .interactionType = static_cast<MouseInteraction>(src["interactionType"].value<int>().value()),
+      .distance = src["distance"].value<float>().value(),
+      .power = src["power"].value<float>().value()};
+}
+toml::table InteractionConfig::toToml() const {
+  return toml::table{
+      {{"interactionType", static_cast<int>(interactionType)},
+       {"distance", distance},
+       {"power", power}}};
 }
 }// namespace pf::physarum

@@ -33,8 +33,8 @@ pf::ogl::PhysarumRenderer::PhysarumRenderer(const std::filesystem::path &shaderD
   renderQuadProgram = std::make_shared<Program>(renderVertShader, renderFragShader);
 
   renderTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_RGBA32F, 0, renderResolution.x, renderResolution.y);
-  renderTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  renderTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  renderTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  renderTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
   const std::vector<float> quadVertices{
       -1.0f,

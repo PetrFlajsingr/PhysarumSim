@@ -17,8 +17,13 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->use();
   simulateProgram->set1f("deltaT", deltaTime);
   simulateProgram->set1f("time", currentTime);
-  simulateProgram->set1i("enableAttractor", attractorEnabled ? 1 : 0);
-  simulateProgram->set2fv("attractorPosition", &attractorPosition[0]);
+
+  simulateProgram->set1i("mouseInteractionType", static_cast<int>(interactionConfig.interactionType));
+  simulateProgram->set1i("mouseInteractionActive", mouseInteractionActive ? 1 : 0);
+  simulateProgram->set2fv("mousePosition", &attractorPosition[0]);
+  simulateProgram->set1f("mouseIntDistance", interactionConfig.distance);
+  simulateProgram->set1f("mouseIntPower", interactionConfig.power);
+
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   trailTexture->bindImage(1);
   speciesSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
@@ -112,9 +117,11 @@ void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t
 void PhysarumSimulator::setAttractorPosition(const glm::vec2 &attractorPosition) {
   PhysarumSimulator::attractorPosition = attractorPosition;
 }
-
-void PhysarumSimulator::setAttractorEnabled(bool attractorEnabled) {
-  PhysarumSimulator::attractorEnabled = attractorEnabled;
+void PhysarumSimulator::setInteractionConfig(const InteractionConfig &interactionConfig) {
+  PhysarumSimulator::interactionConfig = interactionConfig;
+}
+void PhysarumSimulator::setMouseInteractionActive(bool mouseInteractionActive) {
+  PhysarumSimulator::mouseInteractionActive = mouseInteractionActive;
 }
 
 details::SpeciesShaderSettings::SpeciesShaderSettings(const PopulationConfig &src) {

@@ -76,13 +76,14 @@ class PhysarumSimulator {
   [[nodiscard]] const std::shared_ptr<Texture> &getTrailTexture() const;
 
   void setAttractorPosition(const glm::vec2 &attractorPosition);
-  void setAttractorEnabled(bool attractorEnabled);
+  void setMouseInteractionActive(bool mouseInteractionActive);
+  void setInteractionConfig(const InteractionConfig &interactionConfig);
 
  private:
   glm::uvec2 textureSize;
 
   glm::vec2 attractorPosition{};
-  bool attractorEnabled = false;
+  bool mouseInteractionActive = false;
 
   std::shared_ptr<Buffer> particleBuffer;
   std::shared_ptr<Texture> trailTexture;
@@ -100,6 +101,8 @@ class PhysarumSimulator {
   std::vector<details::SpeciesShaderDiffuseSettings> diffuseSpeciesSettings;
   int totalParticleCount;
   int greatestParticleCount;
+
+  InteractionConfig interactionConfig;
 };
 
 }// namespace pf::physarum

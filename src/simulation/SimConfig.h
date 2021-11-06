@@ -16,12 +16,28 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::physarum)
 
 namespace pf::physarum {
 
+enum class MouseInteraction {
+  None = 0, Attract = 1, Repel = 2
+};
+
 enum class ColorType {
   Simple, TwoColorGradient, Random/*, Heatmap*/, Rainbow
 };
 
 enum class FilterType {
   Median = 0, Blur = 1
+};
+
+struct InteractionConfig {
+  MouseInteraction interactionType = MouseInteraction::None;
+  float distance = 100.f;
+  float power = 10.f;
+
+  static InteractionConfig FromToml(const toml::table &src);
+  [[nodiscard]] toml::table toToml() const;
+
+  [[nodiscard]] bool operator==(const InteractionConfig &rhs) const;
+  [[nodiscard]] bool operator!=(const InteractionConfig &rhs) const;
 };
 
 class PopulationColor {

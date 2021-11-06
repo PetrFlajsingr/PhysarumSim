@@ -6,6 +6,7 @@
 #define OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 
 #include "SpeciesPanel.h"
+#include "MouseInteractionPanel.h"
 #include "simulation/SimConfig.h"
 #include <GLFW/glfw3.h>
 #include <geGL/Texture.h>
@@ -22,7 +23,7 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 namespace pf::ogl {
 
 
-// TODO: tooltips
+
 class UI {
  public:
   UI(const toml::table &config, GLFWwindow *windowHandle);
@@ -35,7 +36,15 @@ class UI {
     ui::ig::MenuCheckboxItem *viewSimWin;
     ui::ig::MenuCheckboxItem *viewImagesWin;
     ui::ig::MenuCheckboxItem *viewSpeciesWin;
-  ui::ig::Window *windowSim;
+    ui::ig::MenuCheckboxItem *viewInfoWin;
+    ui::ig::MenuCheckboxItem *viewInteractWin;
+  ui::ig::Window *interactionWindow;
+    MouseInteractionPanel *mouseInteractionPanel;
+  ui::ig::Window *infoWindow;
+    ui::ig::SimplePlot *fpsCurrentPlot;
+    ui::ig::SimplePlot *fpsAveragePlot;
+    ui::ig::Text *fpsLabel;
+  ui::ig::Window *simWindow; // TODO: change this, tooltips
     ui::ig::Button *playPauseButton;
     ui::ig::Group *simControlGroup;
       ui::ig::DragInput<int> *simSpeedDrag;
@@ -75,6 +84,11 @@ class UI {
   void updateSpeciesTabBarFromConfig(const toml::table &config);
 
   void addDefaultSpecies();
+
+  void addSpeciesTabCloseConfirmation(ui::ig::Tab &tab, const std::string &speciesName);
+
+  void createSpeciesTab(const std::string &name);
+  void createSpeciesTab(const std::string &name, const toml::table &src);
 
 };
 
