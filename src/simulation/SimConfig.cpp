@@ -38,7 +38,7 @@ std::array<glm::vec3, 256> PopulationColor::getGradientLUT() const {
 std::array<glm::vec3, 256> PopulationColor::getRandomLUT() const {
   auto result = std::array<glm::vec3, 256>{};
   for (int i = 0; i < 256; ++i) {
-    result[i] = randomVec3(0.f, 1.f);
+    result[i] = fastRandomVec3(0.f, 1.f);
   }
   return result;
 }

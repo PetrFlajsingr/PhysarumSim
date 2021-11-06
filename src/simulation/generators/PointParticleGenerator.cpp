@@ -14,7 +14,7 @@ std::vector<Particle> PointParticleGenerator::generateParticles(std::size_t coun
   auto result = std::vector<Particle>{};
   for (std::size_t i = 0; i < count; ++i) {
     result.emplace_back(glm::vec2{point},
-                        random(0.f, 1.f) * std::numbers::pi_v<float> * 2.f);
+                        fastRandom(0.f, 1.f) * std::numbers::pi_v<float> * 2.f);
   }
   return result;
 }

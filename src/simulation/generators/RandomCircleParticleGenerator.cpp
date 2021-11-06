@@ -13,8 +13,8 @@ std::vector<Particle> RandomCircleParticleGenerator::generateParticles(std::size
   auto result = std::vector<Particle>{};
   const auto center = glm::vec2{size / 2};
   for (std::size_t i = 0; i < count; ++i) {
-    const auto pos = center + randomUnitCircle() * static_cast<float>(size.y) * .15f;
-    const auto angle = random(0.f, 1.f) * std::numbers::pi_v<float> * 2.f;
+    const auto pos = center + fastRandomUnitCircle() * static_cast<float>(size.y) * .15f;
+    const auto angle = fastRandom(0.f, 1.f) * std::numbers::pi_v<float> * 2.f;
     result.emplace_back(pos, angle);
   }
   return result;
