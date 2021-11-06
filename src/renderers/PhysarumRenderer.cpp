@@ -12,7 +12,7 @@ pf::ogl::PhysarumRenderer::PhysarumRenderer(const std::filesystem::path &shaderD
                                             glm::ivec2 renderResolution)
     : shaderDir(shaderDir),
       trailTexture(std::move(trailTexture)),
-      renderResolution(renderResolution){
+      renderResolution(renderResolution) {
   const auto renderTextureSrc = readFile(shaderDir / "physarum_render.comp");
   if (!renderTextureSrc.has_value()) {
     throw std::runtime_error("Could not load 'physarum_render.comp'");
@@ -64,13 +64,25 @@ pf::ogl::PhysarumRenderer::PhysarumRenderer(const std::filesystem::path &shaderD
   quadVAO->addAttrib(quadVBO, 1, 2, GL_FLOAT, 5 * sizeof(float), (3 * sizeof(float)));
 }
 
-void pf::ogl::PhysarumRenderer::render() {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void pf::ogl::PhysarumRenderer::init(const std::vector<physarum::PopulationColor> &populations) {
+  colorLUTBuffer = std::make_shared<Buffer>(sizeof(glm::vec4) * 256 * populations.size());
+  speciesSettingsBuffer = std::make_shared<Buffer>(sizeof(details::SpeciesShaderRenderSettings) * populations.size());
+  for (std::size_t i = 0; i < populations.size(); ++i) {
+    setConfig(populations[i], i);
+  }
+  speciesCount = populations.size();
+}
 
+
+void pf::ogl::PhysarumRenderer::render() {
   renderTextureProgram->use();
-  renderTextureProgram->set3f("color", color.r, color.g, color.b);
+  renderTextureProgram->set3fv("backgroundColor", &backgroundColor[0]);
+  renderTextureProgram->set1i("speciesCount", speciesCount);
+  renderTextureProgram->set1i("blendType", static_cast<int>(blendType));
   trailTexture->bindImage(0);
   renderTexture->bindImage(1);
+  colorLUTBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
+  speciesSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 3);
   renderTextureProgram->dispatch(renderResolution.x / 8, renderResolution.y / 8);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -79,13 +91,46 @@ void pf::ogl::PhysarumRenderer::render() {
   renderTexture->bind(0);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
+
 void pf::ogl::PhysarumRenderer::setTrailTexture(const std::shared_ptr<Texture> &trailTexture) {
   PhysarumRenderer::trailTexture = trailTexture;
 }
-void pf::ogl::PhysarumRenderer::setColor(const glm::vec3 &color) {
-  PhysarumRenderer::color = color;
+
+void pf::ogl::PhysarumRenderer::setColorLUT(const std::array<glm::vec3, 256> &lut, std::size_t index) {
+  const auto bufferData = colorLUTBuffer->map();
+  RAII unmap{[&] {
+    colorLUTBuffer->unmap();
+  }};
+
+  const auto bufferVec4Span = std::span{reinterpret_cast<glm::vec4 *>(bufferData), colorLUTBuffer->getSize() / sizeof(glm::vec4)};
+  for (std::size_t i = index * 256; i < index * 256 + 256; ++i) {
+    bufferVec4Span[i] = glm::vec4{lut[i % 256], 1.f};
+  }
 }
 
 const std::shared_ptr<Texture> &pf::ogl::PhysarumRenderer::getRenderTexture() const {
   return renderTexture;
+}
+
+void pf::ogl::PhysarumRenderer::setBackgroundColor(const glm::vec3 &backgroundColor) {
+  PhysarumRenderer::backgroundColor = backgroundColor;
+}
+
+void pf::ogl::PhysarumRenderer::setConfig(const pf::physarum::PopulationColor &config, std::size_t index) {
+    details::SpeciesShaderRenderSettings settings{config};
+    const auto bufferData = speciesSettingsBuffer->map();
+    RAII unmap{[&] {
+      speciesSettingsBuffer->unmap();
+    }};
+
+    const auto bufferSpan = std::span{reinterpret_cast<details::SpeciesShaderRenderSettings *>(bufferData), colorLUTBuffer->getSize() / sizeof(details::SpeciesShaderRenderSettings)};
+    bufferSpan[index] = settings;
+    setColorLUT(config.getColorLUT(), index);
+}
+void pf::ogl::PhysarumRenderer::setBlendType(pf::ogl::BlendType blendType) {
+  PhysarumRenderer::blendType = blendType;
+}
+
+pf::ogl::details::SpeciesShaderRenderSettings::SpeciesShaderRenderSettings(const pf::physarum::PopulationColor &src) {
+  trailPow = src.getTrailPow();
 }

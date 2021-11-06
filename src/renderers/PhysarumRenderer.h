@@ -5,6 +5,7 @@
 #ifndef OPENGL_TEMPLATE_SRC_TRIANGLERENDERER_H
 #define OPENGL_TEMPLATE_SRC_TRIANGLERENDERER_H
 
+#include <array>
 #include <filesystem>
 #include <geGL/Buffer.h>
 #include <geGL/Program.h>
@@ -13,8 +14,13 @@
 #include <glad/glad.h>
 #include <glm/vec3.hpp>
 #include <simulation/PhysarumSimulator.h>
+#include <simulation/SimConfig.h>
 
 namespace pf::ogl {
+
+enum class BlendType {
+  Additive = 0, AlphaMix = 1, Layered = 2
+};
 
 namespace details {
 inline const float vertices[] = {
@@ -32,13 +38,19 @@ class PhysarumRenderer {
  public:
   PhysarumRenderer(const std::filesystem::path &shaderDir, std::shared_ptr<Texture> trailTexture, glm::ivec2 renderResolution);
 
+  void init(const std::vector<physarum::PopulationColor> &populations);
+
   void render();
 
   void setTrailTexture(const std::shared_ptr<Texture> &trailTexture);
 
-  void setColor(const glm::vec3 &color);
+  void setConfig(const physarum::PopulationColor &config, std::size_t index);
+  void setColorLUT(const std::array<glm::vec3, 256> &lut, std::size_t index);
 
-  const std::shared_ptr<Texture> &getRenderTexture() const;
+  void setBackgroundColor(const glm::vec3 &backgroundColor);
+  void setBlendType(BlendType blendType);
+
+  [[nodiscard]] const std::shared_ptr<Texture> &getRenderTexture() const;
 
  private:
   std::filesystem::path shaderDir;
@@ -52,9 +64,24 @@ class PhysarumRenderer {
   std::shared_ptr<Texture> renderTexture;
   std::shared_ptr<Texture> trailTexture;
 
-  glm::vec3 color{1.0f};
+  std::shared_ptr<Buffer> colorLUTBuffer;
+  std::shared_ptr<Buffer> speciesSettingsBuffer;
+
   glm::ivec2 renderResolution;
+  glm::vec3 backgroundColor;
+
+  int speciesCount;
+  BlendType blendType = BlendType::AlphaMix;
 };
+
+namespace details {
+struct SpeciesShaderRenderSettings {
+  float trailPow;
+  SpeciesShaderRenderSettings() = default;
+  SpeciesShaderRenderSettings(const physarum::PopulationColor &src);
+};
+
+}
 
 }// namespace pf::ogl
 

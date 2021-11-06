@@ -64,15 +64,36 @@ int main(int argc, char *argv[]) {
 
   window->setInputIgnorePredicate([&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
 
-  auto sim = std::make_unique<physarum::PhysarumSimulator>(ui.getConfig(), shaderFolder, windowSize);
+  auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, windowSize);
 
   ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
 
-  ui.setOutImage(renderer.getRenderTexture());
-
-  ui.onConfigChange = [&](const physarum::SimConfig &config) {
-    sim->setConfig(config);
+  bool anySpecies = false;
+  const auto initFromUI = [&] {
+    anySpecies = !ui.speciesPanels.empty();
+    if (!anySpecies) {
+      return;
+    }
+    std::vector<physarum::PopulationConfig> configs;
+    std::ranges::transform(ui.speciesPanels, std::back_inserter(configs), &SpeciesPanel::getConfig);
+    std::vector<physarum::PopulationColor> colors;
+    std::ranges::transform(configs, std::back_inserter(colors), &physarum::PopulationConfig::color);
+    int cnt = 0;
+    std::ranges::for_each(ui.speciesPanels, [&](const auto panel) {
+      int index = cnt++;
+      panel->addValueListener([&, index](const physarum::PopulationConfig &config) {
+        sim->updateConfig(config, index);
+        renderer.setConfig(config.color, index);
+      });
+    });
+    sim->initialize(configs);
+    renderer.init(colors);
+    renderer.setTrailTexture(sim->getTrailTexture());
   };
+
+  initFromUI();
+
+  ui.setOutImage(renderer.getRenderTexture());
 
   bool isAttractorActive = false;
   window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::MouseButtonAction action, const Flags<glfw::ModifierKey> &mods) {
@@ -98,30 +119,34 @@ int main(int argc, char *argv[]) {
     }
   });
 
-  ui.restartSimButton->addClickListener([&] {
-    sim->restart(ui.getConfig());
-  });
+  ui.restartSimButton->addClickListener(initFromUI);
 
-  ui.trailColorEdit->addValueListener([&](const auto &color) {
-    renderer.setColor(color.xyz);
+  ui.backgroundColorEdit->addValueListener([&](const auto &color) {
+    renderer.setBackgroundColor(color);
   },
-                                      true);
+                                           true);
+  ui.blendTypeCombobox->addValueListener([&](const auto blendType) {
+    renderer.setBlendType(blendType);
+  },
+                                          true);
 
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     if (window->shouldClose()) {
       MainLoop::Get()->stop();
     }
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     const float currentTime = std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
     const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
 
-    if (!isSimPaused) {
-      for (int i = 0; i < ui.simSpeedDrag->getValue(); ++i) {
-        sim->simulate(currentTime, timeDelta);
+    if (anySpecies) {
+      if (!isSimPaused) {
+        for (int i = 0; i < ui.simSpeedDrag->getValue(); ++i) {
+          sim->simulate(currentTime, timeDelta);
+        }
       }
+      renderer.render();
     }
-
-    renderer.render();
     ui.imguiInterface->render();
     window->swapBuffers();
     glfw.pollEvents();

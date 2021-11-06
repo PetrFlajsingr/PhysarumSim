@@ -22,19 +22,34 @@
 
 namespace pf::physarum {
 
+namespace details {
+struct SpeciesShaderSettings {
+  int particlesOffset;
+  float senseAngle;
+  float senseDistance;
+  float turnSpeed;
+  int particleCount;
+  float movementSpeed;
+  float trailWeight;
+  float maxTrailValue;
+  int sensorSize;
+  SpeciesShaderSettings() = default;
+  SpeciesShaderSettings(const PopulationConfig &src);
+};
+struct SpeciesShaderDiffuseSettings {
+  int kernelSize;
+  float diffuseRate;
+  float decayRate;
+  int filterType;
+  SpeciesShaderDiffuseSettings() = default;
+  SpeciesShaderDiffuseSettings(const PopulationConfig &src);
+};
+}// namespace details
+
 class PhysarumSimulator {
  public:
-  explicit PhysarumSimulator(const SimConfig &config,
-                             const std::filesystem::path &shaderDir,
-                             glm::uvec2 textureSize) : config(config),
-                                                       textureSize(textureSize) {
-    trailTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_R32F, 0, textureSize.x, textureSize.y);
-    trailTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    trailTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    trailDiffuseTexture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_R32F, 0, textureSize.x, textureSize.y);
-    trailDiffuseTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    trailDiffuseTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  explicit PhysarumSimulator(const std::filesystem::path &shaderDir,
+                             glm::uvec2 textureSize) : textureSize(textureSize) {
 
     const auto simShaderSrc = readFile(shaderDir / "physarum_sim.comp");
     if (!simShaderSrc.has_value()) {
@@ -49,29 +64,20 @@ class PhysarumSimulator {
     }
     diffuseTrailShader = std::make_shared<Shader>(GL_COMPUTE_SHADER, diffuseTrailShaderSrc.value());
     diffuseTrailProgram = std::make_shared<Program>(diffuseTrailShader);
-
-    reinit(config);
   }
+
+  void initialize(const std::vector<PopulationConfig> &populations);
+  void updateConfig(const PopulationConfig &config, std::size_t index);
 
   void simulate(float currentTime, float deltaTime);
 
-  [[nodiscard]] uint32_t getParticleCount() const;
   [[nodiscard]] const std::shared_ptr<Buffer> &getParticleBuffer() const;
   [[nodiscard]] const std::shared_ptr<Texture> &getTrailTexture() const;
-
-  [[nodiscard]] const SimConfig &getConfig() const;
-  void setConfig(const SimConfig &config);
-
-  void restart(const SimConfig &config);
 
   void setAttractorPosition(const glm::vec2 &attractorPosition);
   void setAttractorEnabled(bool attractorEnabled);
 
  private:
-  void reinit(const SimConfig &config);
-
-  SimConfig config;
-  std::uint32_t particleCount;
   glm::uvec2 textureSize;
 
   glm::vec2 attractorPosition{};
@@ -80,18 +86,19 @@ class PhysarumSimulator {
   std::shared_ptr<Buffer> particleBuffer;
   std::shared_ptr<Texture> trailTexture;
   std::shared_ptr<Texture> trailDiffuseTexture;
+  std::shared_ptr<Buffer> speciesSettingsBuffer;
+  std::shared_ptr<Buffer> speciesDiffuseSettingsBuffer;
 
-  // display in renderer - render trail texture to another texture and present on a quad
-
-  // select most pheromone in 3 dirs
-  // set direction toward that - limited by turnAngle
-  // move in direction
-  // save pheromone to trail
   std::shared_ptr<Shader> simulateShader;
   std::shared_ptr<Program> simulateProgram;
-  // TODO: blur the trail - for now median filter, other filters later (blur)
+
   std::shared_ptr<Shader> diffuseTrailShader;
   std::shared_ptr<Program> diffuseTrailProgram;
+
+  std::vector<details::SpeciesShaderSettings> simSpeciesSettings;
+  std::vector<details::SpeciesShaderDiffuseSettings> diffuseSpeciesSettings;
+  int totalParticleCount;
+  int greatestParticleCount;
 };
 
 }// namespace pf::physarum

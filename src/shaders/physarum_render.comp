@@ -2,10 +2,97 @@
 
 layout(local_size_x=8, local_size_y=8)in;
 
-layout(r32f, binding = 0) uniform image2D texTrail;
-layout(rgba32f, binding = 1) uniform image2D texRender;
+struct Settings {
+    float trailPow;
+};
 
-uniform vec3 color;
+layout(r32f, binding = 0) uniform image2DArray texTrail;
+layout(rgba32f, binding = 1) uniform image2D texRender;
+layout(binding = 2, std430)buffer ColorLUT{ vec4 colorLUT[]; };
+layout(binding = 3, std430)buffer SpeciesSettings{ Settings settings[]; };
+
+#define TRUE 1
+#define FALSE 0
+
+#define BLEND_TYPE int
+#define BLEND_ADDITIVE 0
+#define BLEND_ALPHA_MIX 1
+#define BLEND_LAYERED 2
+
+
+uniform vec3 backgroundColor;
+uniform int speciesCount;
+uniform BLEND_TYPE blendType;
+
+vec3 additiveColor(ivec2 texCoord) {
+    vec3 finColor = vec3(0);
+    float t = 0;
+    for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
+        const Settings sSettings = settings[speciesId];
+        const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+
+        if (trailValue == 0) {
+            continue;
+        }
+
+        const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255) + speciesId * 256].xyz;
+
+        finColor += color * trailValue;
+        t += trailValue;
+    }
+
+    finColor += backgroundColor * (1 - min(1, t));
+    return finColor;
+}
+
+vec3 layeredColor(ivec2 texCoord) {
+    vec3 finColor = vec3(0);
+    float t = 0;
+    for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
+        const Settings sSettings = settings[speciesId];
+        const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+
+        if (trailValue == 0) {
+            continue;
+        }
+
+        const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255) + speciesId * 256].xyz;
+
+        finColor = mix(finColor, color, trailValue);
+        t += trailValue;
+    }
+
+    finColor += backgroundColor * (1 - min(1, t));
+    return finColor;
+}
+
+vec3 alphaMixColor(ivec2 texCoord) {
+    float totalTrailVal = 0;
+    for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
+        totalTrailVal += imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+    }
+    vec3 finColor = vec3(0);
+    float t = 0;
+    if (totalTrailVal > 0) {
+        for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
+            const Settings sSettings = settings[speciesId];
+            const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+
+            if (trailValue == 0) {
+                continue;
+            }
+
+            const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255) + speciesId * 256].xyz;
+
+            finColor += color * (trailValue / (totalTrailVal / trailValue));
+            t += trailValue;
+        }
+        finColor += backgroundColor * (1 - min(1, t));
+    } else {
+        finColor = backgroundColor;
+    }
+    return finColor;
+}
 
 void main() {
     const ivec2 dimensions = imageSize(texRender);
@@ -17,8 +104,18 @@ void main() {
         return;
     }
     const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
-    const float trailValue = imageLoad(texTrail, texCoord).r;
-    const vec3 resColor = trailValue * color;
+    vec3 result;
+    switch (blendType) {
+        case BLEND_ADDITIVE:
+        result = additiveColor(texCoord);
+        break;
+        case BLEND_ALPHA_MIX:
+        result = alphaMixColor(texCoord);
+        break;
+        case BLEND_LAYERED:
+        result = layeredColor(texCoord);
+        break;
+    }
 
-    imageStore(texRender, texCoord, vec4(resColor, 1.0));
+    imageStore(texRender, texCoord, vec4(result, 1.0));
 }

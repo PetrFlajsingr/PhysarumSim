@@ -5,16 +5,19 @@
 #ifndef OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 #define OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 
+#include "SpeciesPanel.h"
+#include "simulation/SimConfig.h"
 #include <GLFW/glfw3.h>
+#include <geGL/Texture.h>
+#include <pf_common/enums.h>
 #include <pf_imgui/ImGuiInterface.h>
 #include <pf_imgui/elements.h>
 #include <pf_imgui/layouts/layouts.h>
+#include <renderers/PhysarumRenderer.h>
 #include <toml++/toml.h>
-#include "simulation/SimConfig.h"
-#include <pf_common/enums.h>
-#include <geGL/Texture.h>
 
-ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::physarum)
+ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ui::ig)
+ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 
 namespace pf::ogl {
 
@@ -24,49 +27,54 @@ class UI {
   UI(const toml::table &config, GLFWwindow *windowHandle);
 
   // clang-format off
+  ui::ig::AppMenuBar *appMenuBar;
+    ui::ig::SubMenu *viewSubmenu;
+    ui::ig::MenuButtonItem *viewShowAll;
+    ui::ig::MenuButtonItem *viewHideAll;
+    ui::ig::MenuCheckboxItem *viewSimWin;
+    ui::ig::MenuCheckboxItem *viewImagesWin;
+    ui::ig::MenuCheckboxItem *viewSpeciesWin;
   ui::ig::Window *windowSim;
-    ui::ig::WindowMenuBar *simMenuBar;
-      ui::ig::SubMenu *fileSimSubmenu;
-        ui::ig::MenuButtonItem *saveSimConfigButton;
-        ui::ig::MenuButtonItem *loadSimConfigButton;
     ui::ig::Button *playPauseButton;
-    ui::ig::Checkbox *applyOnChangeCheckbox;
     ui::ig::Group *simControlGroup;
       ui::ig::DragInput<int> *simSpeedDrag;
-      ui::ig::DragInput<float> *senseAngleDrag;
-      ui::ig::DragInput<float> *senseDistanceDrag;
-      ui::ig::Combobox<int> *sensorSizeCombobox;
-      ui::ig::DragInput<float> *turnSpeedDrag;
-      ui::ig::DragInput<float> *movementSpeedDrag;
-      ui::ig::DragInput<float> *trailWeightDrag;
-      ui::ig::Separator *sep1;
-      ui::ig::Input<int> *particleCountInput;
-      ui::ig::Combobox<physarum::ParticleStart> *particleInitCombobox;
       ui::ig::Button *restartSimButton;
-      // reset btn
-    ui::ig::Group *trailControlGroup;
-      ui::ig::Combobox<int> *kernelSizeCombobox;
-      ui::ig::DragInput<float> *diffuseRateDrag;
-      ui::ig::DragInput<float> *decayRateDrag;
-      ui::ig::DragInput<float> *maxTrailValueDrag;
-    ui::ig::ColorEdit<glm::vec4> *trailColorEdit; // add
-    ui::ig::Button *applyButton;
   ui::ig::Window *imagesWindow;
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
+  ui::ig::Window *speciesWindow;
+    ui::ig::WindowMenuBar *speciesMenuBar;
+      ui::ig::SubMenu *fileSpeciesSubmenu;
+        ui::ig::MenuButtonItem *saveSpeciesButton;
+        ui::ig::MenuButtonItem *loadSpeciesButton;
+    ui::ig::Combobox<BlendType> *blendTypeCombobox;
+    ui::ig::ColorEdit<glm::vec3> *backgroundColorEdit;
+    ui::ig::BoxLayout *speciesButtonLayout;
+    ui::ig::TabBar *speciesTabBar;
+      ui::ig::TabButton *addSpeciesButton;
+      std::vector<SpeciesPanel*> speciesPanels;
   // clang-format on
 
   void setOutImage(std::shared_ptr<Texture> texture);
 
+  Subscription addResetListener(std::invocable auto &&listener) {
+      return resetObservable.addListener(std::forward<decltype(listener)>(listener));
+  }
+
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
-
-  [[nodiscard]] physarum::SimConfig getConfig() const;
-  void loadFromConfig(const physarum::SimConfig &config);
-
-  std::function<void(physarum::SimConfig)> onConfigChange = [](auto){};
-
  private:
-  void valueChange();
+  ui::ig::Observable_impl<SpeciesPanel*> resetObservable;
+
+  void setAllWinVisibility(bool visible);
+
+  [[nodiscard]] toml::table speciesToToml() const;
+
+  void loadFromToml(const toml::table &src);
+
+  void updateSpeciesTabBarFromConfig(const toml::table &config);
+
+  void addDefaultSpecies();
+
 };
 
 }// namespace pf::ogl

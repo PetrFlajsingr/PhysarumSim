@@ -8,26 +8,30 @@ struct Particle {
     float PADDING;
 };
 
+struct Settings {
+    int particlesOffset;
+    float senseAngle;
+    float senseDistance;
+    float turnSpeed;
+    int particleCount;
+    float movementSpeed;
+    float trailWeight;
+    float maxTrailValue;
+    int sensorSize;
+};
+
 layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
-layout(r32f, binding = 1) uniform image2D texTrail;
+layout(r32f, binding = 1) uniform image2DArray texTrail;
+layout(binding = 2, std430)buffer SpeciesSettings{Settings settings[]; };
 
 #define PI 3.1415
 #define TRUE 1
 #define FALSE 0
 
-uniform float senseAngle;
-uniform float senseDistance;
-uniform float turnSpeed;
-uniform int particleCount;
-uniform float movementSpeed;
-uniform float deltaT;
-uniform float time;
-uniform float trailWeight;
-uniform float maxTrailValue;
-uniform int sensorSize;
-
 uniform int enableAttractor;
 uniform vec2 attractorPosition;
+uniform float deltaT;
+uniform float time;
 
 vec2 rotate(vec2 v, float a) {
     float s = sin(a);
@@ -35,17 +39,6 @@ vec2 rotate(vec2 v, float a) {
     mat2 m = mat2(c, -s, s, c);
     return m * v;
 }
-
-// select most pheromone in 3 dirs
-// set direction toward that - limited by turnAngle
-// move in direction
-// save pheromone to trail
-
-struct SenseResult {
-    float trail;
-    vec2 dir;
-    float angle;
-};
 
 uint hash(uint state) {
     state ^= 2747636419u;
@@ -61,20 +54,21 @@ float scaleToRange01(uint state) {
     return float(state) / 4294967295.0;
 }
 
-float sense(Particle particle, float sensorAngle, ivec2 texSize) {
+float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSettings) {
+    const uint speciesId = gl_GlobalInvocationID.z;
     const float angle = particle.angleDirection + sensorAngle;
     const vec2 sensorDir = vec2(cos(angle), sin(angle));
 
-    const vec2 sensorPos = particle.position + sensorDir * senseDistance;
+    const vec2 sensorPos = particle.position + sensorDir * sSettings.senseDistance;
     const ivec2 iSensorPos = ivec2(sensorPos);
 
-    const int halfSensorSize = sensorSize / 2;
+    const int halfSensorSize = sSettings.sensorSize / 2;
     const ivec2 texSensorPos = ivec2(min(texSize.x - 1, max(0, iSensorPos.x)), min(texSize.y - 1, max(0, iSensorPos.y)));
 
     float tmp = 0;
     for (int x = -halfSensorSize; x <= halfSensorSize; ++x) {
         for (int y = -halfSensorSize; y <= halfSensorSize; ++y) {
-            tmp += imageLoad(texTrail, texSensorPos + ivec2(x, y)).r;
+            tmp += imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), speciesId)).r;
         }
     }
 
@@ -94,49 +88,52 @@ vec2 attractorDelta(Particle particle) {
 }
 
 void main() {
-    if (gl_GlobalInvocationID.x >= particleCount) { return; }
+    const uint speciesId = gl_GlobalInvocationID.z;
+    const Settings sSettings = settings[speciesId];
+    if (gl_GlobalInvocationID.x >= sSettings.particleCount) { return; }
 
-    Particle particle = particles[gl_GlobalInvocationID.x];
+
+    Particle particle = particles[sSettings.particlesOffset + gl_GlobalInvocationID.x];
     const vec2 oldPos = particle.position;
 
 
-    const ivec2 texSize = imageSize(texTrail);
+    const ivec2 texSize = imageSize(texTrail).xy;
     uint random = hash(uint(oldPos.y * texSize.x + oldPos.x + hash(uint(gl_GlobalInvocationID.x + time * 100000.f))));
 
-    const float angleR = senseAngle * (PI / 180);
-    const float fwdVal = sense(particle, 0, texSize);
-    const float leftVal = sense(particle, angleR, texSize);
-    const float rightVal = sense(particle, -angleR, texSize);
+    const float angleR = sSettings.senseAngle * (PI / 180);
+    const float fwdVal = sense(particle, 0, texSize, sSettings);
+    const float leftVal = sense(particle, angleR, texSize, sSettings);
+    const float rightVal = sense(particle, -angleR, texSize, sSettings);
 
-    const float rndSteer = scaleToRange01(random);
-    const float turnSpeedR = turnSpeed * 2 * PI;
+    const float rndSteer = scaleToRange01(random); // TODO add to options
+    const float turnSpeedR = sSettings.turnSpeed * 2 * PI;
 
     if (fwdVal > leftVal && fwdVal > rightVal) {
         //
     } else if (fwdVal < leftVal && fwdVal < rightVal) {
-        particles[gl_GlobalInvocationID.x].angleDirection += (rndSteer - 0.5) * 2 * turnSpeedR * deltaT;
+        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection += (rndSteer - 0.5) * 2 * turnSpeedR * deltaT;
     } else if (rightVal > leftVal) {
-        particles[gl_GlobalInvocationID.x].angleDirection -= rndSteer * turnSpeedR * deltaT;
+        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection -= rndSteer * turnSpeedR * deltaT;
     } else if (leftVal > rightVal) {
-        particles[gl_GlobalInvocationID.x].angleDirection += rndSteer * turnSpeedR * deltaT;
+        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection += rndSteer * turnSpeedR * deltaT;
     }
 
     const vec2 newDir = vec2(cos(particle.angleDirection), sin(particle.angleDirection));
-    vec2 newPos = particle.position + newDir * deltaT * movementSpeed;
+    vec2 newPos = particle.position + newDir * deltaT * sSettings.movementSpeed;
 
     if (newPos.x < 0 || newPos.x >= texSize.x || newPos.y < 0 || newPos.y >= texSize.y) {
         random = hash(random);
         const float randomAngle = scaleToRange01(random) * 2 * PI;
         newPos.x = min(texSize.x - 1, max(0, newPos.x));
         newPos.y = min(texSize.y - 1, max(0, newPos.y));
-        particles[gl_GlobalInvocationID.x].angleDirection = randomAngle;
+        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection = randomAngle;
     } else {
         const ivec2 tCoord = ivec2(newPos);
-        const float prevTrail = imageLoad(texTrail, tCoord).r;
-        imageStore(texTrail, tCoord, vec4(min(maxTrailValue, prevTrail + trailWeight * deltaT)));
+        const float prevTrail = imageLoad(texTrail, ivec3(tCoord, speciesId)).r;
+        imageStore(texTrail, ivec3(tCoord, speciesId), vec4(min(sSettings.maxTrailValue, prevTrail + sSettings.trailWeight * deltaT)));
     }
     const vec2 attractionDelta = attractorDelta(particle);
-    particles[gl_GlobalInvocationID.x].position = newPos + attractionDelta;
+    particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].position = newPos + attractionDelta;
 }
 
 

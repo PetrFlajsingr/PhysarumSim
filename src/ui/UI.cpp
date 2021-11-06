@@ -4,10 +4,12 @@
 
 #include "UI.h"
 #include <pf_imgui/backends/ImGuiGlfwOpenGLInterface.h>
+#include <pf_imgui/enums.h>
 #include <pf_imgui/styles/dark.h>
 
 pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   using namespace ui::ig;
+  using namespace enum_operators;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(ImGuiGlfwOpenGLConfig{
       .windowHandle = windowHandle,
       .flags = {},
@@ -18,158 +20,200 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
       .defaultFontSize = 13.f});
   setDarkStyle(*imguiInterface);
 
+  appMenuBar = &imguiInterface->getMenuBar();
+  viewSubmenu = &appMenuBar->addSubmenu("app_view_submenu", "View");
+  viewShowAll = &viewSubmenu->addButtonItem("show_all_view", "Show all");
+  viewHideAll = &viewSubmenu->addButtonItem("hide_all_view", "Hide all");
+  viewShowAll->addClickListener([&] {
+    setAllWinVisibility(true);
+  });
+  viewHideAll->addClickListener([&] {
+    setAllWinVisibility(false);
+  });
+  viewSubmenu->addSeparator("view_submenu_separator");
+  viewSimWin = &viewSubmenu->addCheckboxItem("show_sim_menu", "Simulation", true, Persistent::Yes);
+  viewImagesWin = &viewSubmenu->addCheckboxItem("show_images_menu", "Images", true, Persistent::Yes);
+  viewSpeciesWin = &viewSubmenu->addCheckboxItem("show_species_menu", "Species", true, Persistent::Yes);
+
   windowSim = &imguiInterface->createWindow("sim_window", "Simulation");
+  viewSimWin->addValueListener([&](bool value) {
+    windowSim->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                               true);
+  windowSim->addCloseListener([&]() {
+    viewSimWin->setValue(false);
+  });
+  windowSim->setCloseable(true);
   windowSim->setIsDockable(true);
-  windowSim->setCollapsible(true);
-  simMenuBar = &windowSim->getMenuBar();
+  /*  simMenuBar = &windowSim->getMenuBar();
   fileSimSubmenu = &simMenuBar->addSubmenu("file_sim_submenu", "File");
   saveSimConfigButton = &fileSimSubmenu->addButtonItem("save_sim_button", "Save");
-  loadSimConfigButton = &fileSimSubmenu->addButtonItem("load_sim_button", "Load");
+  loadSimConfigButton = &fileSimSubmenu->addButtonItem("load_sim_button", "Load");*/
   playPauseButton = &windowSim->createChild<Button>("btn_play_pause", "Start");
-  applyOnChangeCheckbox = &windowSim->createChild<Checkbox>("apply_change_checkbox", "Apply on change");
   simControlGroup = &windowSim->createChild<Group>("group_sim_control", "Simulation controls", Persistent::Yes, AllowCollapse::Yes);
   simSpeedDrag = &simControlGroup->createChild<DragInput<int>>("sim_speed_drag", "Simulation speed", 1, 1, 10, 1, Persistent::Yes);
-  senseAngleDrag = &simControlGroup->createChild<DragInput<float>>("sense_angle_drag", "Sense angle", 0.1f, -180.f, 180.f, 30.f, Persistent::Yes);
-  senseDistanceDrag = &simControlGroup->createChild<DragInput<float>>("drag_sense_distance", "Sense distance", 1.0f, 0.1f, 1000.f, 35.f, Persistent::Yes);
-  sensorSizeCombobox = &simControlGroup->createChild<Combobox<int>>("combobox_sensor_size", "Sensor size", "select", std::vector<int>{1, 3, 5, 7, 9}, ComboBoxCount::Items8, Persistent::Yes);
-  sensorSizeCombobox->setSelectedItem(1);
-  turnSpeedDrag = &simControlGroup->createChild<DragInput<float>>("drag_turn_speed", "Turn speed", 0.1f, 0.f, 100.f, 2.f, Persistent::Yes);
-  movementSpeedDrag = &simControlGroup->createChild<DragInput<float>>("drag_move_speed", "Movement speed", 0.1f, -100.f, 100.f, 20.f, Persistent::Yes);
-  trailWeightDrag = &simControlGroup->createChild<DragInput<float>>("drag_trail_weight", "Trail weight", 0.1f, 0.f, 1000.f, 5.f, Persistent::Yes);
-  sep1 = &simControlGroup->createChild<Separator>("sep1");
-  particleCountInput = &simControlGroup->createChild<Input<int>>("input_particle_count", "Particle count", 100, 1'000, 10'000, Persistent::Yes);
-  particleCountInput->addValueListener([&](const auto value) {
-    static auto previousValue = value;
-    if (value <= 0) {
-      particleCountInput->setValue(std::max(1, previousValue));
-    }
-  });
-  particleInitCombobox = &simControlGroup->createChild<Combobox<physarum::ParticleStart>>("combobox_particle_start", "Init type", "Select", magic_enum::enum_values<physarum::ParticleStart>(), ComboBoxCount::Items8, Persistent::Yes);
-  particleInitCombobox->setValue(physarum::ParticleStart::Random);
   restartSimButton = &simControlGroup->createChild<Button>("restart_sim", "Restart");
-  trailControlGroup = &windowSim->createChild<Group>("group_trail_control", "Trail controls", Persistent::Yes, AllowCollapse::Yes);
-  kernelSizeCombobox = &trailControlGroup->createChild<Combobox<int>>("combobox_kernel_size", "Kernel size", "select", std::vector<int>{1, 3, 5, 7, 9}, ComboBoxCount::Items8, Persistent::Yes);
-  kernelSizeCombobox->setSelectedItem(3);
-  diffuseRateDrag = &trailControlGroup->createChild<DragInput<float>>("drag_diffuse_rate", "Diffuse rate", 0.1f, 0.0f, 100.f, 3.f, Persistent::Yes);
-  decayRateDrag = &trailControlGroup->createChild<DragInput<float>>("drag_decay_rate", "Decay rate", 0.01f, 0.0f, 1.f, .2f, Persistent::Yes);
-  maxTrailValueDrag = &trailControlGroup->createChild<DragInput<float>>("drag_max_trail", "Max trail value", 0.01f, 0.01f, 10.f, 1.f, Persistent::Yes);
-  trailColorEdit = &trailControlGroup->createChild<ColorEdit<glm::vec4>>("trail_color_edit", "Trail color", glm::vec4{1.0}, Persistent::Yes);
-  applyButton = &windowSim->createChild<Button>("button_apply", "Apply");
 
   imagesWindow = &imguiInterface->createWindow("image_window", "Images");
+  viewImagesWin->addValueListener([&](bool value) {
+    imagesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                                  true);
+  imagesWindow->addCloseListener([&]() {
+    viewImagesWin->setValue(false);
+  });
+  imagesWindow->setCloseable(true);
   imagesWindow->setIsDockable(true);
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
-  senseAngleDrag->addValueListener([&](auto) {
-    valueChange();
+  speciesWindow = &imguiInterface->createWindow("species_window", "Species");
+  viewSpeciesWin->addValueListener([&](bool value) {
+    speciesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
+  },
+                                   true);
+  speciesWindow->addCloseListener([&]() {
+    viewSpeciesWin->setValue(false);
   });
-  particleCountInput->addValueListener([&](auto) {
-    valueChange();
-  });
-  senseDistanceDrag->addValueListener([&](auto) {
-    valueChange();
-  });
-  turnSpeedDrag->addValueListener([&](auto) {
-    valueChange();
-  });
-  movementSpeedDrag->addValueListener([&](auto) {
-    valueChange();
-  });
-  trailWeightDrag->addValueListener([&](auto) {
-    valueChange();
-  });
-  kernelSizeCombobox->addValueListener([&](auto) {
-    valueChange();
-  });
-  sensorSizeCombobox->addValueListener([&](auto) {
-    valueChange();
-  });
-  diffuseRateDrag->addValueListener([&](auto) {
-    valueChange();
-  });
-  decayRateDrag->addValueListener([&](auto) {
-    valueChange();
-  });
-  maxTrailValueDrag->addValueListener([&](auto) {
-    valueChange();
-  });
-  trailColorEdit->addValueListener([&](auto) {
-    valueChange();
+  speciesWindow->setCloseable(true);
+  speciesWindow->setIsDockable(true);
+  speciesWindow->setCollapsible(true);
+
+  speciesMenuBar = &speciesWindow->getMenuBar();
+  fileSpeciesSubmenu = &speciesMenuBar->addSubmenu("species_file_submenu", "File");
+  saveSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_save_button", "Save");
+  loadSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_load_button", "Load");
+
+  blendTypeCombobox = &speciesWindow->createChild<Combobox<BlendType>>("blend_type_combobox", "Blend type", "Select", magic_enum::enum_values<BlendType>(), ComboBoxCount::Items8, Persistent::Yes);
+  blendTypeCombobox->setSelectedItem(BlendType::AlphaMix);
+  backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background", glm::vec3{.0f}, Persistent::Yes);
+  speciesButtonLayout = &speciesWindow->createChild<BoxLayout>("species_buttons_layout", LayoutDirection::LeftToRight, Size{Width::Fill(), 30}, AllowCollapse::No, ShowBorder::No, Persistent::Yes);
+
+  speciesTabBar = &speciesWindow->createChild<TabBar>("species_tabbar", true);
+  addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", "+", TabMod::ForceRight);
+  addSpeciesButton->addClickListener([&] {
+    imguiInterface->openInputDialog(
+        "Species name", "Input species name", [&](const auto input) {
+          auto &tab = speciesTabBar->addTab(input + "_species_tab", input, true);
+          speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(input + "_species_panel", Persistent::Yes));
+
+          tab.addOpenListener([&, input](bool open) {
+            if (open) { return;}
+            imguiInterface->createMsgDlg("Remove species?", fmt::format("Do you want to remove species '{}'", input), MessageButtons::Yes | MessageButtons::No,
+                [&tab] (auto btn) {
+                                   if (btn == MessageButtons::No) {tab.setOpen();}
+                                   return true;});
+          }); }, [] {});
   });
 
-  applyButton->addClickListener([&] {
-    onConfigChange(getConfig());
+  restartSimButton->addClickListener([&] {
+    auto closedTabs = speciesTabBar->getTabs() | std::views::filter([](const auto &tab) {
+                        return !tab.isOpen();
+                      });
+    for (auto &tab : closedTabs) {
+      speciesPanels.erase(std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_species_panel"; }));
+      tab.removeChild(tab.getLabel() + "_species_panel");
+    }
+
+    auto closedTabNames = closedTabs | std::views::transform(&Tab::getName) | ranges::to_vector;
+    std::ranges::for_each(closedTabNames, [&](const auto &tabName) {
+      speciesTabBar->removeTab(tabName);
+    });
   });
 
-  saveSimConfigButton->addClickListener([&] {
+  saveSpeciesButton->addClickListener([&] {
     imguiInterface->openFileDialog(
         "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
-          const auto data = getConfig().toToml();
+          const auto data = speciesToToml();
           std::ofstream ostream{dst};
           ostream << data;
         },
         [] {}, ui::ig::Size{500, 400});
   });
 
-  loadSimConfigButton->addClickListener([&] {
+  loadSpeciesButton->addClickListener([&] {
     imguiInterface->openFileDialog(
-        "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
+        "Select file to load", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
-          const auto config = physarum::SimConfig::FromToml(toml::parse_file(std::filesystem::absolute(dst).string()));
-          loadFromConfig(config);
+          const auto config = toml::parse_file(std::filesystem::absolute(dst).string());
+          loadFromToml(config);
         },
         [] {}, ui::ig::Size{500, 400});
   });
 
-  imguiInterface->setStateFromConfig();
-}
+  updateSpeciesTabBarFromConfig(config);
 
-pf::physarum::SimConfig pf::ogl::UI::getConfig() const {
-  auto result = physarum::SimConfig{
-      .senseAngle = senseAngleDrag->getValue(),
-      .senseDistance = senseDistanceDrag->getValue(),
-      .turnSpeed = turnSpeedDrag->getValue(),
-      .movementSpeed = movementSpeedDrag->getValue(),
-      .trailWeight = trailWeightDrag->getValue(),
-      .blurKernelSize = kernelSizeCombobox->getValue(),
-      .diffuseRate = diffuseRateDrag->getValue(),
-      .decayRate = decayRateDrag->getValue(),
-      .maxTrailValue = maxTrailValueDrag->getValue(),
-      .particleStart = particleInitCombobox->getValue(),
-      .particleCount = particleCountInput->getValue(),
-      .sensorSize = sensorSizeCombobox->getValue()
-  };
-  return result;
-}
-
-void pf::ogl::UI::valueChange() {
-  if (applyOnChangeCheckbox->getValue()) {
-    onConfigChange(getConfig());
+  if (speciesPanels.empty()) {
+    addDefaultSpecies();
   }
-}
-void pf::ogl::UI::loadFromConfig(const pf::physarum::SimConfig &config) {
-  senseAngleDrag->setValue(config.senseAngle);
-  senseDistanceDrag->setValue(config.senseDistance);
-  turnSpeedDrag->setValue(config.turnSpeed);
-  movementSpeedDrag->setValue(config.movementSpeed);
-  trailWeightDrag->setValue(config.trailWeight);
-  kernelSizeCombobox->setValue(config.blurKernelSize);
-  diffuseRateDrag->setValue(config.diffuseRate);
-  decayRateDrag->setValue(config.decayRate);
-  maxTrailValueDrag->setValue(config.maxTrailValue);
-  particleInitCombobox->setValue(config.particleStart);
-  particleCountInput->setValue(config.particleCount);
-  sensorSizeCombobox->setValue(config.sensorSize);
 
-  onConfigChange(getConfig());
+  imguiInterface->setStateFromConfig();
 }
 
 void pf::ogl::UI::setOutImage(std::shared_ptr<Texture> texture) {
   using namespace ui::ig;
-  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID)texture->getId(), Size{200, 100}, IsButton::No, [] {
+  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080}, IsButton::No, [] {
     return std::pair(ImVec2{0, 1}, ImVec2{1, 0});
   });
+}
+
+void pf::ogl::UI::setAllWinVisibility(bool visible) {
+  using namespace ui::ig;
+  const auto vis = visible ? Visibility::Visible : Visibility::Invisible;
+  windowSim->setVisibility(vis);
+  speciesWindow->setVisibility(vis);
+  imagesWindow->setVisibility(vis);
+  viewSimWin->setValue(visible);
+  viewImagesWin->setValue(visible);
+  viewSpeciesWin->setValue(visible);
+}
+toml::table pf::ogl::UI::speciesToToml() const {
+  toml::table result{};
+  auto openTabs = speciesTabBar->getTabs() | std::views::filter([](const auto &tab) {
+                    return tab.isOpen();
+                  });
+
+  for (auto &tab : openTabs) {
+    auto panel = *std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_species_panel"; });
+    result.insert(tab.getLabel(), panel->getConfig().toToml());
+  }
+  return result;
+}
+
+void pf::ogl::UI::loadFromToml(const toml::table &src) {
+  using namespace ui::ig;
+  speciesPanels.clear();
+  auto tabNames = speciesTabBar->getTabs() | std::views::transform([](const auto &tab) {
+                    return tab.getName();
+                  }) | ranges::to_vector;
+  for (const auto &tabName : tabNames) {
+    speciesTabBar->removeTab(tabName);
+  }
+
+  for (const auto &[name, data] : src) {
+    auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
+    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
+  }
+}
+
+void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
+  using namespace ui::ig;
+  const std::string speciesPanelPostfix = "_species_panel";
+  for (const auto &[name, data] : config) {
+    if (!name.ends_with(speciesPanelPostfix)) {
+      continue;
+    }
+    const auto speciesName = name.substr(0, name.length() - speciesPanelPostfix.length());
+    auto &tab = speciesTabBar->addTab(speciesName + + "_species_tab", speciesName, true);
+    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(speciesName + speciesPanelPostfix, Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
+
+  }
+}
+
+void pf::ogl::UI::addDefaultSpecies() {
+  using namespace ui::ig;
+  auto &tab = speciesTabBar->addTab("default_species_tab", "default", true);
+  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>("default_species_panel", Persistent::Yes));
 }
