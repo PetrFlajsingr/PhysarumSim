@@ -4,6 +4,7 @@
 
 #include "UI.h"
 #include <pf_imgui/backends/ImGuiGlfwOpenGLInterface.h>
+#include <pf_imgui/enums.h>
 #include <pf_imgui/styles/dark.h>
 
 pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
@@ -93,7 +94,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     imguiInterface->openInputDialog(
         "Species name", "Input species name", [&](const auto input) {
           auto &tab = speciesTabBar->addTab(input + "_species_tab", input, true);
-          speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(input + "_panel"));
+          speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(input + "_panel", Persistent::Yes));
 
           tab.addOpenListener([&, input](bool open) {
             if (open) { return;}
@@ -142,6 +143,12 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
         [] {}, ui::ig::Size{500, 400});
   });
 
+  updateSpeciesTabBarFromConfig(config);
+
+  if (speciesPanels.empty()) {
+    addDefaultSpecies();
+  }
+
   imguiInterface->setStateFromConfig();
 }
 
@@ -169,13 +176,14 @@ toml::table pf::ogl::UI::speciesToToml() const {
                   });
 
   for (auto &tab : openTabs) {
-    auto panel = *std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_panel"; });
+    auto panel = *std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_species_panel"; });
     result.insert(tab.getLabel(), panel->getConfig().toToml());
   }
   return result;
 }
 
 void pf::ogl::UI::loadFromToml(const toml::table &src) {
+  using namespace ui::ig;
   speciesPanels.clear();
   auto tabNames = speciesTabBar->getTabs() | std::views::transform([](const auto &tab) {
                     return tab.getName();
@@ -184,9 +192,28 @@ void pf::ogl::UI::loadFromToml(const toml::table &src) {
     speciesTabBar->removeTab(tabName);
   }
 
-  for (const auto &speciesTable : src) {
-    const auto &[name, data] = speciesTable;
+  for (const auto &[name, data] : src) {
     auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
-    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_panel"))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
+    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
   }
+}
+
+void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
+  using namespace ui::ig;
+  const std::string speciesPanelPostfix = "_species_panel";
+  for (const auto &[name, data] : config) {
+    if (!name.ends_with(speciesPanelPostfix)) {
+      continue;
+    }
+    const auto speciesName = name.substr(0, name.length() - speciesPanelPostfix.length());
+    auto &tab = speciesTabBar->addTab(name, speciesName, true);
+    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + speciesPanelPostfix, Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
+
+  }
+}
+
+void pf::ogl::UI::addDefaultSpecies() {
+  using namespace ui::ig;
+  auto &tab = speciesTabBar->addTab("default_species_tab", "default", true);
+  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>("default_species_panel", Persistent::Yes));
 }

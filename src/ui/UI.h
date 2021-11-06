@@ -71,6 +71,10 @@ class UI {
 
   void loadFromToml(const toml::table &src);
 
+  void updateSpeciesTabBarFromConfig(const toml::table &config);
+
+  void addDefaultSpecies();
+
 };
 
 }// namespace pf::ogl

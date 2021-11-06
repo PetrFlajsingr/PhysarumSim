@@ -77,7 +77,7 @@ void SpeciesPanel::createElements() {
 
   particleInitCombobox = &root.createChild<Combobox<ParticleStart>>(getName() + "combobox_particle_start", "Init type", "Select", magic_enum::enum_values<ParticleStart>());
   particleInitCombobox->setSelectedItem(ParticleStart::Random);
-  particleCountInput = &root.createChild<Input<int>>(getName() + "input_particle_count", "Particle count", 100, 1'000, 10'000);
+  particleCountInput = &root.createChild<Input<int>>(getName() + "input_particle_count", "Particle count", 100, 1'000, 100'000);
   particleCountInput->addValueListener([&](const auto value) {
     static auto previousValue = value;
     if (value <= 0) {
