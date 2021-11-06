@@ -85,7 +85,7 @@ vec3 alphaMixColor(ivec2 texCoord) {
             const vec3 color = colorLUT[uint(pow(trailValue, sSettings.trailPow) * 255) + speciesId * 256].xyz;
 
             finColor += color * (trailValue / (totalTrailVal / trailValue));
-            t += trailValue;
+            t = max(t, trailValue);
         }
         finColor += backgroundColor * (1 - min(1, t));
     } else {
