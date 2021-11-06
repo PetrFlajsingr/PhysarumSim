@@ -18,6 +18,7 @@ struct Settings {
     float trailWeight;
     float maxTrailValue;
     int sensorSize;
+    float maxSteerRandomness;
 };
 
 layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
@@ -105,7 +106,7 @@ void main() {
     const float leftVal = sense(particle, angleR, texSize, sSettings);
     const float rightVal = sense(particle, -angleR, texSize, sSettings);
 
-    const float rndSteer = scaleToRange01(random); // TODO add to options
+    const float rndSteer = 1 - (scaleToRange01(random) / (1 / sSettings.maxSteerRandomness));
     const float turnSpeedR = sSettings.turnSpeed * 2 * PI;
 
     if (fwdVal > leftVal && fwdVal > rightVal) {

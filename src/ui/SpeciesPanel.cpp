@@ -51,7 +51,8 @@ PopulationConfig SpeciesPanel::getConfig() const {
       .particleCount = particleCountInput->getValue(),
       .sensorSize = sensorSizeCombobox->getValue(),
       .color = colorPanel->getValue(),
-      .filterType = filterTypeCombobox->getValue()};
+      .filterType = filterTypeCombobox->getValue(),
+      .maxSteerRandomness = maxSteerRandomnessDrag->getValue()};
   return result;
 }
 
@@ -60,6 +61,7 @@ void SpeciesPanel::setConfig(const PopulationConfig &config) {
   senseDistanceDrag->setValue(config.senseDistance);
   turnSpeedDrag->setValue(config.turnSpeed);
   movementSpeedDrag->setValue(config.movementSpeed);
+  maxSteerRandomnessDrag->setValue(config.maxSteerRandomness);
   trailWeightDrag->setValue(config.trailWeight);
   kernelSizeCombobox->setSelectedItem(config.blurKernelSize);
   diffuseRateDrag->setValue(config.diffuseRate);
@@ -93,6 +95,7 @@ void SpeciesPanel::createElements() {
   sensorSizeCombobox->setSelectedItem(1);
   turnSpeedDrag = &root.createChild<DragInput<float>>(getName() + "drag_turn_speed", "Turn speed", 0.1f, 0.f, 100.f, 2.f);
   movementSpeedDrag = &root.createChild<DragInput<float>>(getName() + "drag_move_speed", "Movement speed", 0.1f, -100.f, 100.f, 20.f);
+  maxSteerRandomnessDrag = &root.createChild<DragInput<float>>(getName() + "drag_max_rand_steer", "Max steer randomness", 0.1f, .0f, 1.f, 1.f);
   trailWeightDrag = &root.createChild<DragInput<float>>(getName() + "drag_trail_weight", "Trail weight", 0.1f, 0.f, 1000.f, 5.f);
 
   root.createChild<Separator>(getName() + "sep2");
@@ -117,6 +120,7 @@ void SpeciesPanel::registerListeners() {
   senseDistanceDrag->addValueListener(setChange);
   turnSpeedDrag->addValueListener(setChange);
   movementSpeedDrag->addValueListener(setChange);
+  maxSteerRandomnessDrag->addValueListener(setChange);
   trailWeightDrag->addValueListener(setChange);
   kernelSizeCombobox->addValueListener(setChange);
   sensorSizeCombobox->addValueListener(setChange);

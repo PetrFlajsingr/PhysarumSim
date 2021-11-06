@@ -148,6 +148,7 @@ PopulationConfig PopulationConfig::FromToml(const toml::table &src) {
       .sensorSize = src["sensorSize"].value<int>().value(),
       .color = PopulationColor::FromToml(*src["color"].as_table()),
       .filterType = static_cast<FilterType>(src["filterType"].value<int>().value()),
+      .maxSteerRandomness = src["maxSteerRandomness"].value<float>().value(),
   };
 }
 
@@ -167,6 +168,7 @@ toml::table PopulationConfig::toToml() const {
        {"sensorSize", sensorSize},
        {"color", color.toToml()},
        {"filterType", static_cast<int>(filterType)},
+       {"maxSteerRandomness", maxSteerRandomness},
       }};
 }
 

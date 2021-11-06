@@ -90,6 +90,7 @@ struct PopulationConfig {
   int sensorSize;
   PopulationColor color;
   FilterType filterType;
+  float maxSteerRandomness;
 
   static PopulationConfig FromToml(const toml::table &src);
   [[nodiscard]] toml::table toToml() const;

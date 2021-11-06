@@ -33,6 +33,7 @@ struct SpeciesShaderSettings {
   float trailWeight;
   float maxTrailValue;
   int sensorSize;
+  float maxSteerRandomness;
   SpeciesShaderSettings() = default;
   SpeciesShaderSettings(const PopulationConfig &src);
 };

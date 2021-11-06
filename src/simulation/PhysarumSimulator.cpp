@@ -126,6 +126,7 @@ details::SpeciesShaderSettings::SpeciesShaderSettings(const PopulationConfig &sr
   trailWeight = src.trailWeight;
   maxTrailValue = src.maxTrailValue;
   sensorSize = src.sensorSize;
+  maxSteerRandomness = src.maxSteerRandomness;
 }
 
 details::SpeciesShaderDiffuseSettings::SpeciesShaderDiffuseSettings(const PopulationConfig &src) {
