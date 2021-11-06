@@ -21,17 +21,26 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   appMenuBar = &imguiInterface->getMenuBar();
   viewSubmenu = &appMenuBar->addSubmenu("app_view_submenu", "View");
-  auto &viewSimWin = viewSubmenu->addCheckboxItem("show_sim_menu", "Simulation", true, Persistent::Yes);
-  auto &viewImagesWin = viewSubmenu->addCheckboxItem("show_images_menu", "Images", true, Persistent::Yes);
-  auto &viewSpeciesWin = viewSubmenu->addCheckboxItem("show_species_menu", "Species", true, Persistent::Yes);
+  viewShowAll = &viewSubmenu->addButtonItem("show_all_view", "Show all");
+  viewHideAll = &viewSubmenu->addButtonItem("hide_all_view", "Hide all");
+  viewShowAll->addClickListener([&] {
+    setAllWinVisibility(true);
+  });
+  viewHideAll->addClickListener([&] {
+    setAllWinVisibility(false);
+  });
+  viewSubmenu->addSeparator("view_submenu_separator");
+  viewSimWin = &viewSubmenu->addCheckboxItem("show_sim_menu", "Simulation", true, Persistent::Yes);
+  viewImagesWin = &viewSubmenu->addCheckboxItem("show_images_menu", "Images", true, Persistent::Yes);
+  viewSpeciesWin = &viewSubmenu->addCheckboxItem("show_species_menu", "Species", true, Persistent::Yes);
 
   windowSim = &imguiInterface->createWindow("sim_window", "Simulation");
-  viewSimWin.addValueListener([&](bool value) {
+  viewSimWin->addValueListener([&](bool value) {
     windowSim->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
-                              true);
+                               true);
   windowSim->addCloseListener([&]() {
-    viewSimWin.setValue(false);
+    viewSimWin->setValue(false);
   });
   windowSim->setCloseable(true);
   windowSim->setIsDockable(true);
@@ -45,24 +54,24 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   restartSimButton = &simControlGroup->createChild<Button>("restart_sim", "Restart");
 
   imagesWindow = &imguiInterface->createWindow("image_window", "Images");
-  viewImagesWin.addValueListener([&](bool value) {
+  viewImagesWin->addValueListener([&](bool value) {
     imagesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
-                                 true);
+                                  true);
   imagesWindow->addCloseListener([&]() {
-    viewImagesWin.setValue(false);
+    viewImagesWin->setValue(false);
   });
   imagesWindow->setCloseable(true);
   imagesWindow->setIsDockable(true);
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
   speciesWindow = &imguiInterface->createWindow("species_window", "Species");
-  viewSpeciesWin.addValueListener([&](bool value) {
+  viewSpeciesWin->addValueListener([&](bool value) {
     speciesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
-                                  true);
+                                   true);
   speciesWindow->addCloseListener([&]() {
-    viewSpeciesWin.setValue(false);
+    viewSpeciesWin->setValue(false);
   });
   speciesWindow->setCloseable(true);
   speciesWindow->setIsDockable(true);
@@ -104,7 +113,6 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     });
   });
 
-
   /* saveSimConfigButton->addClickListener([&] {
     imguiInterface->openFileDialog(
         "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
@@ -136,4 +144,15 @@ void pf::ogl::UI::setOutImage(std::shared_ptr<Texture> texture) {
   outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080}, IsButton::No, [] {
     return std::pair(ImVec2{0, 1}, ImVec2{1, 0});
   });
+}
+
+void pf::ogl::UI::setAllWinVisibility(bool visible) {
+  using namespace ui::ig;
+  const auto vis = visible ? Visibility::Visible : Visibility::Invisible;
+  windowSim->setVisibility(vis);
+  speciesWindow->setVisibility(vis);
+  imagesWindow->setVisibility(vis);
+  viewSimWin->setValue(visible);
+  viewImagesWin->setValue(visible);
+  viewSpeciesWin->setValue(visible);
 }

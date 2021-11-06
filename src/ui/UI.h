@@ -29,6 +29,11 @@ class UI {
   // clang-format off
   ui::ig::AppMenuBar *appMenuBar;
     ui::ig::SubMenu *viewSubmenu;
+    ui::ig::MenuButtonItem *viewShowAll;
+    ui::ig::MenuButtonItem *viewHideAll;
+    ui::ig::MenuCheckboxItem *viewSimWin;
+    ui::ig::MenuCheckboxItem *viewImagesWin;
+    ui::ig::MenuCheckboxItem *viewSpeciesWin;
 
   ui::ig::Window *windowSim;
   /*  ui::ig::WindowMenuBar *simMenuBar;
@@ -60,6 +65,8 @@ class UI {
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
  private:
   ui::ig::Observable_impl<SpeciesPanel*> resetObservable;
+
+  void setAllWinVisibility(bool visible);
 
 };
 

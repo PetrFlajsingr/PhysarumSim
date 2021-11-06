@@ -105,7 +105,7 @@ void main() {
     const float leftVal = sense(particle, angleR, texSize, sSettings);
     const float rightVal = sense(particle, -angleR, texSize, sSettings);
 
-    const float rndSteer = scaleToRange01(random);
+    const float rndSteer = scaleToRange01(random); // TODO add to options
     const float turnSpeedR = sSettings.turnSpeed * 2 * PI;
 
     if (fwdVal > leftVal && fwdVal > rightVal) {

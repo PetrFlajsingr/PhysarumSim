@@ -74,7 +74,6 @@ PopulationColor SpeciesColorPanel::getColor() const {
   result.setSimpleColor(simpleColorEdit->getValue());
   result.setGradientStart(gradientStartColorEdit->getValue());
   result.setGradientEnd(gradientEndColorEdit->getValue());
-  result.setEnableTrailMult(enableTrailMultiplyCheckbox->getValue());
   result.setStartHue(hueSlider->getValue());
   result.setTrailPow(trailPowDrag->getValue());
   return result;
@@ -85,7 +84,6 @@ void SpeciesColorPanel::setColor(const physarum::PopulationColor &color) {
   simpleColorEdit->setValue(color.getSimpleColor());
   gradientStartColorEdit->setValue(color.getGradientStart());
   gradientEndColorEdit->setValue(color.getGradientEnd());
-  enableTrailMultiplyCheckbox->setValue(color.isEnableTrailMult());
   hueSlider->setValue(color.getStartHue());
   trailPowDrag->setValue(color.getTrailPow());
   setValue(color);

@@ -38,13 +38,11 @@ class PopulationColor {
   [[nodiscard]] const glm::vec3 &getSimpleColor() const;
   [[nodiscard]] const glm::vec3 &getGradientStart() const;
   [[nodiscard]] const glm::vec3 &getGradientEnd() const;
-  [[nodiscard]] bool isEnableTrailMult() const;
   [[nodiscard]] float getStartHue() const;
   [[nodiscard]] float getTrailPow() const;
 
   void setTrailPow(float trailPow);
   void setStartHue(float startHue);
-  void setEnableTrailMult(bool enableTrailMult);
   void setType(ColorType type);
   void setSimpleColor(const glm::vec3 &simpleColor);
   void setGradientStart(const glm::vec3 &gradientStart);
@@ -66,8 +64,6 @@ class PopulationColor {
   glm::vec3 gradientEnd{1.f};
 
   float startHue = 0.0f;
-
-  bool enableTrailMult = true;
 
   float trailPow = 1.f;
 };

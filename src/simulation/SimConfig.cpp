@@ -60,7 +60,6 @@ PopulationColor PopulationColor::FromToml(const toml::table &src) {
   result.simpleColor = ui::ig::deserializeGlmVec<glm::vec3>(*src["simpleColor"].as_array());
   result.gradientStart = ui::ig::deserializeGlmVec<glm::vec3>(*src["gradientStart"].as_array());
   result.gradientEnd = ui::ig::deserializeGlmVec<glm::vec3>(*src["gradientEnd"].as_array());
-  result.enableTrailMult = src["enableTrailMult"].value<bool>().value();
   result.startHue = src["startHue"].value<float>().value();
   result.trailPow = src["trailPow"].value<float>().value();
   return result;
@@ -73,7 +72,6 @@ toml::table PopulationColor::toToml() const {
           {"simpleColor", ui::ig::serializeGlmVec(simpleColor)},
           {"gradientStart", ui::ig::serializeGlmVec(gradientStart)},
           {"gradientEnd", ui::ig::serializeGlmVec(gradientEnd)},
-          {"enableTrailMult", enableTrailMult},
           {"startHue", startHue},
           {"trailPow", trailPow},
       }};
@@ -84,7 +82,7 @@ bool PopulationColor::operator==(const PopulationColor &rhs) const {
   if (!isSameType) {
     return false;
   }
-  if (enableTrailMult != rhs.enableTrailMult || trailPow != rhs.trailPow) { return false; }
+  if (trailPow != rhs.trailPow) { return false; }
   switch (type) {
     case ColorType::Simple: return simpleColor == rhs.simpleColor;
     case ColorType::TwoColorGradient: return gradientStart == rhs.gradientStart && gradientEnd == rhs.gradientEnd;
@@ -120,12 +118,6 @@ void PopulationColor::setGradientEnd(const glm::vec3 &gradientEnd) {
 }
 void PopulationColor::setType(ColorType type) {
   PopulationColor::type = type;
-}
-bool PopulationColor::isEnableTrailMult() const {
-  return enableTrailMult;
-}
-void PopulationColor::setEnableTrailMult(bool enableTrailMult) {
-  PopulationColor::enableTrailMult = enableTrailMult;
 }
 float PopulationColor::getStartHue() const {
   return startHue;
