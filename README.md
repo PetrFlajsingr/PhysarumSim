@@ -1,2 +1,4 @@
-# opengl_template
-A c++ cmake project template providing main loop, window system (GLFW) and UI (Dear ImGui).
+# Physarum sim
+
+![imgs\demo1.png](imgs\demo1.png)
+![imgs\demo2.png](imgs\demo2.png)
