@@ -76,6 +76,12 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   speciesWindow->setCloseable(true);
   speciesWindow->setIsDockable(true);
   speciesWindow->setCollapsible(true);
+
+  speciesMenuBar = &speciesWindow->getMenuBar();
+  fileSpeciesSubmenu = &speciesMenuBar->addSubmenu("species_file_submenu", "File");
+  saveSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_save_button", "Save");
+  loadSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_load_button", "Load");
+
   blendTypeCombobox = &speciesWindow->createChild<Combobox<BlendType>>("blend_type_combobox", "Blend type", "Select", magic_enum::enum_values<BlendType>(), ComboBoxCount::Items8, Persistent::Yes);
   blendTypeCombobox->setSelectedItem(BlendType::AlphaMix);
   backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background", glm::vec3{.0f}, Persistent::Yes);
@@ -113,28 +119,28 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     });
   });
 
-  /* saveSimConfigButton->addClickListener([&] {
+  saveSpeciesButton->addClickListener([&] {
     imguiInterface->openFileDialog(
         "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
-          const auto data = getConfig().toToml();
+          const auto data = speciesToToml();
           std::ofstream ostream{dst};
           ostream << data;
         },
         [] {}, ui::ig::Size{500, 400});
   });
 
-  loadSimConfigButton->addClickListener([&] {
+  loadSpeciesButton->addClickListener([&] {
     imguiInterface->openFileDialog(
-        "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
+        "Select file to load", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
-          const auto config = physarum::SimConfig::FromToml(toml::parse_file(std::filesystem::absolute(dst).string()));
-          loadFromConfig(config);
+          const auto config = toml::parse_file(std::filesystem::absolute(dst).string());
+          loadFromToml(config);
         },
         [] {}, ui::ig::Size{500, 400});
-  });*/
+  });
 
   imguiInterface->setStateFromConfig();
 }
@@ -155,4 +161,32 @@ void pf::ogl::UI::setAllWinVisibility(bool visible) {
   viewSimWin->setValue(visible);
   viewImagesWin->setValue(visible);
   viewSpeciesWin->setValue(visible);
+}
+toml::table pf::ogl::UI::speciesToToml() const {
+  toml::table result{};
+  auto openTabs = speciesTabBar->getTabs() | std::views::filter([](const auto &tab) {
+                    return tab.isOpen();
+                  });
+
+  for (auto &tab : openTabs) {
+    auto panel = *std::ranges::find_if(speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_panel"; });
+    result.insert(tab.getLabel(), panel->getConfig().toToml());
+  }
+  return result;
+}
+
+void pf::ogl::UI::loadFromToml(const toml::table &src) {
+  speciesPanels.clear();
+  auto tabNames = speciesTabBar->getTabs() | std::views::transform([](const auto &tab) {
+                    return tab.getName();
+                  }) | ranges::to_vector;
+  for (const auto &tabName : tabNames) {
+    speciesTabBar->removeTab(tabName);
+  }
+
+  for (const auto &speciesTable : src) {
+    const auto &[name, data] = speciesTable;
+    auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
+    speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_panel"))->setConfig(physarum::PopulationConfig::FromToml(*data.as_table()));
+  }
 }

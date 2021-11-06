@@ -34,12 +34,7 @@ class UI {
     ui::ig::MenuCheckboxItem *viewSimWin;
     ui::ig::MenuCheckboxItem *viewImagesWin;
     ui::ig::MenuCheckboxItem *viewSpeciesWin;
-
   ui::ig::Window *windowSim;
-  /*  ui::ig::WindowMenuBar *simMenuBar;
-      ui::ig::SubMenu *fileSimSubmenu;
-        ui::ig::MenuButtonItem *saveSimConfigButton;
-        ui::ig::MenuButtonItem *loadSimConfigButton;*/ // TODO: move this to species window
     ui::ig::Button *playPauseButton;
     ui::ig::Group *simControlGroup;
       ui::ig::DragInput<int> *simSpeedDrag;
@@ -48,6 +43,10 @@ class UI {
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
   ui::ig::Window *speciesWindow;
+    ui::ig::WindowMenuBar *speciesMenuBar;
+      ui::ig::SubMenu *fileSpeciesSubmenu;
+        ui::ig::MenuButtonItem *saveSpeciesButton;
+        ui::ig::MenuButtonItem *loadSpeciesButton;
     ui::ig::Combobox<BlendType> *blendTypeCombobox;
     ui::ig::ColorEdit<glm::vec3> *backgroundColorEdit;
     ui::ig::BoxLayout *speciesButtonLayout;
@@ -67,6 +66,10 @@ class UI {
   ui::ig::Observable_impl<SpeciesPanel*> resetObservable;
 
   void setAllWinVisibility(bool visible);
+
+  [[nodiscard]] toml::table speciesToToml() const;
+
+  void loadFromToml(const toml::table &src);
 
 };
 
