@@ -45,7 +45,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   viewInteractWin->addValueListener([&](bool value) {
     interactionWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
-                                true);
+                                    true);
   interactionWindow->setCloseable(true);
   interactionWindow->setIsDockable(true);
   mouseInteractionPanel = &interactionWindow->createChild<MouseInteractionPanel>("interaction_panel", Persistent::Yes);
@@ -64,7 +64,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   viewInfoWin->addValueListener([&](bool value) {
     infoWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
-                                   true);
+                                true);
   infoWindow->setCloseable(true);
   infoWindow->setIsDockable(true);
 
@@ -164,7 +164,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
         [] {}, ui::ig::Size{500, 400});
   });
 
-  updateSpeciesTabBarFromConfig(config);// TODO: fix loading already saved, but currently removed tabs
+  updateSpeciesTabBarFromConfig(config);
 
   if (speciesPanels.empty()) {
     addDefaultSpecies();
@@ -234,6 +234,7 @@ void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
     if (!name.ends_with(speciesPanelPostfix)) {
       continue;
     }
+    speciesInConfig.emplace_back(name);
     const auto speciesName = name.substr(0, name.length() - speciesPanelPostfix.length());
     createSpeciesTab(speciesName, *data.as_table());
   }
@@ -278,4 +279,12 @@ void pf::ogl::UI::setMouseInteractionSpecies() {
     ++idx;
   }
   mouseInteractionPanel->setInteractableSpecies(interInfo);
+}
+void pf::ogl::UI::cleanupConfig(toml::table &config) {
+  auto speciesToErase = speciesInConfig | std::views::filter([&](const auto &speciesName) {
+                          return std::ranges::find(speciesPanels, speciesName, [](const auto &panel) { return panel->getName(); }) == speciesPanels.end();
+                        });
+  std::ranges::for_each(speciesToErase, [&](const auto &erase) {
+    config.erase(config.find(erase));
+  });
 }

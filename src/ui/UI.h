@@ -71,9 +71,13 @@ class UI {
       return resetObservable.addListener(std::forward<decltype(listener)>(listener));
   }
 
+  void cleanupConfig(toml::table &config);
+
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
  private:
   ui::ig::Observable_impl<SpeciesPanel*> resetObservable;
+
+  std::vector<std::string> speciesInConfig;
 
   void setAllWinVisibility(bool visible);
 

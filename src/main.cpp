@@ -29,12 +29,14 @@ toml::table loadConfig() {
 /**
  * Serialize UI, save it to the config and save the config next to the exe into config.toml
  */
-void saveConfig(toml::table config, pf::ui::ig::ImGuiInterface &imguiInterface) {
+void saveConfig(toml::table config, pf::ogl::UI &ui) {
   const auto configPath = pf::getExeFolder() / "config.toml";
   const auto configPathStr = configPath.string();
   fmt::print("Saving config file to: '{}'\n", configPathStr);
-  imguiInterface.updateConfig();
-  config.insert_or_assign("imgui", imguiInterface.getConfig());
+  ui.imguiInterface->updateConfig();
+  auto imguiConfig = ui.imguiInterface->getConfig();
+  ui.cleanupConfig(imguiConfig);
+  config.insert_or_assign("imgui", imguiConfig);
   auto ofstream = std::ofstream(configPathStr);
   ofstream << config;
 }
@@ -186,6 +188,6 @@ int main(int argc, char *argv[]) {
   MainLoop::Get()->run();
   fmt::print("Main loop ended\n");
 
-  saveConfig(config, *ui.imguiInterface);
+  saveConfig(config, ui);
   return 0;
 }
