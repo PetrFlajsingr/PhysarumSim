@@ -49,6 +49,7 @@ struct InteractionConfig {
   MouseInteraction interactionType = MouseInteraction::None;
   float distance = 100.f;
   float power = 10.f;
+  int interactedSpecies = -1;
 
   static InteractionConfig FromToml(const toml::table &src);
   [[nodiscard]] toml::table toToml() const;

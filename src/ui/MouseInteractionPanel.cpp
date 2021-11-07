@@ -51,6 +51,7 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
                                              true);
   distanceDrag->addValueListener(onChange);
   powerDrag->addValueListener(onChange);
+  mouseInteractionSpeciesCombobox->addValueListener(onChange);
 
   mouseInteractionCombobox->setTooltip("Type of mouse interaction with particles");
   distanceDrag->setTooltip("Distance of the selected effect");
@@ -74,7 +75,9 @@ physarum::InteractionConfig MouseInteractionPanel::getConfig() const {
   return {
       .interactionType = mouseInteractionCombobox->getValue(),
       .distance = distanceDrag->getValue(),
-      .power = powerDrag->getValue()};
+      .power = powerDrag->getValue(),
+      .interactedSpecies = mouseInteractionSpeciesCombobox->getValue().speciesId.value_or(-1),
+  };
 }
 
 void MouseInteractionPanel::setConfig(const InteractionConfig &config) {

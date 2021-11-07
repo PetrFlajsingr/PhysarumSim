@@ -23,6 +23,7 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->set2fv("mousePosition", &attractorPosition[0]);
   simulateProgram->set1f("mouseIntDistance", interactionConfig.distance);
   simulateProgram->set1f("mouseIntPower", interactionConfig.power);
+  simulateProgram->set1i("interactedSpeciesId", interactionConfig.interactedSpecies);
 
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   trailTexture->bindImage(1);

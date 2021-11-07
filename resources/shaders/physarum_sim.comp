@@ -34,11 +34,14 @@ layout(binding = 2, std430)buffer SpeciesSettings{Settings settings[]; };
 #define TRUE 1
 #define FALSE 0
 
+#define ALL_SPECIES_INTERACT -1
+
 uniform int mouseInteractionActive;
 uniform MOUSE_INTERACTION mouseInteractionType;
 uniform vec2 mousePosition;
 uniform float mouseIntDistance;
 uniform float mouseIntPower;
+uniform int interactedSpeciesId;
 
 uniform float deltaT;
 uniform float time;
@@ -86,7 +89,9 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
 }
 
 vec2 mouseInteractionDelta(Particle particle) {
+    const uint speciesId = gl_GlobalInvocationID.z;
     if (mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE) { return vec2(0, 0); }
+    if (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId) { return vec2(0, 0); }
     vec2 dir = mousePosition - particle.position;
     const float dist = length(dir);
     if (dist < mouseIntDistance) {
