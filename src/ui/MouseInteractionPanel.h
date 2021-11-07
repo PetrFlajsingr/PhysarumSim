@@ -5,10 +5,9 @@
 #ifndef PHYSARUMSIM_SRC_UI_MOUSEINTERACTIONPANEL_H
 #define PHYSARUMSIM_SRC_UI_MOUSEINTERACTIONPANEL_H
 
-
+#include <ostream>
 #include <pf_imgui/elements/Combobox.h>
 #include <pf_imgui/elements/DragInput.h>
-#include <pf_imgui/layouts/BoxLayout.h>
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/Savable.h>
 #include <pf_imgui/interface/ValueObservable.h>
@@ -18,6 +17,17 @@
 
 namespace pf {
 
+struct MouseInteractionSpecies {
+  MouseInteractionSpecies() = default;
+  MouseInteractionSpecies(int speciesId, std::string speciesName);
+  MouseInteractionSpecies(std::string speciesName);
+  std::optional<int> speciesId;
+  std::string speciesName;
+  friend std::ostream &operator<<(std::ostream &os, const MouseInteractionSpecies &species);
+  bool operator==(const MouseInteractionSpecies &rhs) const;
+  bool operator!=(const MouseInteractionSpecies &rhs) const;
+};
+
 class MouseInteractionPanel : public ui::ig::Element,
                               public ui::ig::ValueObservable<physarum::InteractionConfig>,
                               public ui::ig::Savable {
@@ -26,6 +36,8 @@ class MouseInteractionPanel : public ui::ig::Element,
 
   [[nodiscard]] physarum::InteractionConfig getConfig() const;
   void setConfig(const physarum::InteractionConfig &config);
+
+  void setInteractableSpecies(const std::vector<MouseInteractionSpecies> &species);
 
  protected:
   void renderImpl() override;
@@ -37,6 +49,7 @@ class MouseInteractionPanel : public ui::ig::Element,
   ui::ig::Combobox<physarum::MouseInteraction> *mouseInteractionCombobox;
   ui::ig::DragInput<float> *distanceDrag;
   ui::ig::DragInput<float> *powerDrag;
+  ui::ig::Combobox<MouseInteractionSpecies> *mouseInteractionSpeciesCombobox;
 };
 
 }

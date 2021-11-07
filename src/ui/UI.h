@@ -90,6 +90,8 @@ class UI {
   void createSpeciesTab(const std::string &name);
   void createSpeciesTab(const std::string &name, const toml::table &src);
 
+  void setMouseInteractionSpecies();
+
 };
 
 }// namespace pf::ogl

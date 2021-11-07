@@ -138,6 +138,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     std::ranges::for_each(closedTabNames, [&](const auto &tabName) {
       speciesTabBar->removeTab(tabName);
     });
+    setMouseInteractionSpecies();
   });
 
   saveSpeciesButton->addClickListener([&] {
@@ -168,6 +169,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   if (speciesPanels.empty()) {
     addDefaultSpecies();
   }
+  setMouseInteractionSpecies();
 
   addSpeciesButton->setTooltip("Add new species");
 
@@ -264,4 +266,16 @@ void pf::ogl::UI::createSpeciesTab(const std::string &name, const toml::table &s
   auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
   speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes))->setConfig(physarum::PopulationConfig::FromToml(src));
   addSpeciesTabCloseConfirmation(tab, name);
+}
+
+void pf::ogl::UI::setMouseInteractionSpecies() {
+  using namespace ui::ig;
+  std::size_t idx = 0;
+  std::vector<MouseInteractionSpecies> interInfo;
+  for (const auto &tab : speciesTabBar->getTabs()) {
+    const auto name = tab.getLabel();
+    interInfo.emplace_back(idx, name);
+    ++idx;
+  }
+  mouseInteractionPanel->setInteractableSpecies(interInfo);
 }

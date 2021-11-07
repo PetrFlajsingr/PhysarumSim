@@ -4,10 +4,27 @@
 
 #include "MouseInteractionPanel.h"
 
+#include <utility>
+
 namespace pf {
 
 using namespace ui::ig;
 using namespace physarum;
+
+MouseInteractionSpecies::MouseInteractionSpecies(int speciesId, std::string speciesName) : speciesId(speciesId), speciesName(std::move(speciesName)) {}
+
+std::ostream &operator<<(std::ostream &os, const MouseInteractionSpecies &species) {
+  os << species.speciesName;
+  return os;
+}
+MouseInteractionSpecies::MouseInteractionSpecies(std::string speciesName) : speciesId(std::nullopt), speciesName(std::move(speciesName)) {
+}
+bool MouseInteractionSpecies::operator==(const MouseInteractionSpecies &rhs) const {
+  return speciesId == rhs.speciesId && speciesName == rhs.speciesName;
+}
+bool MouseInteractionSpecies::operator!=(const MouseInteractionSpecies &rhs) const {
+  return !(rhs == *this);
+}
 
 MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Persistent persistent)
     : Element(name),
@@ -18,6 +35,10 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
   mouseInteractionCombobox->setSelectedItem(MouseInteraction::None);
   distanceDrag = &layout.createChild<DragInput<float>>(name + "distance_drag", "Effect distance", 1.f, 1.f, 10000.f, 100.f);
   powerDrag = &layout.createChild<DragInput<float>>(name + "power_drag", "Effect power", 0.01f, .1f, 10.f, 10.f);
+  mouseInteractionSpeciesCombobox = &layout.createChild<Combobox<MouseInteractionSpecies>>(name + "mouse_int_species_combobox", "Species", "Select", std::vector<MouseInteractionSpecies>{});
+
+  setInteractableSpecies({});
+
   const auto onChange = [&](auto) {
     setValue(getConfig());
   };
@@ -34,6 +55,7 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
   mouseInteractionCombobox->setTooltip("Type of mouse interaction with particles");
   distanceDrag->setTooltip("Distance of the selected effect");
   powerDrag->setTooltip("Power of the selected effect");
+  mouseInteractionSpeciesCombobox->setTooltip("Species selected for interaction");
 }
 
 void MouseInteractionPanel::renderImpl() {
@@ -59,6 +81,23 @@ void MouseInteractionPanel::setConfig(const InteractionConfig &config) {
   mouseInteractionCombobox->setSelectedItem(config.interactionType);
   distanceDrag->setValue(config.distance);
   powerDrag->setValue(config.power);
+}
+void MouseInteractionPanel::setInteractableSpecies(const std::vector<MouseInteractionSpecies> &species) {
+  auto previousSelected = mouseInteractionSpeciesCombobox->getSelectedItem();
+  mouseInteractionSpeciesCombobox->removeItemIf([](auto) { return true; });
+  auto allSpecies = MouseInteractionSpecies{"All"};
+  mouseInteractionSpeciesCombobox->addItem(MouseInteractionSpecies{"All"});
+  bool containsPreviousSelected = false;
+  for (const auto &s : species) {
+    if (previousSelected.has_value() && *previousSelected == s) {
+      containsPreviousSelected = true;
+    }
+    mouseInteractionSpeciesCombobox->addItem(s);
+  }
+  if (!containsPreviousSelected) {
+    previousSelected = std::nullopt;
+  }
+  mouseInteractionSpeciesCombobox->setSelectedItem(previousSelected.value_or(allSpecies));
 }
 
 }// namespace pf
