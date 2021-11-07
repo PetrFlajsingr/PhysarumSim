@@ -1,3 +1,4 @@
+#include "app_icon.h"
 #include "renderers/PhysarumRenderer.h"
 #include "simulation/generators/PointParticleGenerator.h"
 #include "simulation/generators/RandomParticleGenerator.h"
@@ -55,6 +56,17 @@ int main(int argc, char *argv[]) {
                                    .majorOpenGLVersion = 4,
                                    .minorOpenGLVersion = 6});
   window->setCurrent();
+
+  auto s = std::span{APP_ICON.pixel_data, static_cast<std::size_t>(APP_ICON.width * APP_ICON.height)};
+
+  // FIXME
+  GLFWimage imageHandle;
+  imageHandle.width = APP_ICON.width;
+  imageHandle.height = APP_ICON.height;
+  imageHandle.pixels = const_cast<unsigned char *>(APP_ICON.pixel_data);
+
+  glfwSetWindowIcon(window->getHandle(), 1, &imageHandle);
+
   if (!gladLoadGLLoader((GLADloadproc) glfw.getLoaderFnc())) {
     fmt::print(stderr, "Error while initializing GLAD");
     return -1;
@@ -71,7 +83,9 @@ int main(int argc, char *argv[]) {
   ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
 
   bool anySpecies = false;
+  std::vector<Subscription> speciesSubscriptions{};
   const auto initFromUI = [&] {
+    std::ranges::for_each(speciesSubscriptions, &Subscription::unsubscribe);
     anySpecies = !ui.speciesPanels.empty();
     if (!anySpecies) {
       return;
@@ -83,10 +97,10 @@ int main(int argc, char *argv[]) {
     int cnt = 0;
     std::ranges::for_each(ui.speciesPanels, [&](const auto panel) {
       int index = cnt++;
-      panel->addValueListener([&, index](const physarum::PopulationConfig &config) {
+      speciesSubscriptions.emplace_back(panel->addValueListener([&, index](const physarum::PopulationConfig &config) {
         sim->updateConfig(config, index);
         renderer.setConfig(config.color, index);
-      });
+      }));
     });
     sim->initialize(configs);
     renderer.init(colors);
@@ -98,10 +112,10 @@ int main(int argc, char *argv[]) {
   ui.setOutImage(renderer.getRenderTexture());
 
   bool isAttractorActive = false;
-  window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::MouseButtonAction action, const Flags<glfw::ModifierKey> &mods) {
+  window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::ButtonState state, const Flags<glfw::ModifierKey> &mods) {
     if (ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured()) { return; }
     if (btn == glfw::MouseButton::Left) {
-      isAttractorActive = action == glfw::MouseButtonAction::Press;
+      isAttractorActive = state == glfw::ButtonState::Down;
       sim->setMouseInteractionActive(isAttractorActive);
       const auto cursorPos = window->getCursorPosition();
       sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
@@ -111,13 +125,14 @@ int main(int argc, char *argv[]) {
     sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
   });
   window->setKeyCallback([&](Key key, KeyAction action, Flags<ModifierKey>) {
-    if (key == Key::H && action == KeyAction::Press) {
+    if (key == Key::H && action == KeyAction::Down) {
       ui.imguiInterface->setVisibility(!ui.imguiInterface->getVisibility());
     }
   });
   ui.mouseInteractionPanel->addValueListener([&](const auto config) {
     sim->setInteractionConfig(config);
-  }, true);
+  },
+                                             true);
 
   bool isSimPaused = true;
   ui.playPauseButton->addClickListener([&] {
