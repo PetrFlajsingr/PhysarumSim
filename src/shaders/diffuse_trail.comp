@@ -15,10 +15,18 @@ struct Settings {
 
 layout(r32f, binding = 0) uniform image2DArray texTrail;
 layout(r32f, binding = 1) uniform image2DArray texTrailDiffuse;
-layout(binding = 2, std430)buffer SpeciesSettings{Settings settings[]; };
+layout(binding = 2, std430)buffer SpeciesSettings{ Settings settings[]; };
 
+#define FALSE 0
+#define TRUE 1
 
 uniform float deltaT;
+
+uniform int mouseDrawEnabled;
+uniform vec2 mousePosition;
+uniform float mouseDrawDistance;
+uniform float mouseDrawPower;
+uniform int mouseDrawSpecies;
 
 
 float boxBlur(ivec2 center, int size, ivec2 texSize) {
@@ -103,6 +111,12 @@ void main() {
 
     const float diffuseW = clamp(sSettings.diffuseRate * deltaT, 0.f, 1.f);
     col = trailValue * (1.0 - diffuseW) + col * diffuseW;
+
+    if (mouseDrawEnabled == TRUE && (mouseDrawSpecies == speciesId || mouseDrawSpecies == -1)) {
+        if (distance(vec2(texCoord + 0.5f), mousePosition) <= mouseDrawDistance) {
+            col += mouseDrawPower;
+        }
+    }
 
     imageStore(texTrailDiffuse, ivec3(texCoord, speciesId), vec4(max(0, col - sSettings.decayRate * deltaT)));
 }

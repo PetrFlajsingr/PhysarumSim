@@ -41,23 +41,40 @@ void saveConfig(toml::table config, pf::ogl::UI &ui) {
   ofstream << config;
 }
 
+glm::vec2 mousePosToTexPos(pf::glfw::Position<double> mousePos, pf::glfw::Size<int> winSize, glm::ivec2 texSize) {
+  const auto nX = mousePos.x / winSize.width;
+  const auto nY = 1.f - mousePos.y / winSize.height;
+  return glm::vec2{texSize} * glm::vec2{nX, nY};
+}
+
+glm::vec2 mousePosToTexPos(ImVec2 mousePos, pf::ui::ig::Size winSize, glm::ivec2 texSize) {
+  const auto nX = mousePos.x / winSize.width;
+  const auto nY = 1.f - mousePos.y / winSize.height;
+  return glm::vec2{texSize} * glm::vec2{nX, nY};
+}
+
+// TODO: texture size change in UI
 int main(int argc, char *argv[]) {
   using namespace pf;
   using namespace pf::glfw;
-  const auto config = loadConfig();
+  using namespace pf::enum_operators;
+  auto config = loadConfig();
   const auto resourcesFolder = std::filesystem::path{config["files"]["resources_path"].value<std::string>().value()};
 
-  const glm::ivec2 windowSize{config["window"]["width"].value<int>().value(),
-                              config["window"]["height"].value<int>().value()};
+  const glm::ivec2 trailTextureSize{config["physarum"]["texture_width"].value<int>().value(),
+                                    config["physarum"]["texture_height"].value<int>().value()};
 
   fmt::print("Initializing window and OpenGL\n");
   glfw::GLFW glfw{};
-  auto window = glfw.createWindow({.width = static_cast<size_t>(windowSize.x),
-                                   .height = static_cast<size_t>(windowSize.y),
-                                   .title = config["window"]["title"].value<std::string>().value(),
+  auto window = glfw.createWindow({.width = static_cast<size_t>(config["window"]["width"].value<int>().value()),
+                                   .height = static_cast<size_t>(config["window"]["height"].value<int>().value()),
+                                   .title = "Physarum",
                                    .majorOpenGLVersion = 4,
                                    .minorOpenGLVersion = 6});
   window->setCurrent();
+  if (config["window"]["maximized"].value<bool>().value_or(false)) {
+    window->maximize();
+  }
 
   auto s = std::span{APP_ICON.pixel_data, static_cast<std::size_t>(APP_ICON.width * APP_ICON.height)};
 
@@ -80,9 +97,9 @@ int main(int argc, char *argv[]) {
 
   window->setInputIgnorePredicate([&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
 
-  auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, windowSize);
+  auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 
-  ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
+  ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), trailTextureSize};
 
   bool anySpecies = false;
   std::vector<Subscription> speciesSubscriptions{};
@@ -113,24 +130,25 @@ int main(int argc, char *argv[]) {
 
   ui.setOutImage(renderer.getRenderTexture());
 
-  bool isAttractorActive = false;
-  window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::ButtonState state, const Flags<glfw::ModifierKey> &mods) {
-    if (ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured()) { return; }
-    if (btn == glfw::MouseButton::Left) {
-      isAttractorActive = state == glfw::ButtonState::Down;
-      sim->setMouseInteractionActive(isAttractorActive);
-      const auto cursorPos = window->getCursorPosition();
-      sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
-    }
-  });
   window->setCursorPositionCallback([&](const auto &cursorPos) {
-    sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
+    const auto attractorPosition = mousePosToTexPos(window->getCursorPosition(), window->getSize(), trailTextureSize);
+
+    sim->setMouseInteractionActive(window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down);
+    sim->setAttractorPosition(attractorPosition);
   });
   window->setKeyCallback([&](Key key, KeyAction action, Flags<ModifierKey>) {
     if (key == Key::H && action == KeyAction::Down) {
       ui.imguiInterface->setVisibility(!ui.imguiInterface->getVisibility());
     }
   });
+
+  ui.outImage->addMousePositionListener([&](const auto &mousePos) {
+    const auto size = ui.outImage->getSize();
+    const auto isBtnDown = window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down;
+    sim->setMouseInteractionActive(isBtnDown);
+    sim->setAttractorPosition(mousePosToTexPos(mousePos, size, trailTextureSize));
+  });
+
   ui.mouseInteractionPanel->addValueListener([&](const auto config) {
     sim->setInteractionConfig(config);
   },
@@ -156,6 +174,19 @@ int main(int argc, char *argv[]) {
     renderer.setBlendType(blendType);
   },
                                          true);
+
+  const auto updateUIPosition = [&] {
+    const auto winSize = window->getSize();
+    ui.dockWindow->setPosition(ImVec2{0.f, 19.f});
+    ui.dockWindow->setSize(ui::ig::Size{winSize.width, winSize.height - 19});
+  };
+
+  window->setSizeListener([&](const auto &size) {
+    updateUIPosition();
+    glViewport(0, 0, size.width, size.height);
+  });
+
+  updateUIPosition();
 
   FPSCounter fpsCounter{};
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
@@ -189,6 +220,10 @@ int main(int argc, char *argv[]) {
   MainLoop::Get()->run();
   fmt::print("Main loop ended\n");
 
+  const auto windowSize = window->getSize();
+  config["window"].as_table()->insert_or_assign("width", windowSize.width);
+  config["window"].as_table()->insert_or_assign("height", windowSize.height);
+  config["window"].as_table()->insert_or_assign("maximized", window->isMaximized());
   saveConfig(config, ui);
   return 0;
 }

@@ -29,6 +29,7 @@ layout(binding = 2, std430)buffer SpeciesSettings{Settings settings[]; };
 #define MOUSE_NONE 0
 #define MOUSE_ATTRACT 1
 #define MOUSE_REPEL 2
+#define MOUSE_DRAW 3
 
 #define PI 3.1415
 #define TRUE 1
@@ -90,7 +91,7 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
 
 vec2 mouseInteractionDelta(Particle particle) {
     const uint speciesId = gl_GlobalInvocationID.z;
-    if (mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE) { return vec2(0, 0); }
+    if (mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE || mouseInteractionType == MOUSE_DRAW) { return vec2(0, 0); }
     if (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId) { return vec2(0, 0); }
     vec2 dir = mousePosition - particle.position;
     const float dist = length(dir);

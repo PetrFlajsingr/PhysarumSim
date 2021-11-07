@@ -20,6 +20,10 @@
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ui::ig)
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 
+namespace pf::ui::ig {
+
+}
+
 namespace pf::ogl {
 
 
@@ -38,6 +42,8 @@ class UI {
     ui::ig::MenuCheckboxItem *viewSpeciesWin;
     ui::ig::MenuCheckboxItem *viewInfoWin;
     ui::ig::MenuCheckboxItem *viewInteractWin;
+  ui::ig::Window *dockWindow;
+    ui::ig::DockSpace *mainDockspace;
   ui::ig::Window *interactionWindow;
     MouseInteractionPanel *mouseInteractionPanel;
   ui::ig::Window *infoWindow;

@@ -1,5 +1,11 @@
-mbo[files]
+[files]
 resources_path = 'C:\Users\xflajs00\CLionProjects\PhysarumSim\resources'
+
+
+[physarum]
+texture_width = 1920
+texture_height = 1080
+
 
 [imgui]
 path_icons = 'C:\Users\xflajs00\CLionProjects\PhysarumSim\resources\icons'

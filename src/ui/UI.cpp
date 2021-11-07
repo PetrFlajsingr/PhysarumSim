@@ -14,12 +14,19 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(ImGuiGlfwOpenGLConfig{
       .windowHandle = windowHandle,
       .flags = {},
-      .enableMultiViewport = true,
+      .enableMultiViewport = false,
       .config = config,
       .pathToIconFolder = *config["path_icons"].value<std::string>(),
       .enabledIconPacks = IconPack::FontAwesome5Regular,
       .defaultFontSize = 13.f});
   setDarkStyle(*imguiInterface);
+
+
+  dockWindow = &imguiInterface->createWindow("dock_window", "Test");
+  dockWindow->setUserResizable(false);
+  dockWindow->setUserMovable(false);
+  dockWindow->setTitleBarVisible(false);
+  mainDockspace = &dockWindow->createChild<StretchLayout>("dock_stretch_layout", Size::Fill(), Stretch::All).createChild<DockSpace>("main_dockspace", Size::Auto());
 
   appMenuBar = &imguiInterface->getMenuBar();
   viewSubmenu = &appMenuBar->addSubmenu("app_view_submenu", "View");
@@ -187,7 +194,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
 void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture> &texture) {
   using namespace ui::ig;
-  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080}, IsButton::No, [] {
+  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080}, IsButton::No, true, [] {
     return std::pair(ImVec2{0, 1}, ImVec2{1, 0});
   });
 }

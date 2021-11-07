@@ -32,8 +32,14 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->dispatch(greatestParticleCount / 64 + 1, 1, simSpeciesSettings.size());
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
+
   diffuseTrailProgram->use();
   diffuseTrailProgram->set1f("deltaT", deltaTime);
+  diffuseTrailProgram->set1i("mouseDrawEnabled", (mouseInteractionActive && interactionConfig.interactionType == MouseInteraction::Draw) ? 1 : 0);
+  diffuseTrailProgram->set2fv("mousePosition", &attractorPosition[0]);
+  diffuseTrailProgram->set1f("mouseDrawDistance", interactionConfig.distance);
+  diffuseTrailProgram->set1f("mouseDrawPower", interactionConfig.power);
+  diffuseTrailProgram->set1i("mouseDrawSpecies", interactionConfig.interactedSpecies);
   trailTexture->bindImage(0);
   trailDiffuseTexture->bindImage(1);
   speciesDiffuseSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
