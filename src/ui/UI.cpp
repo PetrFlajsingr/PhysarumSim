@@ -174,6 +174,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   if (speciesPanels.empty()) {
     addDefaultSpecies();
+    reloadSpeciesInteractions();
   }
   setMouseInteractionSpecies();
 
@@ -266,10 +267,6 @@ void pf::ogl::UI::createSpeciesTab(const std::string &name) {
   using namespace physarum;
   auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
   auto newPanel = speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes));
-  int i = 0;
-  std::ranges::for_each(getSpeciesNames(), [&](const auto &name) {
-    newPanel->interactionsListbox->addItem(SpeciesInteractionConfig{SpeciesInteraction::None, 1.f, name, i++});
-  });
   addSpeciesTabCloseConfirmation(tab, name);
 }
 
@@ -291,11 +288,25 @@ void pf::ogl::UI::setMouseInteractionSpecies() {
   }
   mouseInteractionPanel->setInteractableSpecies(interInfo);
 }
+
 void pf::ogl::UI::cleanupConfig(toml::table &config) {
   auto speciesToErase = speciesInConfig | std::views::filter([&](const auto &speciesName) {
                           return std::ranges::find(speciesPanels, speciesName, [](const auto &panel) { return panel->getName(); }) == speciesPanels.end();
                         });
   std::ranges::for_each(speciesToErase, [&](const auto &erase) {
     config.erase(config.find(erase));
+  });
+}
+
+void pf::ogl::UI::reloadSpeciesInteractions() {
+  using namespace physarum;
+  int panelIndex = 0;
+  std::ranges::for_each(speciesPanels, [&](const auto &panel) {
+    int i = 0;
+    std::ranges::for_each(getSpeciesNames(), [&](const auto &name) {
+      auto interactionType = i == panelIndex ? SpeciesInteraction::Follow : SpeciesInteraction::None;
+      panel->interactionsListbox->addItem(SpeciesInteractionConfig{interactionType, 1.f, name, i++});
+    });
+    ++panelIndex;
   });
 }

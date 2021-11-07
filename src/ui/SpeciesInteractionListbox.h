@@ -9,6 +9,7 @@
 #include <pf_imgui/elements/CustomListbox.h>
 #include <pf_imgui/elements/DragInput.h>
 #include <pf_imgui/elements/Text.h>
+#include <pf_imgui/elements/InputText.h>
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/Savable.h>
 #include <pf_imgui/interface/ValueObservable.h>
@@ -31,7 +32,8 @@ class SpeciesInteractionRow : public ui::ig::Element, public ui::ig::Savable, pu
 
  private:
   ui::ig::BoxLayout layout;
-  ui::ig::Text *otherSpeciesText;
+  //ui::ig::Text *otherSpeciesText;
+  ui::ig::InputText *otherSpeciesText;
   ui::ig::Combobox<physarum::SpeciesInteraction> *interactionCombobox;
   ui::ig::DragInput<float> *factorDrag;
 };

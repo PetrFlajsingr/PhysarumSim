@@ -100,6 +100,7 @@ class UI {
     return speciesTabBar->getTabs() | std::views::transform(&ui::ig::Tab::getLabel);
   }
 
+  void reloadSpeciesInteractions();
 };
 
 }// namespace pf::ogl

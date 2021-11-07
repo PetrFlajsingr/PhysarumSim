@@ -54,6 +54,7 @@ class FPSCounter {
   std::size_t totalFrameCount = 0;
   Duration frameDuration{};
   Duration totalTime{};
+  Duration rollingAverage{};
   std::chrono::steady_clock::time_point lastFrame = std::chrono::steady_clock::now();
 
   std::function<void(const FPSCounter &)> onNewFrame = [](auto) {};

@@ -73,7 +73,7 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
       case ParticleStart::Point: generator = std::make_unique<PointParticleGenerator>(textureSize / 2u); break;
       case ParticleStart::InwardCircle: generator = std::make_unique<InwardCircleParticleGenerator>(textureSize); break;
       case ParticleStart::RandomCircle: generator = std::make_unique<RandomCircleParticleGenerator>(textureSize); break;
-      case ParticleStart::Uniform: generator = std::make_unique<UniformParticleGenerator>(textureSize, 10.f); break; // TODO: step
+      case ParticleStart::Uniform: generator = std::make_unique<UniformParticleGenerator>(textureSize, population.senseDistance); break; // TODO: step
     }
     const auto particles = generator->generateParticles(population.particleCount);
     std::ranges::copy(particles, std::back_inserter(allParticles));

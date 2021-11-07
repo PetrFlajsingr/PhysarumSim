@@ -73,7 +73,6 @@ int main(int argc, char *argv[]) {
     fmt::print(stderr, "Error while initializing GLAD");
     return -1;
   }
-  glfw.setSwapInterval(0);
 
   const auto shaderFolder = resourcesFolder / "shaders";
 
@@ -160,6 +159,7 @@ int main(int argc, char *argv[]) {
 
   FPSCounter fpsCounter{};
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
+    glfw.setSwapInterval(0);
     if (window->shouldClose()) {
       MainLoop::Get()->stop();
     }
