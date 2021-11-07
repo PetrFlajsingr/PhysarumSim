@@ -128,7 +128,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
             imguiInterface->createMsgDlg("Duplicate name", fmt::format("The name '{}' is already present.", input), Flags{MessageButtons::Ok}, [](auto) {return true;});
             return;
           }
-          createSpeciesTab(input); }, [] {});
+          createSpeciesTab(input);
+          reloadSpeciesInteractions();
+        }, [] {});
   });
 
   restartSimButton->addClickListener([&] {
@@ -303,8 +305,14 @@ void pf::ogl::UI::reloadSpeciesInteractions() {
   int panelIndex = 0;
   std::ranges::for_each(speciesPanels, [&](const auto &panel) {
     int i = 0;
+    auto previousInteractions = panel->interactionsListbox->getItems() | ranges::to_vector;
+    panel->interactionsListbox->clearItems();
+
     std::ranges::for_each(getSpeciesNames(), [&](const auto &name) {
       auto interactionType = i == panelIndex ? SpeciesInteraction::Follow : SpeciesInteraction::None;
+      if (const auto iter = std::ranges::find(previousInteractions, name, &SpeciesInteractionConfig::speciesName); iter != previousInteractions.end()) {
+        interactionType = iter->interactionType;
+      }
       panel->interactionsListbox->addItem(SpeciesInteractionConfig{interactionType, 1.f, name, i++});
     });
     ++panelIndex;

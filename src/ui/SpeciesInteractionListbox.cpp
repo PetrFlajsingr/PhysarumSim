@@ -12,7 +12,6 @@ using namespace physarum;
 
 SpeciesInteractionRow::SpeciesInteractionRow(const std::string &name, const SpeciesInteractionConfig &config, Persistent persistent) : Element(name), Savable(persistent), ValueObservable(config),
                                                                                                                                        layout(name + "layout", LayoutDirection::LeftToRight, Size{Width::Auto(), 19}, AllowCollapse::No, Persistent::No) {
-  //otherSpeciesText = &layout.createChild<Text>(name + "species_name_test", config.speciesName);
   otherSpeciesText = &layout.createChild<WidthDecorator<InputText>>(name + "species_name_test", 70, "", config.speciesName);
   otherSpeciesText->setReadOnly(true);
   interactionCombobox = &layout.createChild<WidthDecorator<Combobox<SpeciesInteraction>>>(name + "interaction_combobox", 70, "", "Select", magic_enum::enum_values<SpeciesInteraction>());

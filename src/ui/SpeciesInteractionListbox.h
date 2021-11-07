@@ -32,7 +32,6 @@ class SpeciesInteractionRow : public ui::ig::Element, public ui::ig::Savable, pu
 
  private:
   ui::ig::BoxLayout layout;
-  //ui::ig::Text *otherSpeciesText;
   ui::ig::InputText *otherSpeciesText;
   ui::ig::Combobox<physarum::SpeciesInteraction> *interactionCombobox;
   ui::ig::DragInput<float> *factorDrag;

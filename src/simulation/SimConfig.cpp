@@ -133,6 +133,10 @@ void PopulationColor::setTrailPow(float trailPow) {
 }
 
 PopulationConfig PopulationConfig::FromToml(const toml::table &src) {
+  std::vector<SpeciesInteractionConfig> interactions;
+  for (const auto &interactionSrc : *src["interactions"].as_array()) {
+    interactions.emplace_back(SpeciesInteractionConfig::FromToml(*interactionSrc.as_table()));
+  }
   return {
       .senseAngle = src["senseAngle"].value<float>().value(),
       .senseDistance = src["senseDistance"].value<float>().value(),
@@ -149,10 +153,15 @@ PopulationConfig PopulationConfig::FromToml(const toml::table &src) {
       .color = PopulationColor::FromToml(*src["color"].as_table()),
       .filterType = static_cast<FilterType>(src["filterType"].value<int>().value()),
       .maxSteerRandomness = src["maxSteerRandomness"].value<float>().value(),
+      .speciesInteractions = std::move(interactions)
   };
 }
 
 toml::table PopulationConfig::toToml() const {
+  toml::array interactions;
+  std::ranges::for_each(speciesInteractions, [&](const auto &interaction) {
+    interactions.emplace_back<toml::table>(interaction.toToml());
+  });
   return toml::table{{
       {"senseAngle", senseAngle},
       {"senseDistance", senseDistance},
@@ -169,6 +178,7 @@ toml::table PopulationConfig::toToml() const {
       {"color", color.toToml()},
       {"filterType", static_cast<int>(filterType)},
       {"maxSteerRandomness", maxSteerRandomness},
+      {"interactions", interactions},
   }};
 }
 

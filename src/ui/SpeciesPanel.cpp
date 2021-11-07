@@ -51,7 +51,8 @@ PopulationConfig SpeciesPanel::getConfig() const {
       .sensorSize = sensorSizeCombobox->getValue(),
       .color = colorPanel->getValue(),
       .filterType = filterTypeCombobox->getValue(),
-      .maxSteerRandomness = maxSteerRandomnessDrag->getValue()};
+      .maxSteerRandomness = maxSteerRandomnessDrag->getValue(),
+      .speciesInteractions = interactionsListbox->getItems() | ranges::to_vector};
   return result;
 }
 
@@ -71,11 +72,13 @@ void SpeciesPanel::setConfig(const PopulationConfig &config) {
   sensorSizeCombobox->setValue(config.sensorSize);
   colorPanel->setColor(config.color);
   filterTypeCombobox->setSelectedItem(config.filterType);
+  interactionsListbox->clearItems();
+  std::ranges::for_each(config.speciesInteractions, [&](const auto &interaction) {
+    interactionsListbox->addItem(interaction);
+  });
 }
 
 void SpeciesPanel::createElements() {
-  root.createChild<Separator>(getName() + "sep0");
-
   particleInitCombobox = &root.createChild<Combobox<ParticleStart>>(getName() + "combobox_particle_start", "Init type", "Select", magic_enum::enum_values<ParticleStart>());
   particleInitCombobox->setSelectedItem(ParticleStart::Random);
   particleCountInput = &root.createChild<Input<int>>(getName() + "input_particle_count", "Particle count", 100, 1'000, 100'000);
