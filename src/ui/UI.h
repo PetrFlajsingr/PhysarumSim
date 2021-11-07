@@ -96,6 +96,10 @@ class UI {
 
   void setMouseInteractionSpecies();
 
+  inline auto getSpeciesNames() {
+    return speciesTabBar->getTabs() | std::views::transform(&ui::ig::Tab::getLabel);
+  }
+
 };
 
 }// namespace pf::ogl

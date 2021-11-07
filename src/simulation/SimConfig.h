@@ -28,6 +28,7 @@ struct SpeciesInteractionConfig {
   SpeciesInteraction interactionType;
   float factor;
   std::string speciesName;
+  int speciesIndex;
 
   static SpeciesInteractionConfig FromToml(const toml::table &src);
   [[nodiscard]] toml::table toToml() const;
@@ -106,7 +107,8 @@ enum class ParticleStart {
   Random,
   Point,
   InwardCircle,
-  RandomCircle
+  RandomCircle,
+  Uniform
 };
 
 struct PopulationConfig {
@@ -125,6 +127,7 @@ struct PopulationConfig {
   PopulationColor color;
   FilterType filterType;
   float maxSteerRandomness;
+  std::vector<SpeciesInteractionConfig> speciesInteractions;
 
   static PopulationConfig FromToml(const toml::table &src);
   [[nodiscard]] toml::table toToml() const;

@@ -122,7 +122,13 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", "+", TabMod::ForceRight);
   addSpeciesButton->addClickListener([&] {
     imguiInterface->openInputDialog(
-        "Species name", "Input species name", [&](const auto input) { createSpeciesTab(input); }, [] {});
+        "Species name", "Input species name", [&](const auto input) {
+          auto names = getSpeciesNames();
+          if (std::ranges::find(names, input) != names.end()) {
+            imguiInterface->createMsgDlg("Duplicate name", fmt::format("The name '{}' is already present.", input), Flags{MessageButtons::Ok}, [](auto) {return true;});
+            return;
+          }
+          createSpeciesTab(input); }, [] {});
   });
 
   restartSimButton->addClickListener([&] {
@@ -257,8 +263,13 @@ void pf::ogl::UI::addSpeciesTabCloseConfirmation(pf::ui::ig::Tab &tab, const std
 
 void pf::ogl::UI::createSpeciesTab(const std::string &name) {
   using namespace ui::ig;
+  using namespace physarum;
   auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
-  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes));
+  auto newPanel = speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes));
+  int i = 0;
+  std::ranges::for_each(getSpeciesNames(), [&](const auto &name) {
+    newPanel->interactionsListbox->addItem(SpeciesInteractionConfig{SpeciesInteraction::None, 1.f, name, i++});
+  });
   addSpeciesTabCloseConfirmation(tab, name);
 }
 

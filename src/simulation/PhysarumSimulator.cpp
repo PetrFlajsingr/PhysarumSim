@@ -9,6 +9,7 @@
 #include <range/v3/numeric/accumulate.hpp>
 #include <simulation/generators/InwardCircleParticleGenerator.h>
 #include <simulation/generators/RandomCircleParticleGenerator.h>
+#include <simulation/generators/UniformParticleGenerator.h>
 #include <algorithm>
 
 namespace pf::physarum {
@@ -72,6 +73,7 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
       case ParticleStart::Point: generator = std::make_unique<PointParticleGenerator>(textureSize / 2u); break;
       case ParticleStart::InwardCircle: generator = std::make_unique<InwardCircleParticleGenerator>(textureSize); break;
       case ParticleStart::RandomCircle: generator = std::make_unique<RandomCircleParticleGenerator>(textureSize); break;
+      case ParticleStart::Uniform: generator = std::make_unique<UniformParticleGenerator>(textureSize, 10.f); break; // TODO: step
     }
     const auto particles = generator->generateParticles(population.particleCount);
     std::ranges::copy(particles, std::back_inserter(allParticles));

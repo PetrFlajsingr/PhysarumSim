@@ -73,6 +73,7 @@ int main(int argc, char *argv[]) {
     fmt::print(stderr, "Error while initializing GLAD");
     return -1;
   }
+  glfw.setSwapInterval(0);
 
   const auto shaderFolder = resourcesFolder / "shaders";
 

@@ -210,7 +210,7 @@ toml::table InteractionConfig::toToml() const {
 }
 
 bool SpeciesInteractionConfig::operator==(const SpeciesInteractionConfig &rhs) const {
-  return interactionType == rhs.interactionType && factor == rhs.factor && speciesName == rhs.speciesName;
+  return interactionType == rhs.interactionType && factor == rhs.factor && speciesName == rhs.speciesName && speciesIndex == rhs.speciesIndex;
 }
 
 bool SpeciesInteractionConfig::operator!=(const SpeciesInteractionConfig &rhs) const {
@@ -222,6 +222,7 @@ SpeciesInteractionConfig SpeciesInteractionConfig::FromToml(const toml::table &s
       .interactionType = static_cast<SpeciesInteraction>(src["interactionType"].value<int>().value()),
       .factor = src["factor"].value<float>().value(),
       .speciesName = src["speciesName"].value<std::string>().value(),
+      .speciesIndex = src["speciesIndex"].value<int>().value(),
   };
 }
 toml::table SpeciesInteractionConfig::toToml() const {
@@ -229,6 +230,7 @@ toml::table SpeciesInteractionConfig::toToml() const {
       {"interactionType", static_cast<int>(interactionType)},
       {"factor", factor},
       {"speciesName", speciesName},
+      {"speciesIndex", speciesIndex},
   }};
 }
 }// namespace pf::physarum

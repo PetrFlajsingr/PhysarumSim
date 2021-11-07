@@ -30,11 +30,12 @@ class SpeciesPanel : public ui::ig::Element,
   [[nodiscard]] physarum::PopulationConfig getConfig() const;
   void setConfig(const physarum::PopulationConfig &config);
 
+  SpeciesInteractionListbox *interactionsListbox;
+
  protected:
   void unserialize_impl(const toml::table &src) override;
   toml::table serialize_impl() override;
 
- protected:
   void renderImpl() override;
 
  private:
@@ -58,7 +59,6 @@ class SpeciesPanel : public ui::ig::Element,
   ui::ig::Input<int> *particleCountInput;
   ui::ig::Combobox<int> *sensorSizeCombobox;
   SpeciesColorPanel *colorPanel;
-  SpeciesInteractionListbox *interactionsListbox;
 };
 
 }// namespace pf

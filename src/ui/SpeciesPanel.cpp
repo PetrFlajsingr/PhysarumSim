@@ -110,7 +110,6 @@ void SpeciesPanel::createElements() {
   colorPanel = &root.createChild<SpeciesColorPanel>(getName() + "color_panel");
 
   interactionsListbox = &root.createChild<SpeciesInteractionListbox>(getName() + "inter_listbox", "Interactions", Size{Width::Auto(), 100});
-  interactionsListbox->addItem(SpeciesInteractionConfig{SpeciesInteraction::Avoid, 1.f, "Test"});
 }
 
 void SpeciesPanel::registerListeners() {
