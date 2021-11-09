@@ -20,9 +20,14 @@ layout(binding = 2, std430)buffer SpeciesSettings{ Settings settings[]; };
 #define FALSE 0
 #define TRUE 1
 
+#define MOUSE_DRAW_TYPE int
+#define MOUSE_DRAW_NONE 0
+#define MOUSE_DRAW_DRAW 1
+#define MOUSE_DRAW_ERASE 2
+
 uniform float deltaT;
 
-uniform int mouseDrawEnabled;
+uniform MOUSE_DRAW_TYPE mouseDrawType;
 uniform vec2 mousePosition;
 uniform float mouseDrawDistance;
 uniform float mouseDrawPower;
@@ -113,14 +118,20 @@ void main() {
     const float diffuseW = clamp(sSettings.diffuseRate * deltaT, 0.f, 1.f);
     col = trailValue * (1.0 - diffuseW) + col * diffuseW;
 
-    if (mouseDrawEnabled == TRUE && (mouseDrawSpecies == speciesId || mouseDrawSpecies == -1)) {
+    if (mouseDrawType != MOUSE_DRAW_NONE && (mouseDrawSpecies == speciesId || mouseDrawSpecies == -1)) {
         const float dist = distance(vec2(texCoord + 0.5f), mousePosition);
         if (dist <= mouseDrawDistance) {
+            float diff;
             if (mouseDrawFalloff == TRUE) {
                 const float distN = (1.f - (dist / mouseDrawDistance)) / 100;
-                col += mouseDrawPower * distN;
+                diff = mouseDrawPower * distN;
             } else {
-                col += mouseDrawPower;
+                diff = mouseDrawPower;
+            }
+            if (mouseDrawType == MOUSE_DRAW_DRAW) {
+                col += diff;
+            } else {
+                col -= diff;
             }
         }
     }

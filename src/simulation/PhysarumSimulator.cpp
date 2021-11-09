@@ -35,7 +35,16 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
 
   diffuseTrailProgram->use();
   diffuseTrailProgram->set1f("deltaT", deltaTime);
-  diffuseTrailProgram->set1i("mouseDrawEnabled", (mouseInteractionActive && interactionConfig.interactionType == MouseInteraction::Draw) ? 1 : 0);
+  int drawType;
+  switch (interactionConfig.interactionType) {
+    case MouseInteraction::Draw: drawType = 1; break;
+    case MouseInteraction::Erase: drawType = 2; break;
+    default: drawType = 0; break;
+  }
+  if (!mouseInteractionActive) {
+    drawType = 0;
+  }
+  diffuseTrailProgram->set1i("mouseDrawType", drawType);
   diffuseTrailProgram->set2fv("mousePosition", &attractorPosition[0]);
   diffuseTrailProgram->set1f("mouseDrawDistance", interactionConfig.distance);
   diffuseTrailProgram->set1f("mouseDrawPower", interactionConfig.power);

@@ -35,7 +35,7 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
   mouseInteractionCombobox->setSelectedItem(MouseInteraction::None);
   distanceDrag = &layout.createChild<DragInput<float>>(name + "distance_drag", "Effect distance", 1.f, 1.f, 10000.f, 100.f);
   powerDrag = &layout.createChild<DragInput<float>>(name + "power_drag", "Effect power", 0.01f, .1f, 10.f, 10.f);
-  drawFalloffCheckbox = &layout.createChild<Checkbox>(name + "draw_falloff_checkbox", "Draw falloff");
+  drawFalloffCheckbox = &layout.createChild<Checkbox>(name + "draw_falloff_checkbox", "Effect falloff");
   drawFalloffCheckbox->setVisibility(Visibility::Invisible);
   mouseInteractionSpeciesCombobox = &layout.createChild<Combobox<MouseInteractionSpecies>>(name + "mouse_int_species_combobox", "Species", "Select", std::vector<MouseInteractionSpecies>{});
 
@@ -48,7 +48,7 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
     const auto optionsVisibility = type == MouseInteraction::None ? Visibility::Invisible : Visibility::Visible;
     distanceDrag->setVisibility(optionsVisibility);
     powerDrag->setVisibility(optionsVisibility);
-    drawFalloffCheckbox->setVisibility(type == MouseInteraction::Draw ? Visibility::Visible : Visibility::Invisible);
+    drawFalloffCheckbox->setVisibility(type == MouseInteraction::Draw || type == MouseInteraction::Erase ? Visibility::Visible : Visibility::Invisible);
     onChange(type);
   },
                                              true);
@@ -60,6 +60,7 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
   mouseInteractionCombobox->setTooltip("Type of mouse interaction with particles");
   distanceDrag->setTooltip("Distance of the selected effect");
   powerDrag->setTooltip("Power of the selected effect");
+  drawFalloffCheckbox->setTooltip("Lower the effect with distance");
   mouseInteractionSpeciesCombobox->setTooltip("Species selected for interaction");
 }
 
