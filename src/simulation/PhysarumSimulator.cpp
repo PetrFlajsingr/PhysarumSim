@@ -119,6 +119,7 @@ void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t
   }};
   auto simSettings = std::span{reinterpret_cast<details::SpeciesShaderSettings*>(simSettingData), simSpeciesSettings.size()};
   details::SpeciesShaderSettings newSimSettings{config};
+  newSimSettings.particleCount = simSpeciesSettings[index].particleCount;
   newSimSettings.particlesOffset = simSpeciesSettings[index].particlesOffset;
   simSpeciesSettings[index] = newSimSettings;
   simSettings[index] = newSimSettings;

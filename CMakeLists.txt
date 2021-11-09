@@ -60,7 +60,7 @@ add_compile_definitions(PF_GLFW_OPENGL)
 CPMAddPackage(
         NAME pf_imgui
         GITHUB_REPOSITORY PetrFlajsingr/pf_imgui
-        GIT_TAG itemelement_mousemove
+        GIT_TAG master
 )
 
 #add_compile_definitions(SPDLOG_FMT_EXTERNAL)
