@@ -44,7 +44,11 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   viewInfoWin = &viewSubmenu->addCheckboxItem("show_info_menu", "Info", true, Persistent::Yes);
   viewInteractWin = &viewSubmenu->addCheckboxItem("show_interact_menu", "Interaction", true, Persistent::Yes);
 
-  interactionWindow = &imguiInterface->createWindow("interaction_window", "Interaction");
+  helpSubmenu = &appMenuBar->addSubmenu("help_submenu", ICON_FK_QUESTION " Help");
+      helpButton= &helpSubmenu->addButtonItem("help_button", ICON_FK_QUESTION_CIRCLE " Help");
+          aboutButton = &helpSubmenu->addButtonItem("about_button", ICON_FK_INFO " About");
+
+  interactionWindow = &imguiInterface->createWindow("interaction_window", ICON_FK_MOUSE_POINTER " Interaction");
   interactionWindow->addCloseListener([&]() {
     viewInteractWin->setValue(false);
   });
@@ -56,7 +60,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   interactionWindow->setIsDockable(true);
   mouseInteractionPanel = &interactionWindow->createChild<MouseInteractionPanel>("interaction_panel", Persistent::Yes);
 
-  infoWindow = &imguiInterface->createWindow("info_window", "Info");
+  infoWindow = &imguiInterface->createWindow("info_window", ICON_FK_INFO " Info");
   fpsCurrentPlot = &infoWindow->createChild<SimplePlot>("fps_plot", "Fps current", PlotType::Lines,
                                                         std::vector<float>{}, std::nullopt, 200, 0, FLT_MAX,
                                                         Size{Width::Auto(), 30});
@@ -74,7 +78,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   infoWindow->setCloseable(true);
   infoWindow->setIsDockable(true);
 
-  simWindow = &imguiInterface->createWindow("sim_window", "Simulation");
+  simWindow = &imguiInterface->createWindow("sim_window", ICON_FK_WRENCH " Simulation");
   viewSimWin->addValueListener([&](bool value) {
     simWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
@@ -87,7 +91,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   simControlsPanel = &simWindow->createChild<SimulationControlsPanel>("sim_controls_panel");
 
-  imagesWindow = &imguiInterface->createWindow("image_window", "Images");
+  imagesWindow = &imguiInterface->createWindow("image_window", ICON_FK_PICTURE_O " Images");
   viewImagesWin->addValueListener([&](bool value) {
     imagesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
@@ -100,11 +104,11 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   imagesMenuBar = &imagesWindow->getMenuBar();
   fileImagesSubmenu = &imagesMenuBar->addSubmenu("images_file_submenu", "File");
-  saveImageButton = &fileImagesSubmenu->addButtonItem("save_image_btn", "Save screenshot");
+  saveImageButton = &fileImagesSubmenu->addButtonItem("save_image_btn",  ICON_FK_FLOPPY_O " Save screenshot");
 
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
-  speciesWindow = &imguiInterface->createWindow("species_window", "Species");
+  speciesWindow = &imguiInterface->createWindow("species_window", ICON_FK_TASKS " Species");
   viewSpeciesWin->addValueListener([&](bool value) {
     speciesWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible);
   },
@@ -118,8 +122,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   speciesMenuBar = &speciesWindow->getMenuBar();
   fileSpeciesSubmenu = &speciesMenuBar->addSubmenu("species_file_submenu", "File");
-  saveSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_save_button", "Save");
-  loadSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_load_button", "Load");
+  saveSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_save_button", ICON_FK_FLOPPY_O " Save");
+  loadSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_load_button", ICON_FK_FILE_O " Load");
 
   blendTypeCombobox = &speciesWindow->createChild<Combobox<BlendType>>("blend_type_combobox", "Blend type", "Select", magic_enum::enum_values<BlendType>(), ComboBoxCount::Items8, Persistent::Yes);
   blendTypeCombobox->setSelectedItem(BlendType::AlphaMix);
@@ -127,7 +131,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   speciesButtonLayout = &speciesWindow->createChild<BoxLayout>("species_buttons_layout", LayoutDirection::LeftToRight, Size{Width::Fill(), 30}, AllowCollapse::No, ShowBorder::No, Persistent::Yes);
 
   speciesTabBar = &speciesWindow->createChild<TabBar>("species_tabbar", true);
-  addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", "+", TabMod::ForceRight);
+  addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", ICON_FK_PLUS_SQUARE, TabMod::ForceRight);
   addSpeciesButton->addClickListener([&] {
     imguiInterface->openInputDialog(
         "Species name", "Input species name", [&](const auto input) {

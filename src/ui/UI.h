@@ -43,6 +43,9 @@ class UI {
       ui::ig::MenuCheckboxItem *viewSpeciesWin;
       ui::ig::MenuCheckboxItem *viewInfoWin;
       ui::ig::MenuCheckboxItem *viewInteractWin;
+    ui::ig::SubMenu *helpSubmenu;
+      ui::ig::MenuButtonItem *helpButton;
+      ui::ig::MenuButtonItem *aboutButton;
   ui::ig::Window *dockWindow;
     ui::ig::DockSpace *mainDockspace;
   ui::ig::Window *interactionWindow;

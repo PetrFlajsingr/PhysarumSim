@@ -137,9 +137,11 @@ void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t
 void PhysarumSimulator::setAttractorPosition(const glm::vec2 &attractorPosition) {
   PhysarumSimulator::attractorPosition = attractorPosition;
 }
+
 void PhysarumSimulator::setInteractionConfig(const InteractionConfig &interactionConfig) {
   PhysarumSimulator::interactionConfig = interactionConfig;
 }
+
 void PhysarumSimulator::setMouseInteractionActive(bool mouseInteractionActive) {
   PhysarumSimulator::mouseInteractionActive = mouseInteractionActive;
 }

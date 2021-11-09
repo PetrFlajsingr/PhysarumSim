@@ -27,7 +27,7 @@ void SimulationControlsPanel::createElements() {
   buttonsLayout = &layout.createChild<BoxLayout>(getName() + "button_layout", LayoutDirection::LeftToRight, Size{Width::Auto(), 30});
   playPauseButton = &buttonsLayout->createChild<Button>(getName() + "play_pause_button", ICON_FK_PLAY);
   restartSimButton = &buttonsLayout->createChild<Button>(getName() + "restart_button", ICON_FK_REFRESH);
-  simSpeedDrag = &buttonsLayout->createChild<DragInput<int>>(getName() + "sim_speed_drag", "Simulation speed", 1, 1, 10, 1, Persistent::Yes);
+  simSpeedDrag = &buttonsLayout->createChild<DragInput<int>>(getName() + "sim_speed_drag", "Speed", 1, 1, 10, 1, Persistent::Yes);
 }
 
 void SimulationControlsPanel::registerListeners() {
