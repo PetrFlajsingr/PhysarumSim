@@ -27,6 +27,7 @@ uniform vec2 mousePosition;
 uniform float mouseDrawDistance;
 uniform float mouseDrawPower;
 uniform int mouseDrawSpecies;
+uniform int mouseDrawFalloff;
 
 
 float boxBlur(ivec2 center, int size, ivec2 texSize) {
@@ -113,8 +114,14 @@ void main() {
     col = trailValue * (1.0 - diffuseW) + col * diffuseW;
 
     if (mouseDrawEnabled == TRUE && (mouseDrawSpecies == speciesId || mouseDrawSpecies == -1)) {
-        if (distance(vec2(texCoord + 0.5f), mousePosition) <= mouseDrawDistance) {
-            col += mouseDrawPower;
+        const float dist = distance(vec2(texCoord + 0.5f), mousePosition);
+        if (dist <= mouseDrawDistance) {
+            if (mouseDrawFalloff == TRUE) {
+                const float distN = (1.f - (dist / mouseDrawDistance)) / 100;
+                col += mouseDrawPower * distN;
+            } else {
+                col += mouseDrawPower;
+            }
         }
     }
 

@@ -56,7 +56,7 @@ class UI {
   ui::ig::Window *imagesWindow;
     ui::ig::WindowMenuBar *imagesMenuBar;
       ui::ig::SubMenu *fileImagesSubmenu;
-        ui::ig::MenuButtonItem *saveImageButton;
+        ui::ig::MenuButtonItem *saveImageButton; // TODO: threadpool to offload image saving/video streaming
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
   ui::ig::Window *speciesWindow;

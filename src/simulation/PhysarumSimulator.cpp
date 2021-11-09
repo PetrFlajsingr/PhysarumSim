@@ -40,6 +40,7 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   diffuseTrailProgram->set1f("mouseDrawDistance", interactionConfig.distance);
   diffuseTrailProgram->set1f("mouseDrawPower", interactionConfig.power);
   diffuseTrailProgram->set1i("mouseDrawSpecies", interactionConfig.interactedSpecies);
+  diffuseTrailProgram->set1i("mouseDrawFalloff", interactionConfig.enableDrawFalloff ? 1 : 0);
   trailTexture->bindImage(0);
   trailDiffuseTexture->bindImage(1);
   speciesDiffuseSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);

@@ -1,3 +1,4 @@
+#include "GlobalThreadpool.h"
 #include "app_icon.h"
 #include "renderers/PhysarumRenderer.h"
 #include "simulation/generators/PointParticleGenerator.h"
@@ -56,6 +57,7 @@ glm::vec2 mousePosToTexPos(ImVec2 mousePos, pf::ui::ig::Size winSize, glm::ivec2
 
 // TODO: texture size change in UI
 int main(int argc, char *argv[]) {
+  pf::initGlobalThreadPool(4);
   using namespace pf;
   using namespace pf::glfw;
   using namespace pf::enum_operators;
@@ -169,7 +171,19 @@ int main(int argc, char *argv[]) {
     const auto imgFormat = getImageFormat(path).value();
     auto texture = renderer.getRenderTexture();
     auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);
-    saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{imageData});
+    GlobalThreadPool().enqueue(
+        [path, imgFormat, trailTextureSize, data = std::move(imageData), &ui] {
+          try {
+            saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
+            MainLoop::Get()->enqueue([&ui, path] {
+              ui.imguiInterface->showNotification(ui::ig::NotificationType::Success, fmt::format("Image saved to '{}'", path.string()));
+            });
+          } catch (...) {
+            MainLoop::Get()->enqueue([&ui] {
+              ui.imguiInterface->showNotification(ui::ig::NotificationType::Error, "Image failed to save", std::chrono::seconds{5});
+            });
+          }
+        });
   };
 
   ui.simControlsPanel->addRestartClickListener(initFromUI);
@@ -245,5 +259,7 @@ int main(int argc, char *argv[]) {
   config["window"].as_table()->insert_or_assign("height", windowSize.height);
   config["window"].as_table()->insert_or_assign("maximized", window->isMaximized());
   saveConfig(config, ui);
+
+  GlobalThreadPool().cancelAndStop();
   return 0;
 }

@@ -153,8 +153,7 @@ PopulationConfig PopulationConfig::FromToml(const toml::table &src) {
       .color = PopulationColor::FromToml(*src["color"].as_table()),
       .filterType = static_cast<FilterType>(src["filterType"].value<int>().value()),
       .maxSteerRandomness = src["maxSteerRandomness"].value<float>().value(),
-      .speciesInteractions = std::move(interactions)
-  };
+      .speciesInteractions = std::move(interactions)};
 }
 
 toml::table PopulationConfig::toToml() const {
@@ -194,7 +193,7 @@ bool PopulationConfig::operator!=(const PopulationConfig &rhs) const {
 }
 
 bool InteractionConfig::operator==(const InteractionConfig &rhs) const {
-  return interactionType == rhs.interactionType && distance == rhs.distance && power == rhs.power && interactedSpecies == rhs.interactedSpecies;
+  return interactionType == rhs.interactionType && distance == rhs.distance && power == rhs.power && interactedSpecies == rhs.interactedSpecies && enableDrawFalloff == rhs.enableDrawFalloff;
 }
 
 bool InteractionConfig::operator!=(const InteractionConfig &rhs) const {
@@ -207,6 +206,7 @@ InteractionConfig InteractionConfig::FromToml(const toml::table &src) {
       .distance = src["distance"].value<float>().value(),
       .power = src["power"].value<float>().value(),
       .interactedSpecies = src["interactedSpecies"].value<int>().value(),
+      .enableDrawFalloff = src["enableDrawFalloff"].value<bool>().value(),
   };
 }
 
@@ -216,6 +216,7 @@ toml::table InteractionConfig::toToml() const {
       {"distance", distance},
       {"power", power},
       {"interactedSpecies", interactedSpecies},
+      {"enableDrawFalloff", enableDrawFalloff},
   }};
 }
 
@@ -230,7 +231,7 @@ bool SpeciesInteractionConfig::operator!=(const SpeciesInteractionConfig &rhs) c
 SpeciesInteractionConfig SpeciesInteractionConfig::FromToml(const toml::table &src) {
   return {
       .interactionType = static_cast<SpeciesInteraction>(src["interactionType"].value<int>().value()),
-      .factor = src["factor"].value<float>().value(),
+      .factor = src["factor"].value<float>().value_or(1.f),
       .speciesName = src["speciesName"].value<std::string>().value(),
       .speciesIndex = src["speciesIndex"].value<int>().value(),
   };

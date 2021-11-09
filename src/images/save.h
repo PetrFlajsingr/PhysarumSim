@@ -11,7 +11,7 @@
 
 namespace pf {
 
-void saveImage(const std::filesystem::path &path, ImageFormat format, PixelFormat pixelFormat, std::size_t width, std::size_t height, std::span<std::byte> data);
+void saveImage(const std::filesystem::path &path, ImageFormat format, PixelFormat pixelFormat, std::size_t width, std::size_t height, std::span<const std::byte> data);
 
 }
 

@@ -35,6 +35,8 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
   mouseInteractionCombobox->setSelectedItem(MouseInteraction::None);
   distanceDrag = &layout.createChild<DragInput<float>>(name + "distance_drag", "Effect distance", 1.f, 1.f, 10000.f, 100.f);
   powerDrag = &layout.createChild<DragInput<float>>(name + "power_drag", "Effect power", 0.01f, .1f, 10.f, 10.f);
+  drawFalloffCheckbox = &layout.createChild<Checkbox>(name + "draw_falloff_checkbox", "Draw falloff");
+  drawFalloffCheckbox->setVisibility(Visibility::Invisible);
   mouseInteractionSpeciesCombobox = &layout.createChild<Combobox<MouseInteractionSpecies>>(name + "mouse_int_species_combobox", "Species", "Select", std::vector<MouseInteractionSpecies>{});
 
   setInteractableSpecies({});
@@ -46,11 +48,13 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
     const auto optionsVisibility = type == MouseInteraction::None ? Visibility::Invisible : Visibility::Visible;
     distanceDrag->setVisibility(optionsVisibility);
     powerDrag->setVisibility(optionsVisibility);
+    drawFalloffCheckbox->setVisibility(type == MouseInteraction::Draw ? Visibility::Visible : Visibility::Invisible);
     onChange(type);
   },
                                              true);
   distanceDrag->addValueListener(onChange);
   powerDrag->addValueListener(onChange);
+  drawFalloffCheckbox->addValueListener(onChange);
   mouseInteractionSpeciesCombobox->addValueListener(onChange);
 
   mouseInteractionCombobox->setTooltip("Type of mouse interaction with particles");
@@ -77,6 +81,7 @@ physarum::InteractionConfig MouseInteractionPanel::getConfig() const {
       .distance = distanceDrag->getValue(),
       .power = powerDrag->getValue(),
       .interactedSpecies = mouseInteractionSpeciesCombobox->getValue().speciesId.value_or(-1),
+      .enableDrawFalloff = drawFalloffCheckbox->getValue(),
   };
 }
 
@@ -84,6 +89,7 @@ void MouseInteractionPanel::setConfig(const InteractionConfig &config) {
   mouseInteractionCombobox->setSelectedItem(config.interactionType);
   distanceDrag->setValue(config.distance);
   powerDrag->setValue(config.power);
+  drawFalloffCheckbox->setValue(config.enableDrawFalloff);
 }
 void MouseInteractionPanel::setInteractableSpecies(const std::vector<MouseInteractionSpecies> &species) {
   auto previousSelected = mouseInteractionSpeciesCombobox->getSelectedItem();

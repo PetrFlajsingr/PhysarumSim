@@ -63,7 +63,6 @@ CPMAddPackage(
         GIT_TAG itemelement_mousemove
 )
 
-
 #add_compile_definitions(SPDLOG_FMT_EXTERNAL)
 #hunter_add_package(spdlog)
 #find_package(spdlog CONFIG REQUIRED)
@@ -114,10 +113,16 @@ add_executable(PhysarumSim
         src/simulation/generators/UniformParticleGenerator.h
         src/images/Formats.h
         src/images/save.cpp
-        src/images/save.h src/ui/SimulationControlsPanel.cpp src/ui/SimulationControlsPanel.h)
+        src/images/save.h src/ui/SimulationControlsPanel.cpp src/ui/SimulationControlsPanel.h src/GlobalThreadpool.h)
 
 
-target_link_libraries(PhysarumSim glad ${OPENGL_LIBRARIES} pf_common::pf_common pf_imgui::pf_imgui pf_mainloop::pf_mainloop pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog
+target_link_libraries(PhysarumSim
+        glad
+        ${OPENGL_LIBRARIES}
+        pf_common::pf_common
+        pf_imgui::pf_imgui
+        pf_mainloop::pf_mainloop
+        pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog
         )
 
 if(WIN32)

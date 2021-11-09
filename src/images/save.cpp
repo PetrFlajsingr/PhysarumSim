@@ -6,7 +6,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
-void pf::saveImage(const std::filesystem::path &path, pf::ImageFormat format, PixelFormat pixelFormat, std::size_t width, std::size_t height, std::span<std::byte> data) {
+void pf::saveImage(const std::filesystem::path &path, pf::ImageFormat format, PixelFormat pixelFormat, std::size_t width, std::size_t height, std::span<const std::byte> data) {
 
   const auto componentCount = getComponentCount(pixelFormat);
 

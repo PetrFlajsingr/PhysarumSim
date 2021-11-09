@@ -17,7 +17,7 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::physarum)
 namespace pf::physarum {
 
 enum class MouseInteraction {
-  None = 0, Attract = 1, Repel = 2, Draw = 3
+  None = 0, Attract = 1, Repel = 2, Draw = 3 // TODO erase
 };
 
 enum class SpeciesInteraction {
@@ -51,6 +51,7 @@ struct InteractionConfig {
   float distance = 100.f;
   float power = 10.f;
   int interactedSpecies = -1;
+  bool enableDrawFalloff = false;
 
   static InteractionConfig FromToml(const toml::table &src);
   [[nodiscard]] toml::table toToml() const;

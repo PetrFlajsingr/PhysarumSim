@@ -32,14 +32,7 @@ void SimulationControlsPanel::createElements() {
 
 void SimulationControlsPanel::registerListeners() {
   playPauseButton->addClickListener([&] {
-    running = !running;
-    if (running) {
-      playPauseButton->setLabel(ICON_FK_PAUSE);
-      playPauseButton->setTooltip("Resume simulation");
-    }  else {
-      playPauseButton->setLabel(ICON_FK_PLAY);
-      playPauseButton->setTooltip("Pause simulation");
-    }
+    setSimRunning(!running);
     runningObservable.notify(running);
   });
 }
@@ -52,7 +45,16 @@ void SimulationControlsPanel::addTooltips() {
 
 bool SimulationControlsPanel::isSimRunning() const { return running; }
 
-void SimulationControlsPanel::setSimRunning(bool isRunning) { running = isRunning; }
+void SimulationControlsPanel::setSimRunning(bool isRunning) {
+  running = isRunning;
+  if (running) {
+    playPauseButton->setLabel(ICON_FK_PAUSE);
+    playPauseButton->setTooltip("Resume simulation");
+  } else {
+    playPauseButton->setLabel(ICON_FK_PLAY);
+    playPauseButton->setTooltip("Pause simulation");
+  }
+}
 
 int SimulationControlsPanel::getSimSpeed() const {
   return simSpeedDrag->getValue();
