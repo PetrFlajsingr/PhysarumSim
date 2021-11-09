@@ -17,10 +17,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
       .enableMultiViewport = false,
       .config = config,
       .pathToIconFolder = *config["path_icons"].value<std::string>(),
-      .enabledIconPacks = IconPack::FontAwesome5Regular,
+      .enabledIconPacks = IconPack::ForkAwesome,
       .defaultFontSize = 13.f});
   setDarkStyle(*imguiInterface);
-
 
   dockWindow = &imguiInterface->createWindow("dock_window", "Test");
   dockWindow->setUserResizable(false);
@@ -86,10 +85,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   simWindow->setCloseable(true);
   simWindow->setIsDockable(true);
 
-  playPauseButton = &simWindow->createChild<Button>("btn_play_pause", "Start");
-  simControlGroup = &simWindow->createChild<Group>("group_sim_control", "Simulation controls", Persistent::Yes, AllowCollapse::Yes);
-  simSpeedDrag = &simControlGroup->createChild<DragInput<int>>("sim_speed_drag", "Simulation speed", 1, 1, 10, 1, Persistent::Yes);
-  restartSimButton = &simControlGroup->createChild<Button>("restart_sim", "Restart");
+  simControlsPanel = &simWindow->createChild<SimulationControlsPanel>("sim_controls_panel");
 
   imagesWindow = &imguiInterface->createWindow("image_window", "Images");
   viewImagesWin->addValueListener([&](bool value) {
@@ -101,6 +97,11 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   });
   imagesWindow->setCloseable(true);
   imagesWindow->setIsDockable(true);
+
+  imagesMenuBar = &imagesWindow->getMenuBar();
+  fileImagesSubmenu = &imagesMenuBar->addSubmenu("images_file_submenu", "File");
+  saveImageButton = &fileImagesSubmenu->addButtonItem("save_image_btn", "Save screenshot");
+
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
   speciesWindow = &imguiInterface->createWindow("species_window", "Species");
@@ -136,11 +137,10 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
             return;
           }
           createSpeciesTab(input);
-          reloadSpeciesInteractions();
-        }, [] {});
+          reloadSpeciesInteractions(); }, [] {});
   });
 
-  restartSimButton->addClickListener([&] {
+  simControlsPanel->addRestartClickListener([&] {
     auto closedTabs = speciesTabBar->getTabs() | std::views::filter([](const auto &tab) {
                         return !tab.isOpen();
                       });
@@ -158,25 +158,36 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
   saveSpeciesButton->addClickListener([&] {
     imguiInterface->openFileDialog(
-        "Select save location", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
+        "Select save location", {FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
           const auto data = speciesToToml();
           std::ofstream ostream{dst};
           ostream << data;
         },
-        [] {}, ui::ig::Size{500, 400});
+        [] {}, Size{500, 400});
   });
 
   loadSpeciesButton->addClickListener([&] {
     imguiInterface->openFileDialog(
-        "Select file to load", {ui::ig::FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
+        "Select file to load", {FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
           const auto config = toml::parse_file(std::filesystem::absolute(dst).string());
           loadFromToml(config);
         },
-        [] {}, ui::ig::Size{500, 400});
+        [] {}, Size{500, 400});
+  });
+
+  saveImageButton->addClickListener([&]() {
+    auto extensions = std::vector<FileExtensionSettings>{FileExtensionSettings{{"png"}, "png", ImVec4{1, 0, 0, 1}}, FileExtensionSettings{{"jpg", "jpeg"}, "jpg", ImVec4{1, 0, 0, 1}}, FileExtensionSettings{{"bmp"}, "bmp", ImVec4{1, 0, 0, 1}}};
+    imguiInterface->openFileDialog(
+        "Select save location", extensions,
+        [&](const auto &selected) {
+          const auto &dst = selected[0];
+          onScreenshotSave(dst);
+        },
+        [] {}, Size{500, 400});
   });
 
   updateSpeciesTabBarFromConfig(config);

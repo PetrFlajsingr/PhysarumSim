@@ -7,6 +7,7 @@
 
 #include "SpeciesPanel.h"
 #include "MouseInteractionPanel.h"
+#include "SimulationControlsPanel.h"
 #include "simulation/SimConfig.h"
 #include <GLFW/glfw3.h>
 #include <geGL/Texture.h>
@@ -35,13 +36,13 @@ class UI {
   // clang-format off
   ui::ig::AppMenuBar *appMenuBar;
     ui::ig::SubMenu *viewSubmenu;
-    ui::ig::MenuButtonItem *viewShowAll;
-    ui::ig::MenuButtonItem *viewHideAll;
-    ui::ig::MenuCheckboxItem *viewSimWin;
-    ui::ig::MenuCheckboxItem *viewImagesWin;
-    ui::ig::MenuCheckboxItem *viewSpeciesWin;
-    ui::ig::MenuCheckboxItem *viewInfoWin;
-    ui::ig::MenuCheckboxItem *viewInteractWin;
+      ui::ig::MenuButtonItem *viewShowAll;
+      ui::ig::MenuButtonItem *viewHideAll;
+      ui::ig::MenuCheckboxItem *viewSimWin;
+      ui::ig::MenuCheckboxItem *viewImagesWin;
+      ui::ig::MenuCheckboxItem *viewSpeciesWin;
+      ui::ig::MenuCheckboxItem *viewInfoWin;
+      ui::ig::MenuCheckboxItem *viewInteractWin;
   ui::ig::Window *dockWindow;
     ui::ig::DockSpace *mainDockspace;
   ui::ig::Window *interactionWindow;
@@ -50,12 +51,12 @@ class UI {
     ui::ig::SimplePlot *fpsCurrentPlot;
     ui::ig::SimplePlot *fpsAveragePlot;
     ui::ig::Text *fpsLabel;
-  ui::ig::Window *simWindow; // TODO: change this, tooltips
-    ui::ig::Button *playPauseButton;
-    ui::ig::Group *simControlGroup;
-      ui::ig::DragInput<int> *simSpeedDrag;
-      ui::ig::Button *restartSimButton;
+  ui::ig::Window *simWindow;
+    SimulationControlsPanel *simControlsPanel;
   ui::ig::Window *imagesWindow;
+    ui::ig::WindowMenuBar *imagesMenuBar;
+      ui::ig::SubMenu *fileImagesSubmenu;
+        ui::ig::MenuButtonItem *saveImageButton;
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
   ui::ig::Window *speciesWindow;
@@ -78,6 +79,8 @@ class UI {
   }
 
   void cleanupConfig(toml::table &config);
+
+  std::function<void(std::filesystem::path)> onScreenshotSave = [](auto) {};
 
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
  private:

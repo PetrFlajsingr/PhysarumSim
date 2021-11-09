@@ -6,6 +6,7 @@
 #include "utils/files.h"
 #include <filesystem>
 #include <fmt/format.h>
+#include <images/save.h>
 #include <magic_enum.hpp>
 #include <numbers>
 #include <pf_glfw/GLFW.h>
@@ -130,15 +131,25 @@ int main(int argc, char *argv[]) {
 
   ui.setOutImage(renderer.getRenderTexture());
 
+  bool isSimPaused = true;
+  ui.simControlsPanel->addSimStateListener([&](bool running) {
+    isSimPaused = !running;
+  });
+
   window->setCursorPositionCallback([&](const auto &cursorPos) {
     const auto attractorPosition = mousePosToTexPos(window->getCursorPosition(), window->getSize(), trailTextureSize);
 
     sim->setMouseInteractionActive(window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down);
     sim->setAttractorPosition(attractorPosition);
   });
-  window->setKeyCallback([&](Key key, KeyAction action, Flags<ModifierKey>) {
+  window->setKeyCallback([&](Key key, KeyAction action, Flags<ModifierKey> mods) {
     if (key == Key::H && action == KeyAction::Down) {
       ui.imguiInterface->setVisibility(!ui.imguiInterface->getVisibility());
+    } else if (key == Key::Space && action == KeyAction::Down) {
+      isSimPaused = !isSimPaused;
+      ui.simControlsPanel->setSimRunning(!isSimPaused);
+    } else if (key == Key::Enter && action == KeyAction::Down && mods.is(ModifierKey::Alt)) {
+      // TODO: fullscreen switch
     }
   });
 
@@ -154,17 +165,14 @@ int main(int argc, char *argv[]) {
   },
                                              true);
 
-  bool isSimPaused = true;
-  ui.playPauseButton->addClickListener([&] {
-    isSimPaused = !isSimPaused;
-    if (isSimPaused) {
-      ui.playPauseButton->setLabel("Start");
-    } else {
-      ui.playPauseButton->setLabel("Pause");
-    }
-  });
+  ui.onScreenshotSave = [&](const auto &path) {
+    const auto imgFormat = getImageFormat(path).value();
+    auto texture = renderer.getRenderTexture();
+    auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);
+    saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{imageData});
+  };
 
-  ui.restartSimButton->addClickListener(initFromUI);
+  ui.simControlsPanel->addRestartClickListener(initFromUI);
 
   ui.backgroundColorEdit->addValueListener([&](const auto &color) {
     renderer.setBackgroundColor(color);
@@ -189,31 +197,43 @@ int main(int argc, char *argv[]) {
   updateUIPosition();
 
   FPSCounter fpsCounter{};
+  const auto fpsLabelUpdateFrequency = std::chrono::milliseconds{100};
+  auto timeSinceLastFpsLabelUpdate = fpsLabelUpdateFrequency;
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
-    glfw.setSwapInterval(0);
-    if (window->shouldClose()) {
-      MainLoop::Get()->stop();
-    }
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    const float currentTime = std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
-    const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
-
-    if (anySpecies) {
-      if (!isSimPaused) {
-        for (int i = 0; i < ui.simSpeedDrag->getValue(); ++i) {
-          sim->simulate(currentTime, timeDelta);
-        }
+    try {
+      glfw.setSwapInterval(0);
+      if (window->shouldClose()) {
+        MainLoop::Get()->stop();
       }
-      renderer.render();
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      const float currentTime = std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
+      const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
+
+      if (anySpecies) {
+        if (!isSimPaused) {
+          for (int i = 0; i < ui.simControlsPanel->getSimSpeed(); ++i) {
+            sim->simulate(currentTime, timeDelta);
+          }
+        }
+        renderer.render();
+      }
+      ui.fpsAveragePlot->addValue(fpsCounter.averageFPS());
+      ui.fpsCurrentPlot->addValue(fpsCounter.currentFPS());
+      timeSinceLastFpsLabelUpdate += std::chrono::duration_cast<std::chrono::milliseconds>(deltaT);
+      if (timeSinceLastFpsLabelUpdate >= fpsLabelUpdateFrequency) {
+        timeSinceLastFpsLabelUpdate = std::chrono::milliseconds{0};
+        ui.fpsLabel->setText("Average FPS: {}", fpsCounter.averageFPS());
+      }
+      ui.imguiInterface->render();
+
+      window->swapBuffers();
+      glfw.pollEvents();
+      fpsCounter.onFrame();
+    } catch (const std::exception &e) {
+      fmt::print(stderr, "Exception: {}\n", e.what());
+      ui.imguiInterface->createMsgDlg("Exception", e.what(), Flags<ui::ig::MessageButtons>{ui::ig::MessageButtons::Ok}, [](auto) { return true; });
     }
-    ui.fpsAveragePlot->addValue(fpsCounter.averageFPS());
-    ui.fpsCurrentPlot->addValue(fpsCounter.currentFPS());
-    ui.fpsLabel->setText("Average FPS: {}", fpsCounter.averageFPS());
-    ui.imguiInterface->render();
-    window->swapBuffers();
-    glfw.pollEvents();
-    fpsCounter.onFrame();
   });
 
   fmt::print("Starting main loop\n");

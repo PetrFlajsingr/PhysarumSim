@@ -228,6 +228,14 @@ void Texture::getCompressedData(std::vector<uint8_t> &data, GLint level) {
   getCompressedData(data.data(), bufSize, level);
 }
 
+std::vector<std::byte> Texture::getData(GLint level, GLenum format, GLenum type) {
+  assert(format == GL_RGBA);
+  std::vector<std::byte> result;
+  result.resize(getWidth(level) * getHeight(level) * 4);
+  glGetTextureImage(getId(), level, format, type, result.size(), result.data());
+  return result;
+}
+
 void Texture::generateMipmap() const {
   assert(this != nullptr);
   glGenerateTextureMipmap(this->getId());

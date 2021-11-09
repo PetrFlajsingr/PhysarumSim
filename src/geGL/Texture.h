@@ -81,6 +81,8 @@ class Texture : public OpenGLObject {
   void getCompressedData(void *data, GLsizei bufSize, GLint level);
   void getCompressedData(std::vector<uint8_t> &data, GLint level);
 
+  std::vector<std::byte> getData(GLint level, GLenum format, GLenum type);
+
   void generateMipmap() const;
   void clear(
       GLint level,
