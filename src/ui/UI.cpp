@@ -209,9 +209,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
 
 void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture> &texture) {
   using namespace ui::ig;
-  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080}, IsButton::No, true, [] {
-    return std::pair(ImVec2{0, 1}, ImVec2{1, 0});
-  });
+  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080});
 }
 
 void pf::ogl::UI::setAllWinVisibility(bool visible) {

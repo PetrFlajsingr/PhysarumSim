@@ -51,7 +51,7 @@ glm::vec2 mousePosToTexPos(pf::glfw::Position<double> mousePos, pf::glfw::Size<i
 
 glm::vec2 mousePosToTexPos(ImVec2 mousePos, pf::ui::ig::Size winSize, glm::ivec2 texSize) {
   const auto nX = mousePos.x / winSize.width;
-  const auto nY = 1.f - mousePos.y / winSize.height;
+  const auto nY = mousePos.y / winSize.height;// TODO: check this on windows
   return glm::vec2{texSize} * glm::vec2{nX, nY};
 }
 

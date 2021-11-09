@@ -4,6 +4,7 @@
 
 #include "UniformParticleGenerator.h"
 #include <utils/rand.h>
+#include <cmath>
 
 namespace pf::physarum {
 
@@ -15,8 +16,8 @@ std::vector<Particle> UniformParticleGenerator::generateParticles(std::size_t co
     const auto rndAngle = fastRandom(0.f, 1.f) * std::numbers::pi_v<float> * 2.f;
     const auto xI = (i % size.x);
     const auto yI = (i / size.x) % size.y;
-    const auto x = std::fmodf(static_cast<float>(xI) * step, size.x);
-    const auto y = std::fmodf(static_cast<float>(yI) * step, size.y);
+    const auto x = std::fmod(static_cast<float>(xI) * step, size.x);
+    const auto y = std::fmod(static_cast<float>(yI) * step, size.y);
     result.emplace_back(glm::vec2{x, y}, rndAngle);
   }
   return result;

@@ -6,6 +6,7 @@
 #define PHYSARUMSIM_SRC_IMAGES_FORMATS_H
 
 #include <filesystem>
+#include <optional>
 
 namespace pf {
 

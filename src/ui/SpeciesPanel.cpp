@@ -13,7 +13,7 @@ using namespace physarum;
 SpeciesPanel::SpeciesPanel(const std::string &name,
                            ui::ig::Persistent persistent)
     : Element(name),
-      ValueObservable({}),
+      ValueObservable(),
       Savable(persistent),
       root({name + "_root", LayoutDirection::TopToBottom, Size::Auto(), AllowCollapse::No, ShowBorder::Yes, persistent}) {
   createElements();
