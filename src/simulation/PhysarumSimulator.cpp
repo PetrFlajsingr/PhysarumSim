@@ -3,6 +3,7 @@
 //
 
 #include "PhysarumSimulator.h"
+#include <algorithm>
 #include <glm/geometric.hpp>
 #include <pf_common/RAII.h>
 #include <range/v3/algorithm/max.hpp>
@@ -10,7 +11,6 @@
 #include <simulation/generators/InwardCircleParticleGenerator.h>
 #include <simulation/generators/RandomCircleParticleGenerator.h>
 #include <simulation/generators/UniformParticleGenerator.h>
-#include <algorithm>
 
 namespace pf::physarum {
 
@@ -32,7 +32,6 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->dispatch(greatestParticleCount / 64 + 1, 1, simSpeciesSettings.size());
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-
   diffuseTrailProgram->use();
   diffuseTrailProgram->set1f("deltaT", deltaTime);
   int drawType;
@@ -41,9 +40,7 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
     case MouseInteraction::Erase: drawType = 2; break;
     default: drawType = 0; break;
   }
-  if (!mouseInteractionActive) {
-    drawType = 0;
-  }
+  if (!mouseInteractionActive) { drawType = 0; }
   diffuseTrailProgram->set1i("mouseDrawType", drawType);
   diffuseTrailProgram->set2fv("mousePosition", &attractorPosition[0]);
   diffuseTrailProgram->set1f("mouseDrawDistance", interactionConfig.distance);
@@ -58,13 +55,9 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   std::swap(trailTexture, trailDiffuseTexture);
 }
 
-const std::shared_ptr<Buffer> &PhysarumSimulator::getParticleBuffer() const {
-  return particleBuffer;
-}
+const std::shared_ptr<Buffer> &PhysarumSimulator::getParticleBuffer() const { return particleBuffer; }
 
-const std::shared_ptr<Texture> &PhysarumSimulator::getTrailTexture() const {
-  return trailTexture;
-}
+const std::shared_ptr<Texture> &PhysarumSimulator::getTrailTexture() const { return trailTexture; }
 
 void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populations) {
   simSpeciesSettings.clear();
@@ -72,7 +65,8 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
 
   std::vector<Particle> allParticles;
   totalParticleCount = ranges::accumulate(populations, 0, std::plus<>{}, &PopulationConfig::particleCount);
-  greatestParticleCount = ranges::max(populations | std::views::transform(&PopulationConfig::particleCount), std::greater<int>{});
+  greatestParticleCount =
+      ranges::max(populations | std::views::transform(&PopulationConfig::particleCount), std::greater<int>{});
   allParticles.reserve(totalParticleCount);
   const auto populationsCount = populations.size();
   std::unique_ptr<ParticleGenerator> generator = nullptr;
@@ -89,7 +83,9 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
       case ParticleStart::Point: generator = std::make_unique<PointParticleGenerator>(textureSize / 2u); break;
       case ParticleStart::InwardCircle: generator = std::make_unique<InwardCircleParticleGenerator>(textureSize); break;
       case ParticleStart::RandomCircle: generator = std::make_unique<RandomCircleParticleGenerator>(textureSize); break;
-      case ParticleStart::Uniform: generator = std::make_unique<UniformParticleGenerator>(textureSize, population.senseDistance); break; // TODO: step
+      case ParticleStart::Uniform:
+        generator = std::make_unique<UniformParticleGenerator>(textureSize, population.senseDistance);
+        break;// TODO: step
     }
     const auto particles = generator->generateParticles(population.particleCount);
     std::ranges::copy(particles, std::back_inserter(allParticles));
@@ -97,27 +93,29 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
   particleBuffer = std::make_shared<Buffer>(allParticles.size() * sizeof(Particle), allParticles.data());
 
   // TODO: fix zero init
-  trailTexture = std::make_shared<Texture>(GL_TEXTURE_2D_ARRAY, GL_R32F, 0, textureSize.x, textureSize.y, populationsCount);
+  trailTexture =
+      std::make_shared<Texture>(GL_TEXTURE_2D_ARRAY, GL_R32F, 0, textureSize.x, textureSize.y, populationsCount);
   trailTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   trailTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   trailTexture->clear(0, GL_R32F, GL_FLOAT);
 
-  trailDiffuseTexture = std::make_shared<Texture>(GL_TEXTURE_2D_ARRAY, GL_R32F, 0, textureSize.x, textureSize.y, populationsCount);
+  trailDiffuseTexture =
+      std::make_shared<Texture>(GL_TEXTURE_2D_ARRAY, GL_R32F, 0, textureSize.x, textureSize.y, populationsCount);
   trailDiffuseTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   trailDiffuseTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   trailDiffuseTexture->clear(0, GL_R32F, GL_FLOAT);
 
-
-  speciesSettingsBuffer = std::make_shared<Buffer>(sizeof(details::SpeciesShaderSettings) * simSpeciesSettings.size(), simSpeciesSettings.data());
-  speciesDiffuseSettingsBuffer = std::make_shared<Buffer>(sizeof(details::SpeciesShaderDiffuseSettings) * diffuseSpeciesSettings.size(), diffuseSpeciesSettings.data());
+  speciesSettingsBuffer = std::make_shared<Buffer>(sizeof(details::SpeciesShaderSettings) * simSpeciesSettings.size(),
+                                                   simSpeciesSettings.data());
+  speciesDiffuseSettingsBuffer = std::make_shared<Buffer>(
+      sizeof(details::SpeciesShaderDiffuseSettings) * diffuseSpeciesSettings.size(), diffuseSpeciesSettings.data());
 }
 
 void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t index) {
   const auto simSettingData = speciesSettingsBuffer->map();
-  auto unmapSim = RAII{[&] {
-    speciesSettingsBuffer->unmap();
-  }};
-  auto simSettings = std::span{reinterpret_cast<details::SpeciesShaderSettings*>(simSettingData), simSpeciesSettings.size()};
+  auto unmapSim = RAII{[&] { speciesSettingsBuffer->unmap(); }};
+  auto simSettings =
+      std::span{reinterpret_cast<details::SpeciesShaderSettings *>(simSettingData), simSpeciesSettings.size()};
   details::SpeciesShaderSettings newSimSettings{config};
   newSimSettings.particleCount = simSpeciesSettings[index].particleCount;
   newSimSettings.particlesOffset = simSpeciesSettings[index].particlesOffset;
@@ -125,10 +123,9 @@ void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t
   simSettings[index] = newSimSettings;
 
   const auto diffSettingData = speciesDiffuseSettingsBuffer->map();
-  auto unmapDiff = RAII{[&] {
-    speciesDiffuseSettingsBuffer->unmap();
-  }};
-  auto diffSettings = std::span{reinterpret_cast<details::SpeciesShaderDiffuseSettings*>(diffSettingData), diffuseSpeciesSettings.size()};
+  auto unmapDiff = RAII{[&] { speciesDiffuseSettingsBuffer->unmap(); }};
+  auto diffSettings = std::span{reinterpret_cast<details::SpeciesShaderDiffuseSettings *>(diffSettingData),
+                                diffuseSpeciesSettings.size()};
   details::SpeciesShaderDiffuseSettings newDiffSettings{config};
   diffuseSpeciesSettings[index] = newDiffSettings;
   diffSettings[index] = newDiffSettings;

@@ -46,12 +46,14 @@ class MouseInteractionPanel : public ui::ig::Element,
   toml::table serialize_impl() override;
 
  private:
+  // clang-format off
   ui::ig::BoxLayout layout;
-  ui::ig::Combobox<physarum::MouseInteraction> *mouseInteractionCombobox;
-  ui::ig::DragInput<float> *distanceDrag;
-  ui::ig::DragInput<float> *powerDrag;
-  ui::ig::Checkbox *drawFalloffCheckbox;
-  ui::ig::Combobox<MouseInteractionSpecies> *mouseInteractionSpeciesCombobox;
+    ui::ig::Combobox<physarum::MouseInteraction> *mouseInteractionCombobox;
+    ui::ig::DragInput<float> *distanceDrag;
+    ui::ig::DragInput<float> *powerDrag;
+    ui::ig::Checkbox *drawFalloffCheckbox;
+    ui::ig::Combobox<MouseInteractionSpecies> *mouseInteractionSpeciesCombobox;
+  // clang-format on
 };
 
 }// namespace pf

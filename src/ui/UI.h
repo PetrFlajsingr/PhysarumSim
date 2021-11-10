@@ -5,9 +5,10 @@
 #ifndef OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 #define OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 
-#include "SpeciesPanel.h"
 #include "MouseInteractionPanel.h"
 #include "SimulationControlsPanel.h"
+#include "SpeciesPanel.h"
+#include "RecorderPanel.h"
 #include "simulation/SimConfig.h"
 #include <GLFW/glfw3.h>
 #include <geGL/Texture.h>
@@ -21,12 +22,8 @@
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ui::ig)
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 
-namespace pf::ui::ig {
-
-}
 
 namespace pf::ogl {
-
 
 // FIXME: indices of species get messed up on removal->restart, so the events need to be cancelled and rebuild
 class UI {
@@ -59,7 +56,8 @@ class UI {
   ui::ig::Window *imagesWindow;
     ui::ig::WindowMenuBar *imagesMenuBar;
       ui::ig::SubMenu *fileImagesSubmenu;
-        ui::ig::MenuButtonItem *saveImageButton; // TODO: threadpool to offload image saving/video streaming
+        ui::ig::MenuButtonItem *saveImageButton;
+        ui::ig::MenuButtonItem *startRecordingButton;
     ui::ig::StretchLayout *outImageStretch;
     ui::ig::Image *outImage = nullptr;
   ui::ig::Window *speciesWindow;
@@ -73,12 +71,14 @@ class UI {
     ui::ig::TabBar *speciesTabBar;
       ui::ig::TabButton *addSpeciesButton;
       std::vector<SpeciesPanel*> speciesPanels;
+  ui::ig::Window *recordingWindow;
+    RecorderPanel *recorderPanel;
   // clang-format on
 
-  void setOutImage(const std::shared_ptr<Texture>& texture);
+  void setOutImage(const std::shared_ptr<Texture> &texture);
 
   Subscription addResetListener(std::invocable auto &&listener) {
-      return resetObservable.addListener(std::forward<decltype(listener)>(listener));
+    return resetObservable.addListener(std::forward<decltype(listener)>(listener));
   }
 
   void cleanupConfig(toml::table &config);
@@ -86,8 +86,9 @@ class UI {
   std::function<void(std::filesystem::path)> onScreenshotSave = [](auto) {};
 
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
+
  private:
-  ui::ig::Observable_impl<SpeciesPanel*> resetObservable;
+  ui::ig::Observable_impl<SpeciesPanel *> resetObservable;
 
   std::vector<std::string> speciesInConfig;
 
@@ -108,9 +109,7 @@ class UI {
 
   void setMouseInteractionSpecies();
 
-  inline auto getSpeciesNames() {
-    return speciesTabBar->getTabs() | std::views::transform(&ui::ig::Tab::getLabel);
-  }
+  inline auto getSpeciesNames() { return speciesTabBar->getTabs() | std::views::transform(&ui::ig::Tab::getLabel); }
 
   void reloadSpeciesInteractions();
 };

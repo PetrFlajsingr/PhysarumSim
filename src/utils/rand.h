@@ -14,13 +14,12 @@ static inline std::random_device rd{};
 static inline std::mt19937 slowEng(rd());
 
 static inline std::minstd_rand fastEng(rd());
-}
+}// namespace details
 /*
 inline float random(float min, float max) {
   std::uniform_real_distribution<> distr(min, max);
   return distr(details::slowEng);
 }*/
-
 
 inline float fastRandom(float min, float max) {
   std::uniform_real_distribution<> distr(min, max);

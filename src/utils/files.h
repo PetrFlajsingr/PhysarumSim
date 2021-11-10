@@ -6,8 +6,8 @@
 #define OPENGL_TEMPLATE_SRC_UTILS_FILES_H
 
 #include <filesystem>
-#include <string>
 #include <optional>
+#include <string>
 
 namespace pf {
 

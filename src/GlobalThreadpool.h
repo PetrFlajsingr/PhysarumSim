@@ -8,14 +8,12 @@
 #include <pf_common/parallel/ThreadPool.h>
 
 namespace pf {
-namespace  details {
+namespace details {
 inline static std::unique_ptr<ThreadPool> globalThreadPool = nullptr;
 }
 
 inline void initGlobalThreadPool(std::size_t threadCount) {
-  if (details::globalThreadPool == nullptr) {
-    details::globalThreadPool = std::make_unique<ThreadPool>(threadCount);
-  }
+  if (details::globalThreadPool == nullptr) { details::globalThreadPool = std::make_unique<ThreadPool>(threadCount); }
 }
 
 inline ThreadPool &GlobalThreadPool() {
@@ -23,6 +21,6 @@ inline ThreadPool &GlobalThreadPool() {
   return *details::globalThreadPool;
 }
 
-}
+}// namespace pf
 
 #endif//PHYSARUMSIM_SRC_GLOBALTHREADPOOL_H

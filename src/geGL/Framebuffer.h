@@ -15,22 +15,11 @@ class Framebuffer : public OpenGLObject {
   ~Framebuffer();
   void bind(GLenum target = GL_DRAW_FRAMEBUFFER) const;
   void unbind(GLenum target = GL_DRAW_FRAMEBUFFER) const;
-  void attachTexture(
-      GLenum attachment,
-      std::shared_ptr<Texture> const &texture = nullptr,
-      GLint level = 0,
-      GLint layer = -1);
-  void attachTexture(
-      GLenum attachment,
-      Texture *texture = nullptr,
-      GLint level = 0,
-      GLint layer = -1);
-  void attachRenderbuffer(
-      GLenum attachment,
-      std::shared_ptr<Renderbuffer> const &renderbuffer = nullptr);
-  void attachRenderbuffer(
-      GLenum attachment,
-      Renderbuffer *renderbuffer = nullptr);
+  void attachTexture(GLenum attachment, std::shared_ptr<Texture> const &texture = nullptr, GLint level = 0,
+                     GLint layer = -1);
+  void attachTexture(GLenum attachment, Texture *texture = nullptr, GLint level = 0, GLint layer = -1);
+  void attachRenderbuffer(GLenum attachment, std::shared_ptr<Renderbuffer> const &renderbuffer = nullptr);
+  void attachRenderbuffer(GLenum attachment, Renderbuffer *renderbuffer = nullptr);
   bool check() const;
   void drawBuffer(GLenum buffer) const;
   void drawBuffers(GLsizei n, const GLenum *buffers) const;
@@ -40,13 +29,8 @@ class Framebuffer : public OpenGLObject {
   void clearBuffer(GLenum buffer, GLint drawBuffer, const GLfloat *value) const;
   void clearBuffer(GLenum buffer, GLint drawBuffer, const GLuint *value) const;
   void clearBuffer(GLenum buffer, GLint drawBuffer, GLfloat depth, GLint stencil) const;
-  void invalidateFramebuffer(
-      GLsizei numAttachments,
-      const GLenum *attachments,
-      GLint x = -1,
-      GLint y = -1,
-      GLsizei width = -1,
-      GLsizei height = -1) const;
+  void invalidateFramebuffer(GLsizei numAttachments, const GLenum *attachments, GLint x = -1, GLint y = -1,
+                             GLsizei width = -1, GLsizei height = -1) const;
   GLboolean isFramebuffer() const;
 
   void setDefaultWidth(GLint width);

@@ -9,12 +9,7 @@
 
 class ProgramInfo {
  public:
-  using Properties =
-      std::tuple<
-          GLint,
-          GLenum,
-          std::string,
-          GLint>;
+  using Properties = std::tuple<GLint, GLenum, std::string, GLint>;
   enum PropertiesParts {
     LOCATION = 0,
     TYPE = 1,
@@ -22,17 +17,7 @@ class ProgramInfo {
     SIZE = 3,
   };
 
-  using BufferProperties = std::tuple<
-      std::string,
-      GLint,
-      GLint,
-      GLint,
-      GLint,
-      GLint,
-      GLint,
-      GLint,
-      GLint,
-      GLint>;
+  using BufferProperties = std::tuple<std::string, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint>;
   enum BufferPropertiesParts {
     BUFFER_NAME = 0,
     BUFFER_BINDING = 1,
@@ -46,12 +31,7 @@ class ProgramInfo {
     BUFFER_REFERENCED_BY_COMPUTE_SHADER = 9,
   };
 
-  using SubroutineUniformProperties = std::tuple<
-      GLint,
-      GLint,
-      GLint,
-      std::string,
-      GLuint>;
+  using SubroutineUniformProperties = std::tuple<GLint, GLint, GLint, std::string, GLuint>;
   enum SubroutineUniformPropertiesParts {
     SUBROUTINE_UNIFORM_LOCATION = 0,
     SUBROUTINE_UNIFORM_SIZE = 1,

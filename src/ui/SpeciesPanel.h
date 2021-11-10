@@ -20,7 +20,6 @@
 
 namespace pf {
 
-
 class SpeciesPanel : public ui::ig::Element,
                      public ui::ig::ValueObservable<physarum::PopulationConfig>,
                      public ui::ig::Savable {
@@ -43,22 +42,24 @@ class SpeciesPanel : public ui::ig::Element,
   void registerListeners();
   void createTooltips();
 
+  // clang-format off
   ui::ig::BoxLayout root;
-  ui::ig::DragInput<float> *senseAngleDrag;
-  ui::ig::DragInput<float> *senseDistanceDrag;
-  ui::ig::DragInput<float> *turnSpeedDrag;
-  ui::ig::DragInput<float> *movementSpeedDrag;
-  ui::ig::DragInput<float> *maxSteerRandomnessDrag;
-  ui::ig::DragInput<float> *trailWeightDrag;
-  ui::ig::Combobox<physarum::FilterType> *filterTypeCombobox;
-  ui::ig::Combobox<int> *kernelSizeCombobox;
-  ui::ig::DragInput<float> *diffuseRateDrag;
-  ui::ig::DragInput<float> *decayRateDrag;
-  ui::ig::DragInput<float> *maxTrailValueDrag;
-  ui::ig::Combobox<physarum::ParticleStart> *particleInitCombobox;
-  ui::ig::Input<int> *particleCountInput;
-  ui::ig::Combobox<int> *sensorSizeCombobox;
-  SpeciesColorPanel *colorPanel;
+    ui::ig::DragInput<float> *senseAngleDrag;
+    ui::ig::DragInput<float> *senseDistanceDrag;
+    ui::ig::DragInput<float> *turnSpeedDrag;
+    ui::ig::DragInput<float> *movementSpeedDrag;
+    ui::ig::DragInput<float> *maxSteerRandomnessDrag;
+    ui::ig::DragInput<float> *trailWeightDrag;
+    ui::ig::Combobox<physarum::FilterType> *filterTypeCombobox;
+    ui::ig::Combobox<int> *kernelSizeCombobox;
+    ui::ig::DragInput<float> *diffuseRateDrag;
+    ui::ig::DragInput<float> *decayRateDrag;
+    ui::ig::DragInput<float> *maxTrailValueDrag;
+    ui::ig::Combobox<physarum::ParticleStart> *particleInitCombobox;
+    ui::ig::Input<int> *particleCountInput;
+    ui::ig::Combobox<int> *sensorSizeCombobox;
+    SpeciesColorPanel *colorPanel;
+  // clang-format on
 };
 
 }// namespace pf

@@ -19,6 +19,6 @@ class RandomCircleParticleGenerator : public ParticleGenerator {
   glm::ivec2 size;
 };
 
-}
+}// namespace pf::physarum
 
 #endif//PHYSARUMSIM_SRC_SIMULATION_GENERATORS_RANDOMCIRCLEPARTICLEGENERATOR_H

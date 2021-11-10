@@ -25,8 +25,7 @@ GLint Framebuffer::getAttachmentParam(GLenum attachment, GLenum pname) {
   return param;
 }
 
-Framebuffer::Framebuffer(
-    bool defaultFramebuffer) : OpenGLObject() {
+Framebuffer::Framebuffer(bool defaultFramebuffer) : OpenGLObject() {
   assert(this != nullptr);
   if (defaultFramebuffer) this->getId() = 0;
   else
@@ -35,10 +34,8 @@ Framebuffer::Framebuffer(
 
 Framebuffer::~Framebuffer() {
   assert(this != nullptr);
-  for (auto const &x : this->_textureAttachments)
-    x.second->_framebuffers.erase(this);
-  for (auto const &x : this->_renderbufferAttachments)
-    x.second->_framebuffers.erase(this);
+  for (auto const &x : this->_textureAttachments) x.second->_framebuffers.erase(this);
+  for (auto const &x : this->_renderbufferAttachments) x.second->_framebuffers.erase(this);
   glDeleteFramebuffers(1, &this->getId());
 }
 
@@ -47,17 +44,13 @@ void Framebuffer::removeLinktoAttachedRenderbuffer(GLenum attachment) {
     auto buf = _renderbufferAttachments.at(attachment);
     size_t counter = 0;
     for (auto const &x : _renderbufferAttachments)
-      if (x.second == buf)
-        counter++;
-    if (counter == 1)
-      buf->_framebuffers.erase(this);
+      if (x.second == buf) counter++;
+    if (counter == 1) buf->_framebuffers.erase(this);
   }
   this->_renderbufferAttachments.erase(attachment);
 }
 
-void Framebuffer::attachRenderbuffer(
-    GLenum attachment,
-    Renderbuffer *renderbuffer) {
+void Framebuffer::attachRenderbuffer(GLenum attachment, Renderbuffer *renderbuffer) {
   assert(this != nullptr);
   removeLinktoAttachedRenderbuffer(attachment);
 
@@ -72,9 +65,7 @@ void Framebuffer::attachRenderbuffer(
   glNamedFramebufferRenderbuffer(this->getId(), attachment, GL_RENDERBUFFER, renderbuffer->getId());
 }
 
-void Framebuffer::attachRenderbuffer(
-    GLenum attachment,
-    std::shared_ptr<Renderbuffer> const &renderbuffer) {
+void Framebuffer::attachRenderbuffer(GLenum attachment, std::shared_ptr<Renderbuffer> const &renderbuffer) {
   attachRenderbuffer(attachment, &*renderbuffer);
 }
 
@@ -83,10 +74,8 @@ void Framebuffer::removeLinkToAttachedTexture(GLenum attachment) {
     auto tex = _textureAttachments.at(attachment);
     size_t counter = 0;
     for (auto const &x : _textureAttachments)
-      if (x.second == tex)
-        counter++;
-    if (counter == 1)
-      tex->_framebuffers.erase(this);
+      if (x.second == tex) counter++;
+    if (counter == 1) tex->_framebuffers.erase(this);
   }
   this->_textureAttachments.erase(attachment);
 }
@@ -97,8 +86,7 @@ void Framebuffer::attachTexture(GLenum attachment, Texture *texture, GLint level
   removeLinkToAttachedTexture(attachment);
 
   if (!texture) {
-    if (layer == -1)
-      glNamedFramebufferTexture(this->getId(), attachment, 0, level);
+    if (layer == -1) glNamedFramebufferTexture(this->getId(), attachment, 0, level);
     else
       glNamedFramebufferTextureLayer(this->getId(), attachment, 0, level, layer);
     return;
@@ -107,8 +95,7 @@ void Framebuffer::attachTexture(GLenum attachment, Texture *texture, GLint level
   this->_textureAttachments[attachment] = texture;
   texture->_framebuffers.insert(this);
 
-  if (layer == -1)
-    glNamedFramebufferTexture(this->getId(), attachment, texture->getId(), level);
+  if (layer == -1) glNamedFramebufferTexture(this->getId(), attachment, texture->getId(), level);
   else
     glNamedFramebufferTextureLayer(this->getId(), attachment, texture->getId(), level, layer);
 }
@@ -152,9 +139,7 @@ void Framebuffer::drawBuffers(GLsizei n, ...) const {
   assert(drawBuffers != nullptr);
   va_list args;
   va_start(args, n);
-  for (GLsizei i = 0; i < n; ++i) {
-    drawBuffers[i] = (GLenum) va_arg(args, GLenum);
-  }
+  for (GLsizei i = 0; i < n; ++i) { drawBuffers[i] = (GLenum) va_arg(args, GLenum); }
   va_end(args);
   this->drawBuffers(n, drawBuffers);
   delete[] drawBuffers;
@@ -180,16 +165,10 @@ void Framebuffer::clearBuffer(GLenum buffer, GLint drawBuffer, GLfloat depth, GL
   glClearNamedFramebufferfi(this->getId(), buffer, drawBuffer, depth, stencil);
 }
 
-void Framebuffer::invalidateFramebuffer(
-    GLsizei numAttachments,
-    const GLenum *attachments,
-    GLint x,
-    GLint y,
-    GLsizei width,
-    GLsizei height) const {
+void Framebuffer::invalidateFramebuffer(GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y,
+                                        GLsizei width, GLsizei height) const {
   assert(this != nullptr);
-  if (x == -1)
-    glInvalidateNamedFramebufferData(this->getId(), numAttachments, attachments);
+  if (x == -1) glInvalidateNamedFramebufferData(this->getId(), numAttachments, attachments);
   else
     glInvalidateNamedFramebufferSubData(this->getId(), numAttachments, attachments, x, y, width, height);
 }
@@ -336,34 +315,40 @@ std::string Framebuffer::getInfo() {
 
   ss << translateFramebufferAttachment(GL_DEPTH_ATTACHMENT) << ":" << std::endl;
   if (this->getAttachmentObjectType(GL_DEPTH_ATTACHMENT) != GL_NONE) {
-    ss << "  object type:    " << translateFramebufferType(
-        /*                  */ this->getAttachmentObjectType(GL_DEPTH_ATTACHMENT))
+    ss << "  object type:    "
+       << translateFramebufferType(
+              /*                  */ this->getAttachmentObjectType(GL_DEPTH_ATTACHMENT))
        << std::endl;
     ss << "  depth size:     " << this->getAttachmentDepthSize() << std::endl;
-    ss << "  component type: " << translateFramebufferComponentType(
-        /*                  */ this->getAttachmentComponentType(GL_DEPTH_ATTACHMENT))
+    ss << "  component type: "
+       << translateFramebufferComponentType(
+              /*                  */ this->getAttachmentComponentType(GL_DEPTH_ATTACHMENT))
        << std::endl;
     ss << "  object name:    " << this->getAttachmentObjectName(GL_DEPTH_ATTACHMENT) << std::endl;
     ss << "  texture level:  " << this->getAttachmentTextureLevel(GL_DEPTH_ATTACHMENT) << std::endl;
-    ss << "  cubemap face:   " << translateCubeMapFace(
-        /*                  */ this->getAttachmentTextureCubeMapFace(GL_DEPTH_ATTACHMENT))
+    ss << "  cubemap face:   "
+       << translateCubeMapFace(
+              /*                  */ this->getAttachmentTextureCubeMapFace(GL_DEPTH_ATTACHMENT))
        << std::endl;
     ss << "  texture layer:  " << this->getAttachmentTextureLayer(GL_DEPTH_ATTACHMENT) << std::endl;
   }
 
   ss << translateFramebufferAttachment(GL_STENCIL_ATTACHMENT) << ":" << std::endl;
   if (this->getAttachmentObjectType(GL_STENCIL_ATTACHMENT) != GL_NONE) {
-    ss << "  object type:    " << translateFramebufferType(
-        /*                  */ this->getAttachmentObjectType(GL_STENCIL_ATTACHMENT))
+    ss << "  object type:    "
+       << translateFramebufferType(
+              /*                  */ this->getAttachmentObjectType(GL_STENCIL_ATTACHMENT))
        << std::endl;
     ss << "  stencil size:   " << this->getAttachmentStencilSize() << std::endl;
-    ss << "  component type: " << translateFramebufferComponentType(
-        /*                  */ this->getAttachmentComponentType(GL_STENCIL_ATTACHMENT))
+    ss << "  component type: "
+       << translateFramebufferComponentType(
+              /*                  */ this->getAttachmentComponentType(GL_STENCIL_ATTACHMENT))
        << std::endl;
     ss << "  object name:    " << this->getAttachmentObjectName(GL_STENCIL_ATTACHMENT) << std::endl;
     ss << "  texture level:  " << this->getAttachmentTextureLevel(GL_STENCIL_ATTACHMENT) << std::endl;
-    ss << "  cubemap face:   " << translateCubeMapFace(
-        /*                  */ this->getAttachmentTextureCubeMapFace(GL_STENCIL_ATTACHMENT))
+    ss << "  cubemap face:   "
+       << translateCubeMapFace(
+              /*                  */ this->getAttachmentTextureCubeMapFace(GL_STENCIL_ATTACHMENT))
        << std::endl;
     ss << "  texture layer:  " << this->getAttachmentTextureLayer(GL_STENCIL_ATTACHMENT) << std::endl;
   }
@@ -374,23 +359,27 @@ std::string Framebuffer::getInfo() {
   for (GLint a = 0; a < maxColorAttachments; ++a) {
     ss << translateFramebufferAttachment(GL_COLOR_ATTACHMENT0 + a) << ":" << std::endl;
     if (this->getAttachmentObjectType(GL_COLOR_ATTACHMENT0 + a) == GL_NONE) continue;
-    ss << "  object type:    " << translateFramebufferType(
-        /*                  */ this->getAttachmentObjectType(GL_COLOR_ATTACHMENT0 + a))
+    ss << "  object type:    "
+       << translateFramebufferType(
+              /*                  */ this->getAttachmentObjectType(GL_COLOR_ATTACHMENT0 + a))
        << std::endl;
     ss << "  red size:       " << this->getAttachmentRedSize(GL_COLOR_ATTACHMENT0 + a) << std::endl;
     ss << "  green size:     " << this->getAttachmentGreenSize(GL_COLOR_ATTACHMENT0 + a) << std::endl;
     ss << "  blue size:      " << this->getAttachmentBlueSize(GL_COLOR_ATTACHMENT0 + a) << std::endl;
     ss << "  alpha size:     " << this->getAttachmentAlphaSize(GL_COLOR_ATTACHMENT0 + a) << std::endl;
-    ss << "  component type: " << translateFramebufferComponentType(
-        /*                  */ this->getAttachmentComponentType(GL_COLOR_ATTACHMENT0 + a))
+    ss << "  component type: "
+       << translateFramebufferComponentType(
+              /*                  */ this->getAttachmentComponentType(GL_COLOR_ATTACHMENT0 + a))
        << std::endl;
-    ss << "  color encoding: " << translateFramebufferColorEncoding(
-        /*                  */ this->getAttachmentColorEncoding(GL_COLOR_ATTACHMENT0 + a))
+    ss << "  color encoding: "
+       << translateFramebufferColorEncoding(
+              /*                  */ this->getAttachmentColorEncoding(GL_COLOR_ATTACHMENT0 + a))
        << std::endl;
     ss << "  object name:    " << this->getAttachmentObjectName(GL_COLOR_ATTACHMENT0 + a) << std::endl;
     ss << "  texture level:  " << this->getAttachmentTextureLevel(GL_COLOR_ATTACHMENT0 + a) << std::endl;
-    ss << "  cubemap face:   " << translateCubeMapFace(
-        /*                  */ this->getAttachmentTextureCubeMapFace(GL_COLOR_ATTACHMENT0 + a))
+    ss << "  cubemap face:   "
+       << translateCubeMapFace(
+              /*                  */ this->getAttachmentTextureCubeMapFace(GL_COLOR_ATTACHMENT0 + a))
        << std::endl;
     ss << "  texture layer:  " << this->getAttachmentTextureLayer(GL_COLOR_ATTACHMENT0 + a) << std::endl;
   }

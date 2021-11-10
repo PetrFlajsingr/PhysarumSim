@@ -3,8 +3,8 @@
 //
 
 #include "UniformParticleGenerator.h"
-#include <utils/rand.h>
 #include <cmath>
+#include <utils/rand.h>
 
 namespace pf::physarum {
 

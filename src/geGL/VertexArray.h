@@ -7,29 +7,15 @@
 
 class VertexArray : public OpenGLObject {
  public:
-  enum AttribPointerType { NONE,
-                           I,
-                           L };
+  enum AttribPointerType { NONE, I, L };
   VertexArray();
   ~VertexArray();
-  void addAttrib(Buffer *buffer,
-                 GLuint index,
-                 GLint nofComponentsa,
-                 GLenum type,
-                 GLsizei stride = 0,
-                 GLintptr offset = 0,
-                 GLboolean normalized = GL_FALSE,
-                 GLuint divisor = 0,
+  void addAttrib(Buffer *buffer, GLuint index, GLint nofComponentsa, GLenum type, GLsizei stride = 0,
+                 GLintptr offset = 0, GLboolean normalized = GL_FALSE, GLuint divisor = 0,
                  AttribPointerType attribPointerType = NONE);
   void addElementBuffer(Buffer *buffer);
-  void addAttrib(std::shared_ptr<Buffer> const &buffer,
-                 GLuint index,
-                 GLint nofComponentsa,
-                 GLenum type,
-                 GLsizei stride = 0,
-                 GLintptr offset = 0,
-                 GLboolean normalized = GL_FALSE,
-                 GLuint divisor = 0,
+  void addAttrib(std::shared_ptr<Buffer> const &buffer, GLuint index, GLint nofComponentsa, GLenum type,
+                 GLsizei stride = 0, GLintptr offset = 0, GLboolean normalized = GL_FALSE, GLuint divisor = 0,
                  AttribPointerType attribPointerType = NONE);
   void addElementBuffer(std::shared_ptr<Buffer> const &buffer);
   void removeAttrib(GLuint index);

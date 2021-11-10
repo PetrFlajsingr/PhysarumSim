@@ -20,6 +20,6 @@ class PointParticleGenerator : public ParticleGenerator {
   glm::uvec2 point;
 };
 
-}
+}// namespace pf::physarum
 
 #endif//PHYSARUMSIM_SRC_SIMULATION_POINTPARTICLEGENERATOR_H

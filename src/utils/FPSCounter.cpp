@@ -31,7 +31,8 @@ void FPSCounter::onFrame() {
   lastFrame = now;
 
   constexpr auto alpha = 0.05;
-  rollingAverage = Duration(static_cast<unsigned long long>((alpha * frameDuration.count()) + (1.0 - alpha) * rollingAverage.count()));
+  rollingAverage = Duration(
+      static_cast<unsigned long long>((alpha * frameDuration.count()) + (1.0 - alpha) * rollingAverage.count()));
 
   onNewFrame(*this);
 }

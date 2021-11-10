@@ -8,11 +8,8 @@ using namespace std;
 
 BufferImpl::BufferImpl(Buffer *b) : buffer(b) {}
 
-void BufferImpl::bufferData(GLsizeiptr size,
-                            GLvoid const *data,
-                            GLbitfield flags) const {
-  if (areBufferFlagsMutable(flags))
-    glNamedBufferData(buffer->getId(), size, data, flags);
+void BufferImpl::bufferData(GLsizeiptr size, GLvoid const *data, GLbitfield flags) const {
+  if (areBufferFlagsMutable(flags)) glNamedBufferData(buffer->getId(), size, data, flags);
   else
     glNamedBufferStorage(buffer->getId(), size, data, flags);
 }
@@ -25,9 +22,7 @@ BufferImpl::~BufferImpl() {
 void BufferImpl::updateVertexArrays() {
   auto const me = buffer;
   for (auto const &vao : vertexArrays) {
-    if (vao->impl->elementBuffer == me) {
-      vao->addElementBuffer(me);
-    }
+    if (vao->impl->elementBuffer == me) { vao->addElementBuffer(me); }
     vector<GLuint> attribs;
     GLuint attribId = 0;
     for (auto const &y : vao->impl->buffers) {
@@ -38,12 +33,9 @@ void BufferImpl::updateVertexArrays() {
       auto type = VertexArray::NONE;
       if (vao->isAttribInteger(attribIndex)) type = VertexArray::I;
       if (vao->isAttribLong(attribIndex)) type = VertexArray::L;
-      vao->addAttrib(me, attribIndex, vao->getAttribSize(attribIndex),
-                     vao->getAttribType(attribIndex),
-                     vao->getAttribStride(attribIndex),
-                     vao->getAttribRelativeOffset(attribIndex),
-                     vao->isAttribNormalized(attribIndex),
-                     vao->getAttribDivisor(attribIndex), type);
+      vao->addAttrib(me, attribIndex, vao->getAttribSize(attribIndex), vao->getAttribType(attribIndex),
+                     vao->getAttribStride(attribIndex), vao->getAttribRelativeOffset(attribIndex),
+                     vao->isAttribNormalized(attribIndex), vao->getAttribDivisor(attribIndex), type);
     }
   }
 }
@@ -68,20 +60,16 @@ GLvoid *BufferImpl::getBufferPointer(GLenum pname) const {
 
 void throwIfReallocFlagsAreIncompatible(Buffer *buffer, Buffer::ReallocFlags f) {
   if (!((f & Buffer::KEEP_ID) && buffer->isImmutable())) return;
-  throw runtime_error(
-      "Buffer::realloc - can't sustain buffer id, buffer is immutable");
+  throw runtime_error("Buffer::realloc - can't sustain buffer id, buffer is immutable");
 }
 
-void throwIfReallocFlagsAreInvalid() {
-  throw runtime_error("Buffer::realloc - invalid buffer reallocation flags.");
-}
+void throwIfReallocFlagsAreInvalid() { throw runtime_error("Buffer::realloc - invalid buffer reallocation flags."); }
 
 void BufferImpl::realloc(GLsizeiptr size, Buffer::ReallocFlags f) {
   throwIfReallocFlagsAreIncompatible(buffer, f);
 
   GLbitfield bufferFlags = buffer->getUsage();
-  if (f == Buffer::KEEP_DATA_ID)
-    resizeBufferKeepDataKeepId(size, bufferFlags);
+  if (f == Buffer::KEEP_DATA_ID) resizeBufferKeepDataKeepId(size, bufferFlags);
   else if (f == Buffer::KEEP_ID)
     resizeBuffer(size, bufferFlags);
   else if (f == Buffer::KEEP_DATA)
@@ -92,9 +80,7 @@ void BufferImpl::realloc(GLsizeiptr size, Buffer::ReallocFlags f) {
     throwIfReallocFlagsAreInvalid();
 }
 
-void BufferImpl::resizeBuffer(GLsizeiptr size, GLbitfield flags) {
-  bufferData(size, nullptr, flags);
-}
+void BufferImpl::resizeBuffer(GLsizeiptr size, GLbitfield flags) { bufferData(size, nullptr, flags); }
 
 void BufferImpl::resizeBufferKeepData(GLsizeiptr size, GLbitfield flags) {
   auto newBuffer = new Buffer(size, nullptr, flags);
@@ -125,10 +111,8 @@ void BufferImpl::newBuffer(GLsizeiptr size, GLbitfield flags) {
 void BufferImpl::removeReferences() {
   auto vaos = vertexArrays;
   for (auto const &vao : vaos) {
-    if (vao->impl->elementBuffer == buffer)
-      vao->removeElementBuffer();
+    if (vao->impl->elementBuffer == buffer) vao->removeElementBuffer();
     for (size_t i = 0; i < vao->impl->buffers.size(); ++i)
-      if (vao->impl->buffers.at(i) == buffer)
-        vao->removeAttrib((GLuint) i);
+      if (vao->impl->buffers.at(i) == buffer) vao->removeAttrib((GLuint) i);
   }
 }

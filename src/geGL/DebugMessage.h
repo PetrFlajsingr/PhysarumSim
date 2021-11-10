@@ -7,6 +7,4 @@ void setDefaultDebugMessage();
 void setLowAndGreaterDebugMessage();
 void setMediumAndGreaterDebugMessage();
 void setHighDebugMessage();
-void setDebugMessage(
-    GLDEBUGPROC fce,
-    void *data);
+void setDebugMessage(GLDEBUGPROC fce, void *data);

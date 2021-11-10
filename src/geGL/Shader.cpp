@@ -20,9 +20,7 @@ GLint Shader::_getParam(GLenum pname) const {
 /**
  * @brief empty constructor
  */
-Shader::Shader() {
-  impl = new ShaderImpl();
-}
+Shader::Shader() { impl = new ShaderImpl(); }
 
 /**
  * @brief constructor that creates shader of certain type
@@ -86,9 +84,7 @@ void Shader::compile(Sources const &sources) {
     std::cerr << this->getInfoLog() << std::endl;
     return;
   }
-  for (auto const &x : this->impl->programs) {
-    x->link();
-  }
+  for (auto const &x : this->impl->programs) { x->link(); }
 }
 
 /**
@@ -179,9 +175,7 @@ Shader::Source Shader::getSource() const {
   return source;
 }
 
-std::string Shader::define(std::string const &name) {
-  return "#define " + name + "\n";
-}
+std::string Shader::define(std::string const &name) { return "#define " + name + "\n"; }
 
 std::string Shader::define(std::string const &name, uint32_t value) {
   std::stringstream result;
@@ -201,7 +195,8 @@ std::string Shader::define(std::string const &name, uint32_t value0, uint32_t va
   return result.str();
 }
 
-std::string Shader::define(std::string const &name, uint32_t value0, uint32_t value1, uint32_t value2, uint32_t value3) {
+std::string Shader::define(std::string const &name, uint32_t value0, uint32_t value1, uint32_t value2,
+                           uint32_t value3) {
   std::stringstream result;
   result << "#define " << name << " uvec3(" << value0 << "u," << value1 << "u," << value2 << "u," << value3 << "u)\n";
   return result.str();

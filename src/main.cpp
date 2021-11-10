@@ -7,6 +7,7 @@
 #include "utils/files.h"
 #include <filesystem>
 #include <fmt/format.h>
+#include <images/VideoRecorder.h>
 #include <images/save.h>
 #include <magic_enum.hpp>
 #include <numbers>
@@ -75,9 +76,7 @@ int main(int argc, char *argv[]) {
                                    .majorOpenGLVersion = 4,
                                    .minorOpenGLVersion = 6});
   window->setCurrent();
-  if (config["window"]["maximized"].value<bool>().value_or(false)) {
-    window->maximize();
-  }
+  if (config["window"]["maximized"].value<bool>().value_or(false)) { window->maximize(); }
 
   auto s = std::span{APP_ICON.pixel_data, static_cast<std::size_t>(APP_ICON.width * APP_ICON.height)};
 
@@ -98,7 +97,8 @@ int main(int argc, char *argv[]) {
 
   auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle()};
 
-  window->setInputIgnorePredicate([&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
+  window->setInputIgnorePredicate(
+      [&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
 
   auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 
@@ -109,9 +109,7 @@ int main(int argc, char *argv[]) {
   const auto initFromUI = [&] {
     std::ranges::for_each(speciesSubscriptions, &Subscription::unsubscribe);
     anySpecies = !ui.speciesPanels.empty();
-    if (!anySpecies) {
-      return;
-    }
+    if (!anySpecies) { return; }
     std::vector<physarum::PopulationConfig> configs;
     std::ranges::transform(ui.speciesPanels, std::back_inserter(configs), &SpeciesPanel::getConfig);
     std::vector<physarum::PopulationColor> colors;
@@ -134,9 +132,7 @@ int main(int argc, char *argv[]) {
   ui.setOutImage(renderer.getRenderTexture());
 
   bool isSimPaused = true;
-  ui.simControlsPanel->addSimStateListener([&](bool running) {
-    isSimPaused = !running;
-  });
+  ui.simControlsPanel->addSimStateListener([&](bool running) { isSimPaused = !running; });
 
   window->setCursorPositionCallback([&](const auto &cursorPos) {
     const auto attractorPosition = mousePosToTexPos(window->getCursorPosition(), window->getSize(), trailTextureSize);
@@ -162,40 +158,32 @@ int main(int argc, char *argv[]) {
     sim->setAttractorPosition(mousePosToTexPos(mousePos, size, trailTextureSize));
   });
 
-  ui.mouseInteractionPanel->addValueListener([&](const auto config) {
-    sim->setInteractionConfig(config);
-  },
-                                             true);
+  ui.mouseInteractionPanel->addValueListener([&](const auto config) { sim->setInteractionConfig(config); }, true);
 
   ui.onScreenshotSave = [&](const auto &path) {
     const auto imgFormat = getImageFormat(path).value();
     auto texture = renderer.getRenderTexture();
     auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);
-    GlobalThreadPool().enqueue(
-        [path, imgFormat, trailTextureSize, data = std::move(imageData), &ui] {
-          try {
-            saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
-            MainLoop::Get()->enqueue([&ui, path] {
-              ui.imguiInterface->showNotification(ui::ig::NotificationType::Success, fmt::format("Image saved to '{}'", path.string()));
-            });
-          } catch (...) {
-            MainLoop::Get()->enqueue([&ui] {
-              ui.imguiInterface->showNotification(ui::ig::NotificationType::Error, "Image failed to save", std::chrono::seconds{5});
-            });
-          }
+    GlobalThreadPool().enqueue([path, imgFormat, trailTextureSize, data = std::move(imageData), &ui] {
+      try {
+        saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
+        MainLoop::Get()->enqueue([&ui, path] {
+          ui.imguiInterface->showNotification(ui::ig::NotificationType::Success,
+                                              fmt::format("Image saved to '{}'", path.string()));
         });
+      } catch (...) {
+        MainLoop::Get()->enqueue([&ui] {
+          ui.imguiInterface->showNotification(ui::ig::NotificationType::Error, "Image failed to save",
+                                              std::chrono::seconds{5});
+        });
+      }
+    });
   };
 
   ui.simControlsPanel->addRestartClickListener(initFromUI);
 
-  ui.backgroundColorEdit->addValueListener([&](const auto &color) {
-    renderer.setBackgroundColor(color);
-  },
-                                           true);
-  ui.blendTypeCombobox->addValueListener([&](const auto blendType) {
-    renderer.setBlendType(blendType);
-  },
-                                         true);
+  ui.backgroundColorEdit->addValueListener([&](const auto &color) { renderer.setBackgroundColor(color); }, true);
+  ui.blendTypeCombobox->addValueListener([&](const auto blendType) { renderer.setBlendType(blendType); }, true);
 
   const auto updateUIPosition = [&] {
     const auto winSize = window->getSize();
@@ -213,22 +201,37 @@ int main(int argc, char *argv[]) {
   FPSCounter fpsCounter{};
   const auto fpsLabelUpdateFrequency = std::chrono::milliseconds{100};
   auto timeSinceLastFpsLabelUpdate = fpsLabelUpdateFrequency;
+
+  VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); }, [](auto) { std::cout << "done" << std::endl; },
+                         [](auto e) { std::cout << e << std::endl; }};
+
+  /*  auto g = recorder.start(1920, 1080, 60, AVPixelFormat::AV_PIX_FMT_RGBA, "C:\\Users\\xflajs00\\Desktop\\test\\test.mp4");
+    if (g.has_value()) {
+        std::cout << g.value() << std::endl;
+        return 0;
+    }
+    if (cnt < 200) {
+        auto texture = renderer.getRenderTexture();
+        auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);
+        recorder.write(std::move(imageData));
+    }
+
+    if (++cnt == 200) {
+        recorder.stop();
+    }*/
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     try {
       glfw.setSwapInterval(0);
-      if (window->shouldClose()) {
-        MainLoop::Get()->stop();
-      }
+      if (window->shouldClose()) { MainLoop::Get()->stop(); }
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      const float currentTime = std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
+      const float currentTime =
+          std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
       const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
 
       if (anySpecies) {
         if (!isSimPaused) {
-          for (int i = 0; i < ui.simControlsPanel->getSimSpeed(); ++i) {
-            sim->simulate(currentTime, timeDelta);
-          }
+          for (int i = 0; i < ui.simControlsPanel->getSimSpeed(); ++i) { sim->simulate(currentTime, timeDelta); }
         }
         renderer.render();
       }
@@ -246,7 +249,8 @@ int main(int argc, char *argv[]) {
       fpsCounter.onFrame();
     } catch (const std::exception &e) {
       fmt::print(stderr, "Exception: {}\n", e.what());
-      ui.imguiInterface->createMsgDlg("Exception", e.what(), Flags<ui::ig::MessageButtons>{ui::ig::MessageButtons::Ok}, [](auto) { return true; });
+      ui.imguiInterface->createMsgDlg("Exception", e.what(), Flags<ui::ig::MessageButtons>{ui::ig::MessageButtons::Ok},
+                                      [](auto) { return true; });
     }
   });
 

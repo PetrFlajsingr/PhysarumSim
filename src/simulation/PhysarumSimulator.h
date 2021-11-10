@@ -49,20 +49,16 @@ struct SpeciesShaderDiffuseSettings {
 
 class PhysarumSimulator {
  public:
-  explicit PhysarumSimulator(const std::filesystem::path &shaderDir,
-                             glm::uvec2 textureSize) : textureSize(textureSize) {
+  explicit PhysarumSimulator(const std::filesystem::path &shaderDir, glm::uvec2 textureSize)
+      : textureSize(textureSize) {
 
     const auto simShaderSrc = readFile(shaderDir / "physarum_sim.comp");
-    if (!simShaderSrc.has_value()) {
-      throw std::runtime_error("Could not load 'physarum_sim.comp'");
-    }
+    if (!simShaderSrc.has_value()) { throw std::runtime_error("Could not load 'physarum_sim.comp'"); }
     simulateShader = std::make_shared<Shader>(GL_COMPUTE_SHADER, simShaderSrc.value());
     simulateProgram = std::make_shared<Program>(simulateShader);
 
     const auto diffuseTrailShaderSrc = readFile(shaderDir / "diffuse_trail.comp");
-    if (!diffuseTrailShaderSrc.has_value()) {
-      throw std::runtime_error("Could not load 'diffuse_trail.comp'");
-    }
+    if (!diffuseTrailShaderSrc.has_value()) { throw std::runtime_error("Could not load 'diffuse_trail.comp'"); }
     diffuseTrailShader = std::make_shared<Shader>(GL_COMPUTE_SHADER, diffuseTrailShaderSrc.value());
     diffuseTrailProgram = std::make_shared<Program>(diffuseTrailShader);
   }

@@ -18,25 +18,18 @@
 
 namespace pf::ogl {
 
-enum class BlendType {
-  Additive = 0, AlphaMix = 1, Layered = 2
-};
+enum class BlendType { Additive = 0, AlphaMix = 1, Layered = 2 };
 
 namespace details {
-inline const float vertices[] = {
-    0.5f, 0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    -0.5f, -0.5f, 0.0f,
-    -0.5f, 0.5f, 0.0f};
+inline const float vertices[] = {0.5f, 0.5f, 0.0f, 0.5f, -0.5f, 0.0f, -0.5f, -0.5f, 0.0f, -0.5f, 0.5f, 0.0f};
 
-inline const unsigned int indices[] = {
-    0, 1, 3,
-    1, 2, 3};
+inline const unsigned int indices[] = {0, 1, 3, 1, 2, 3};
 }// namespace details
 
 class PhysarumRenderer {
  public:
-  PhysarumRenderer(const std::filesystem::path &shaderDir, std::shared_ptr<Texture> trailTexture, glm::ivec2 renderResolution);
+  PhysarumRenderer(const std::filesystem::path &shaderDir, std::shared_ptr<Texture> trailTexture,
+                   glm::ivec2 renderResolution);
 
   void init(const std::vector<physarum::PopulationColor> &populations);
 
@@ -81,7 +74,7 @@ struct SpeciesShaderRenderSettings {
   SpeciesShaderRenderSettings(const physarum::PopulationColor &src);
 };
 
-}
+}// namespace details
 
 }// namespace pf::ogl
 

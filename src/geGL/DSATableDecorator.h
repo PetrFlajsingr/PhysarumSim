@@ -4,93 +4,82 @@
 #include <geGL/OpenGLUtil.h>
 #include <map>
 
-#define ASSIGN_DSA(name) \
-  this->m_ptr_##name =   \
-      (decltype(FunctionTable::m_ptr_##name)) &DSATableDecorator::m_##name##_dsa
+#define ASSIGN_DSA(name) this->m_ptr_##name = (decltype(FunctionTable::m_ptr_##name)) &DSATableDecorator::m_##name##_dsa
 
-#define IF_NOT_M_PTR_FCE(name) \
-  if (!this->m_ptr_##name)
+#define IF_NOT_M_PTR_FCE(name) if (!this->m_ptr_##name)
 
-#define IMPLEMENT_VENDOR(name, ven) \
+#define IMPLEMENT_VENDOR(name, ven)                                                                                    \
   if (this->m_ptr_##name##ven) this->m_ptr_##name = this->m_ptr_##name##ven;
 
-#define IMPLEMENT0(name) \
-  IF_NOT_M_PTR_FCE(name) \
+#define IMPLEMENT0(name)                                                                                               \
+  IF_NOT_M_PTR_FCE(name)                                                                                               \
   ASSIGN_DSA(name)
 
-#define IMPLEMENT1(name, ven0)   \
-  IF_NOT_M_PTR_FCE(name) {       \
-    IMPLEMENT_VENDOR(name, ven0) \
-    else ASSIGN_DSA(name);       \
+#define IMPLEMENT1(name, ven0)                                                                                         \
+  IF_NOT_M_PTR_FCE(name) {                                                                                             \
+    IMPLEMENT_VENDOR(name, ven0)                                                                                       \
+    else ASSIGN_DSA(name);                                                                                             \
   }
 
-#define IMPLEMENT2(name, ven0, ven1)                         \
-  IF_NOT_M_PTR_FCE(name) {                                   \
-    IMPLEMENT_VENDOR(name, ven0)                             \
-    else IMPLEMENT_VENDOR(name, ven1) else ASSIGN_DSA(name); \
+#define IMPLEMENT2(name, ven0, ven1)                                                                                   \
+  IF_NOT_M_PTR_FCE(name) {                                                                                             \
+    IMPLEMENT_VENDOR(name, ven0)                                                                                       \
+    else IMPLEMENT_VENDOR(name, ven1) else ASSIGN_DSA(name);                                                           \
   }
 
-#define IMPLEMENT3(name, ven0, ven1, ven2)                                                     \
-  IF_NOT_M_PTR_FCE(name) {                                                                     \
-    IMPLEMENT_VENDOR(name, ven0)                                                               \
-    else IMPLEMENT_VENDOR(name, ven1) else IMPLEMENT_VENDOR(name, ven2) else ASSIGN_DSA(name); \
+#define IMPLEMENT3(name, ven0, ven1, ven2)                                                                             \
+  IF_NOT_M_PTR_FCE(name) {                                                                                             \
+    IMPLEMENT_VENDOR(name, ven0)                                                                                       \
+    else IMPLEMENT_VENDOR(name, ven1) else IMPLEMENT_VENDOR(name, ven2) else ASSIGN_DSA(name);                         \
   }
 
-#define IMPLEMENT4(name, ven0, ven1, ven2, ven3)                                                                                 \
-  IF_NOT_M_PTR_FCE(name) {                                                                                                       \
-    IMPLEMENT_VENDOR(name, ven0)                                                                                                 \
-    else IMPLEMENT_VENDOR(name, ven1) else IMPLEMENT_VENDOR(name, ven2) else IMPLEMENT_VENDOR(name, ven3) else ASSIGN_DSA(name); \
+#define IMPLEMENT4(name, ven0, ven1, ven2, ven3)                                                                       \
+  IF_NOT_M_PTR_FCE(name) {                                                                                             \
+    IMPLEMENT_VENDOR(name, ven0)                                                                                       \
+    else IMPLEMENT_VENDOR(name, ven1) else IMPLEMENT_VENDOR(name, ven2) else IMPLEMENT_VENDOR(                         \
+        name, ven3) else ASSIGN_DSA(name);                                                                             \
   }
 
 //toggle saving previous bindings
 #define SAVE_PREVIOUS_BINDING
 
 #ifdef SAVE_PREVIOUS_BINDING
-#define PUSH_WRITE_BUFFER() \
-  GLuint oldWriteId;        \
+#define PUSH_WRITE_BUFFER()                                                                                            \
+  GLuint oldWriteId;                                                                                                   \
   this->glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, (GLint *) &oldWriteId)
-#define POP_WRITE_BUFFER() \
-  this->glBindBuffer(GL_COPY_WRITE_BUFFER, oldWriteId)
-#define PUSH_READ_BUFFER() \
-  GLuint oldReadId;        \
+#define POP_WRITE_BUFFER() this->glBindBuffer(GL_COPY_WRITE_BUFFER, oldWriteId)
+#define PUSH_READ_BUFFER()                                                                                             \
+  GLuint oldReadId;                                                                                                    \
   this->glGetIntegerv(GL_COPY_WRITE_BUFFER_BINDING, (GLint *) &oldReadId)
-#define POP_READ_BUFFER() \
-  this->glBindBuffer(GL_COPY_WRITE_BUFFER, oldReadId)
-#define PUSH_VAO() \
-  GLuint oldId;    \
+#define POP_READ_BUFFER() this->glBindBuffer(GL_COPY_WRITE_BUFFER, oldReadId)
+#define PUSH_VAO()                                                                                                     \
+  GLuint oldId;                                                                                                        \
   this->glGetIntegerv(GL_VERTEX_ARRAY_BINDING, (GLint *) &oldId)
-#define POP_VAO() \
-  this->glBindVertexArray(oldId)
-#define PUSH_SAMPLER() \
-  GLuint oldId;        \
+#define POP_VAO() this->glBindVertexArray(oldId)
+#define PUSH_SAMPLER()                                                                                                 \
+  GLuint oldId;                                                                                                        \
   this->glGetIntegeri_v(GL_SAMPLER_BINDING, 0, (GLint *) &oldId)
-#define POP_SAMPLER() \
-  this->glBindSampler(0, oldId)
-#define PUSH_FRAMEBUFFER() \
-  GLuint oldId;            \
+#define POP_SAMPLER() this->glBindSampler(0, oldId)
+#define PUSH_FRAMEBUFFER()                                                                                             \
+  GLuint oldId;                                                                                                        \
   this->glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, (GLint *) &oldId)
-#define POP_FRAMEBUFFER() \
-  this->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldId)
-#define PUSH_RENDERBUFFER() \
-  GLuint oldId;             \
+#define POP_FRAMEBUFFER() this->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, oldId)
+#define PUSH_RENDERBUFFER()                                                                                            \
+  GLuint oldId;                                                                                                        \
   this->glGetIntegerv(GL_RENDERBUFFER_BINDING, (GLint *) &oldId)
-#define POP_RENDERBUFFER() \
-  this->glBindRenderbuffer(GL_RENDERBUFFER, oldId)
-#define PUSH_PIPELINE() \
-  GLuint oldId;         \
+#define POP_RENDERBUFFER() this->glBindRenderbuffer(GL_RENDERBUFFER, oldId)
+#define PUSH_PIPELINE()                                                                                                \
+  GLuint oldId;                                                                                                        \
   this->glGetIntegerv(GL_PROGRAM_PIPELINE_BINDING, (GLint *) &oldId)
-#define POP_PIPELINE() \
-  this->glBindProgramPipeline(oldId)
-#define PUSH_TEXTURE(x) \
-  GLuint oldId;         \
+#define POP_PIPELINE() this->glBindProgramPipeline(oldId)
+#define PUSH_TEXTURE(x)                                                                                                \
+  GLuint oldId;                                                                                                        \
   this->glGetIntegerv(textureTarget2Binding(x), (GLint *) &oldId)
-#define POP_TEXTURE(x) \
-  this->glBindTexture(x, oldId)
-#define PUSH_ACTIVE_TEXTURE() \
-  GLenum oldTex;              \
+#define POP_TEXTURE(x) this->glBindTexture(x, oldId)
+#define PUSH_ACTIVE_TEXTURE()                                                                                          \
+  GLenum oldTex;                                                                                                       \
   this->glGetIntegerv(GL_ACTIVE_TEXTURE, (GLint *) &oldTex)
-#define POP_ACTIVE_TEXTURE() \
-  this->glActiveTexture(oldTex)
+#define POP_ACTIVE_TEXTURE() this->glActiveTexture(oldTex)
 #else//SAVE_PREVIOUS_BINDING
 #define PUSH_WRITE_BUFFER()
 #define POP_WRITE_BUFFER()
@@ -178,8 +167,10 @@ class DSATableDecorator : public T {
     IMPLEMENT0(glCreateProgramPipelines);
 
     if (!this->m_ptr_glCreateTextures) {
-      this->m_ptr_glCreateTextures = (decltype(FunctionTable::m_ptr_glCreateTextures)) &DSATableDecorator::m_glCreateTextures_dsa;
-      this->m_ptr_glDeleteTextures = (decltype(FunctionTable::m_ptr_glDeleteTextures)) &DSATableDecorator::m_glDeleteTextures_dsa;
+      this->m_ptr_glCreateTextures =
+          (decltype(FunctionTable::m_ptr_glCreateTextures)) &DSATableDecorator::m_glCreateTextures_dsa;
+      this->m_ptr_glDeleteTextures =
+          (decltype(FunctionTable::m_ptr_glDeleteTextures)) &DSATableDecorator::m_glDeleteTextures_dsa;
     }
     IMPLEMENT0(glTextureImage1DEXT);
     IMPLEMENT0(glTextureImage2DEXT);
@@ -226,22 +217,17 @@ class DSATableDecorator : public T {
   void m_glCreateBuffers_dsa(GLsizei n, GLuint *buffers) {
     PUSH_WRITE_BUFFER();
     this->glGenBuffers(n, buffers);
-    for (GLsizei i = 0; i < n; ++i)
-      this->glBindBuffer(GL_COPY_WRITE_BUFFER, buffers[i]);
+    for (GLsizei i = 0; i < n; ++i) this->glBindBuffer(GL_COPY_WRITE_BUFFER, buffers[i]);
     POP_WRITE_BUFFER();
   }
 
-  void m_glCopyNamedBufferSubData_dsa(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffest, GLintptr writeOffset, GLsizeiptr size) {
+  void m_glCopyNamedBufferSubData_dsa(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffest, GLintptr writeOffset,
+                                      GLsizeiptr size) {
     PUSH_READ_BUFFER();
     PUSH_WRITE_BUFFER();
     this->glBindBuffer(GL_COPY_READ_BUFFER, readBuffer);
     this->glBindBuffer(GL_COPY_WRITE_BUFFER, writeBuffer);
-    this->glCopyBufferSubData(
-        GL_COPY_READ_BUFFER,
-        GL_COPY_WRITE_BUFFER,
-        readOffest,
-        writeOffset,
-        size);
+    this->glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, readOffest, writeOffset, size);
     POP_READ_BUFFER();
     POP_WRITE_BUFFER();
   }
@@ -253,14 +239,16 @@ class DSATableDecorator : public T {
     POP_WRITE_BUFFER();
   }
 
-  void m_glClearNamedBufferData_dsa(GLuint buffer, GLenum internalFormat, GLenum format, GLenum type, const void *data) {
+  void m_glClearNamedBufferData_dsa(GLuint buffer, GLenum internalFormat, GLenum format, GLenum type,
+                                    const void *data) {
     PUSH_WRITE_BUFFER();
     this->glBindBuffer(GL_COPY_WRITE_BUFFER, buffer);
     this->glClearBufferData(GL_COPY_WRITE_BUFFER, internalFormat, format, type, data);
     POP_WRITE_BUFFER();
   }
 
-  void m_glClearNamedBufferSubData_dsa(GLuint buffer, GLenum internalFormat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data) {
+  void m_glClearNamedBufferSubData_dsa(GLuint buffer, GLenum internalFormat, GLintptr offset, GLsizeiptr size,
+                                       GLenum format, GLenum type, const void *data) {
     PUSH_WRITE_BUFFER();
     this->glBindBuffer(GL_COPY_WRITE_BUFFER, buffer);
     this->glClearBufferSubData(GL_COPY_WRITE_BUFFER, internalFormat, offset, size, format, type, data);
@@ -342,8 +330,7 @@ class DSATableDecorator : public T {
   void m_glCreateVertexArrays_dsa(GLsizei n, GLuint *arrays) {
     PUSH_VAO();
     this->glGenVertexArrays(n, arrays);
-    for (GLsizei i = 0; i < n; ++i)
-      this->glBindVertexArray(arrays[i]);
+    for (GLsizei i = 0; i < n; ++i) this->glBindVertexArray(arrays[i]);
     POP_VAO();
   }
 
@@ -375,7 +362,8 @@ class DSATableDecorator : public T {
     POP_VAO();
   }
 
-  void m_glVertexArrayAttribFormat_dsa(GLuint id, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset) {
+  void m_glVertexArrayAttribFormat_dsa(GLuint id, GLuint attribindex, GLint size, GLenum type, GLboolean normalized,
+                                       GLuint relativeoffset) {
     PUSH_VAO();
     this->glBindVertexArray(id);
     this->glVertexAttribFormat(attribindex, size, type, normalized, relativeoffset);
@@ -399,8 +387,7 @@ class DSATableDecorator : public T {
   void m_glCreateSamplers_dsa(GLsizei n, GLuint *samplers) {
     PUSH_SAMPLER();
     this->glGenSamplers(n, samplers);
-    for (GLsizei i = 0; i < n; ++i)
-      this->glBindSampler(0, samplers[i]);
+    for (GLsizei i = 0; i < n; ++i) this->glBindSampler(0, samplers[i]);
     POP_SAMPLER();
   }
 
@@ -416,8 +403,7 @@ class DSATableDecorator : public T {
   void m_glCreateFramebuffers_dsa(GLsizei n, GLuint *ids) {
     PUSH_FRAMEBUFFER();
     this->glGenFramebuffers(n, ids);
-    for (GLsizei i = 0; i < n; ++i)
-      this->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ids[i]);
+    for (GLsizei i = 0; i < n; ++i) this->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, ids[i]);
     POP_FRAMEBUFFER();
   }
 
@@ -512,7 +498,8 @@ class DSATableDecorator : public T {
     POP_FRAMEBUFFER();
   }
 
-  void m_glInvalidateNamedFramebufferSubData_dsa(GLuint id, GLsizei numAttachments, const GLenum *attachments, GLint x, GLint y, GLsizei width, GLsizei height) {
+  void m_glInvalidateNamedFramebufferSubData_dsa(GLuint id, GLsizei numAttachments, const GLenum *attachments, GLint x,
+                                                 GLint y, GLsizei width, GLsizei height) {
     PUSH_FRAMEBUFFER();
     this->glBindFramebuffer(GL_DRAW_FRAMEBUFFER, id);
     this->glInvalidateSubFramebuffer(GL_DRAW_FRAMEBUFFER, numAttachments, attachments, x, y, width, height);
@@ -526,7 +513,8 @@ class DSATableDecorator : public T {
     POP_RENDERBUFFER();
   }
 
-  void m_glNamedRenderbufferStorageMultisample_dsa(GLuint id, GLsizei samples, GLenum internalFormat, GLsizei width, GLsizei height) {
+  void m_glNamedRenderbufferStorageMultisample_dsa(GLuint id, GLsizei samples, GLenum internalFormat, GLsizei width,
+                                                   GLsizei height) {
     PUSH_RENDERBUFFER();
     this->glBindRenderbuffer(GL_RENDERBUFFER, id);
     this->glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, internalFormat, width, height);
@@ -543,16 +531,14 @@ class DSATableDecorator : public T {
   void m_glCreateRenderbuffers_dsa(GLsizei n, GLuint *ids) {
     PUSH_RENDERBUFFER();
     this->glGenRenderbuffers(n, ids);
-    for (GLsizei i = 0; i < n; ++i)
-      this->glBindRenderbuffer(GL_RENDERBUFFER, ids[i]);
+    for (GLsizei i = 0; i < n; ++i) this->glBindRenderbuffer(GL_RENDERBUFFER, ids[i]);
     POP_RENDERBUFFER();
   }
 
   void m_glCreateProgramPipelines_dsa(GLsizei n, GLuint *ids) {
     PUSH_PIPELINE();
     this->glGenProgramPipelines(n, ids);
-    for (GLsizei i = 0; i < n; ++i)
-      this->glBindProgramPipeline(ids[i]);
+    for (GLsizei i = 0; i < n; ++i) this->glBindProgramPipeline(ids[i]);
     POP_PIPELINE();
   }
 
@@ -570,67 +556,79 @@ class DSATableDecorator : public T {
 
   void m_glDeleteTextures_dsa(GLsizei n, const GLuint *ids) {
     this->m_glDeleteTextures(n, ids);
-    for (GLsizei i = 0; i < n; ++i)
-      this->m_texture2Target.erase(ids[i]);
+    for (GLsizei i = 0; i < n; ++i) this->m_texture2Target.erase(ids[i]);
   }
 
-  void m_glTextureImage1DEXT_dsa(GLuint id, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *pixels) {
+  void m_glTextureImage1DEXT_dsa(GLuint id, GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                                 GLint border, GLenum format, GLenum type, const GLvoid *pixels) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, id);
     this->glTexImage1D(target, level, internalFormat, width, border, format, type, pixels);
     POP_TEXTURE(target);
   }
 
-  void m_glTextureImage2DEXT_dsa(GLuint id, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels) {
+  void m_glTextureImage2DEXT_dsa(GLuint id, GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                                 GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, id);
     this->glTexImage2D(target, level, internalFormat, width, height, border, format, type, pixels);
     POP_TEXTURE(target);
   }
 
-  void m_glTextureImage3DEXT_dsa(GLuint id, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels) {
+  void m_glTextureImage3DEXT_dsa(GLuint id, GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                                 GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type,
+                                 const GLvoid *pixels) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, id);
     this->glTexImage3D(target, level, internalFormat, width, height, depth, border, format, type, pixels);
     POP_TEXTURE(target);
   }
 
-  void m_glTextureSubImage2DEXT_dsa(GLuint id, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels) {
+  void m_glTextureSubImage2DEXT_dsa(GLuint id, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width,
+                                    GLsizei height, GLenum format, GLenum type, const GLvoid *pixels) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, id);
     this->glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
     POP_TEXTURE(target);
   }
 
-  void m_glTextureSubImage3DEXT_dsa(GLuint id, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *pixels) {
+  void m_glTextureSubImage3DEXT_dsa(GLuint id, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+                                    GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type,
+                                    const GLvoid *pixels) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, id);
     this->glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, pixels);
     POP_TEXTURE(target);
   }
 
-  void m_glCompressedTextureImage1DEXT_dsa(GLuint texture, GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLint border, GLsizei imageSize, const GLvoid *data) {
+  void m_glCompressedTextureImage1DEXT_dsa(GLuint texture, GLenum target, GLint level, GLenum internalFormat,
+                                           GLsizei width, GLint border, GLsizei imageSize, const GLvoid *data) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, texture);
     this->glCompressedTexImage1D(target, level, internalFormat, width, border, imageSize, data);
     POP_TEXTURE(target);
   }
 
-  void m_glCompressedTextureImage2DEXT_dsa(GLuint texture, GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid *data) {
+  void m_glCompressedTextureImage2DEXT_dsa(GLuint texture, GLenum target, GLint level, GLenum internalFormat,
+                                           GLsizei width, GLsizei height, GLint border, GLsizei imageSize,
+                                           const GLvoid *data) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, texture);
     this->glCompressedTexImage2D(target, level, internalFormat, width, height, border, imageSize, data);
     POP_TEXTURE(target);
   }
 
-  void m_glCompressedTextureImage3DEXT_dsa(GLuint texture, GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLsizei imageSize, const GLvoid *data) {
+  void m_glCompressedTextureImage3DEXT_dsa(GLuint texture, GLenum target, GLint level, GLenum internalFormat,
+                                           GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                                           GLsizei imageSize, const GLvoid *data) {
     PUSH_TEXTURE(target);
     this->glBindTexture(target, texture);
     this->glCompressedTexImage3D(target, level, internalFormat, width, height, depth, border, imageSize, data);
     POP_TEXTURE(target);
   }
 
-  void m_glTextureSubImage1D_dsa(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *data) {
+  void m_glTextureSubImage1D_dsa(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type,
+                                 const GLvoid *data) {
     GLenum target = this->m_texture2Target[texture];
     PUSH_TEXTURE(target);
     this->glBindTexture(target, texture);
@@ -638,7 +636,8 @@ class DSATableDecorator : public T {
     POP_TEXTURE(target);
   }
 
-  void m_glTextureSubImage2D_dsa(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *data) {
+  void m_glTextureSubImage2D_dsa(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width,
+                                 GLsizei height, GLenum format, GLenum type, const GLvoid *data) {
     GLenum target = this->m_texture2Target[texture];
     PUSH_TEXTURE(target);
     this->glBindTexture(target, texture);
@@ -646,7 +645,9 @@ class DSATableDecorator : public T {
     POP_TEXTURE(target);
   }
 
-  void m_glTextureSubImage3D_dsa(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid *data) {
+  void m_glTextureSubImage3D_dsa(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+                                 GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type,
+                                 const GLvoid *data) {
     GLenum target = this->m_texture2Target[texture];
     PUSH_TEXTURE(target);
     this->glBindTexture(target, texture);
@@ -680,7 +681,8 @@ class DSATableDecorator : public T {
     POP_TEXTURE(target);
   }
 
-  void m_glTextureStorage3D_dsa(GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height, GLsizei depth) {
+  void m_glTextureStorage3D_dsa(GLuint texture, GLsizei levels, GLenum internalFormat, GLsizei width, GLsizei height,
+                                GLsizei depth) {
     GLenum target = this->m_texture2Target[texture];
     PUSH_TEXTURE(target);
     this->glBindTexture(target, texture);

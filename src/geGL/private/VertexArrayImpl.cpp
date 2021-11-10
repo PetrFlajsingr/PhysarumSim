@@ -2,9 +2,7 @@
 #include <geGL/private/BufferImpl.h>
 #include <geGL/private/VertexArrayImpl.h>
 
-VertexArrayImpl::VertexArrayImpl(VertexArray *v) : vao(v) {
-  glCreateVertexArrays(1, &vao->getId());
-}
+VertexArrayImpl::VertexArrayImpl(VertexArray *v) : vao(v) { glCreateVertexArrays(1, &vao->getId()); }
 
 VertexArrayImpl::~VertexArrayImpl() {
   glDeleteVertexArrays(1, &vao->getId());
@@ -44,13 +42,10 @@ void VertexArrayImpl::removeReferenceFromElementBuffer() {
 void VertexArrayImpl::removeReferenceFromElementBufferIfItIsOnlyReference() {
   if (!elementBuffer) return;
   size_t nofBufferUsages = getNofBufferUsages(elementBuffer);
-  if (nofBufferUsages == 1)
-    elementBuffer->impl->vertexArrays.erase(vao);
+  if (nofBufferUsages == 1) elementBuffer->impl->vertexArrays.erase(vao);
 }
 
-void VertexArrayImpl::addReferenceToBuffer(Buffer *buffer) const {
-  buffer->impl->vertexArrays.insert(vao);
-}
+void VertexArrayImpl::addReferenceToBuffer(Buffer *buffer) const { buffer->impl->vertexArrays.insert(vao); }
 
 void VertexArrayImpl::resizeBuffersForIndex(GLuint index) {
   if (index >= buffers.size()) buffers.resize(index + 1, nullptr);
