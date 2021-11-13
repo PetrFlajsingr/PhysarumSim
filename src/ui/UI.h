@@ -25,7 +25,7 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
 
 
 namespace pf::ogl {
-
+// TODO: refactor this hard
 class UI {
  public:
   UI(const toml::table &config, GLFWwindow *windowHandle);
