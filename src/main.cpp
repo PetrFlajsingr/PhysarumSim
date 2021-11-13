@@ -245,20 +245,6 @@ int main(int argc, char *argv[]) {
     }
   });
 
-  /*  auto g = recorder.start(1920, 1080, 60, AVPixelFormat::AV_PIX_FMT_RGBA, "C:\\Users\\xflajs00\\Desktop\\test\\test.mp4");
-    if (g.has_value()) {
-        std::cout << g.value() << std::endl;
-        return 0;
-    }
-    if (cnt < 200) {
-        auto texture = renderer.getRenderTexture();
-        auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);
-        recorder.write(std::move(imageData));
-    }
-
-    if (++cnt == 200) {
-        recorder.stop();
-    }*/
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     try {
       glfw.setSwapInterval(0);
@@ -283,13 +269,12 @@ int main(int argc, char *argv[]) {
         ui.fpsLabel->setText("Average FPS: {}", fpsCounter.averageFPS());
       }
       ui.imguiInterface->render();
-
       window->swapBuffers();
       glfw.pollEvents();
       fpsCounter.onFrame();
       if (recorder.isRecording() && !isRecordingPaused) {
         auto texture = renderer.getRenderTexture();
-        auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);// TODO: speed this up
+        auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);// TODO: speed this up somehow
         recorder.write(std::move(imageData));
       }
     } catch (const std::exception &e) {
