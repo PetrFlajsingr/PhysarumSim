@@ -25,8 +25,10 @@ void SimulationControlsPanel::createElements() {
                                                  Size{Width::Auto(), 30});
   playPauseButton = &buttonsLayout->createChild<Button>(getName() + "play_pause_button", ICON_FK_PLAY);
   restartSimButton = &buttonsLayout->createChild<Button>(getName() + "restart_button", ICON_FK_REFRESH);
-  simSpeedDrag =
-      &buttonsLayout->createChild<DragInput<int>>(getName() + "sim_speed_drag", "Speed", 1, 1, 10, 1, Persistent::Yes);
+  simSpeedDrag = &buttonsLayout->createChild<DragInput<int>>(getName() + "sim_speed_drag", "Steps per frame", 1, 1, 10,
+                                                             1, Persistent::Yes);
+  timeMultiplierDrag = &layout.createChild<DragInput<float>>(getName() + "time_nult_drag", "Time multiplier", .01f,
+                                                             .01f, 10.f, 1.f, Persistent::Yes);
 }
 
 void SimulationControlsPanel::registerListeners() {
@@ -39,7 +41,8 @@ void SimulationControlsPanel::registerListeners() {
 void SimulationControlsPanel::addTooltips() {
   playPauseButton->setTooltip("Pause simulation");
   restartSimButton->setTooltip("Restart simulation");
-  simSpeedDrag->setTooltip("Set simulation speed");
+  simSpeedDrag->setTooltip("Set how many simulations steps are computed per frame");
+  timeMultiplierDrag->setTooltip("Set simulation time multiplier");
 }
 
 bool SimulationControlsPanel::isSimRunning() const { return running; }
@@ -55,8 +58,12 @@ void SimulationControlsPanel::setSimRunning(bool isRunning) {
   }
 }
 
-int SimulationControlsPanel::getSimSpeed() const { return simSpeedDrag->getValue(); }
+int SimulationControlsPanel::getStepsPerFrame() const { return simSpeedDrag->getValue(); }
 
-void SimulationControlsPanel::setSimSpeed(int speed) { simSpeedDrag->setValue(speed); }
+void SimulationControlsPanel::setStepsPerFrame(int steps) { simSpeedDrag->setValue(steps); }
+
+float SimulationControlsPanel::getTimeMultiplier() const { return timeMultiplierDrag->getValue(); }
+
+void SimulationControlsPanel::setTimeMultiplier(float multiplier) { timeMultiplierDrag->setValue(multiplier); }
 
 }// namespace pf

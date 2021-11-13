@@ -19,7 +19,7 @@ class SimulationControlsPanel : public ui::ig::Element, public ui::ig::Renderabl
 
   std::vector<Renderable *> getRenderables() override;
 
-  Subscription addSimSpeedListener(std::invocable<int> auto &&listener) {
+  Subscription addStepsPerFrameListener(std::invocable<int> auto &&listener) {
     return simSpeedDrag->addValueListener(std::forward<decltype(listener)>(listener));
   }
 
@@ -31,11 +31,18 @@ class SimulationControlsPanel : public ui::ig::Element, public ui::ig::Renderabl
     return runningObservable.addListener(std::forward<decltype(listener)>(listener));
   }
 
+  Subscription addTimeMultiplierListener(std::invocable<float> auto &&listener) {
+    return timeMultiplierDrag->addValueListener(std::forward<decltype(listener)>(listener));
+  }
+
   [[nodiscard]] bool isSimRunning() const;
   void setSimRunning(bool isRunning);
 
-  [[nodiscard]] int getSimSpeed() const;
-  void setSimSpeed(int speed);
+  [[nodiscard]] int getStepsPerFrame() const;
+  void setStepsPerFrame(int steps);
+
+  [[nodiscard]] float getTimeMultiplier() const;
+  void setTimeMultiplier(float multiplier);
 
  protected:
   void renderImpl() override;
@@ -51,6 +58,7 @@ class SimulationControlsPanel : public ui::ig::Element, public ui::ig::Renderabl
       ui::ig::Button *playPauseButton;
       ui::ig::Button *restartSimButton;
       ui::ig::DragInput<int> *simSpeedDrag;
+    ui::ig::DragInput<float> *timeMultiplierDrag;
   // clang-format on
 
   bool running = false;

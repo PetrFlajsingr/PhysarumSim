@@ -118,6 +118,7 @@ void main() {
     const float diffuseW = clamp(sSettings.diffuseRate * deltaT, 0.f, 1.f);
     col = trailValue * (1.0 - diffuseW) + col * diffuseW;
 
+    // TODO: add deltaT mult
     if (mouseDrawType != MOUSE_DRAW_NONE && (mouseDrawSpecies == speciesId || mouseDrawSpecies == -1)) {
         const float dist = distance(vec2(texCoord + 0.5f), mousePosition);
         if (dist <= mouseDrawDistance) {

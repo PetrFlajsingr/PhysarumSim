@@ -18,12 +18,15 @@ SpeciesInteractionRow::SpeciesInteractionRow(const std::string &name, const Spec
   otherSpeciesText =
       &layout.createChild<WidthDecorator<InputText>>(name + "species_name_test", 70, "", config.speciesName);
   otherSpeciesText->setReadOnly(true);
+  otherSpeciesText->setTooltip("Other species");
   interactionCombobox = &layout.createChild<WidthDecorator<Combobox<SpeciesInteraction>>>(
       name + "interaction_combobox", 70, "", "Select", magic_enum::enum_values<SpeciesInteraction>());
   interactionCombobox->setSelectedItem(config.interactionType);
+  interactionCombobox->setTooltip("Type of interaction");
   factorDrag =
       &layout.createChild<WidthDecorator<DragInput<float>>>(name + "factor_drag", 70, "Factor", .01f, .01f, 10.f, 1.f);
   factorDrag->setValue(config.factor);
+  factorDrag->setTooltip("Weight of the species's trail");
 
   const auto onChange = [&](auto) { setValue(getConfig()); };
   factorDrag->addValueListener(onChange);

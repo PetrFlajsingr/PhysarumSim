@@ -212,8 +212,9 @@ int main(int argc, char *argv[]) {
                            fmt::print(stderr, errMsg);
                          },
                          [&](const auto &path) {
-                           ui.imguiInterface->showNotification(ig::NotificationType::Success,
-                                                               fmt::format("Recording has been saved to '{}'", path.string()));
+                           ui.imguiInterface->showNotification(
+                               ig::NotificationType::Success,
+                               fmt::format("Recording has been saved to '{}'", path.string()));
                          }};
 
   const auto startRecording = [&] {
@@ -253,11 +254,12 @@ int main(int argc, char *argv[]) {
 
       const float currentTime =
           std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
-      const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
+      const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f
+          * ui.simControlsPanel->getTimeMultiplier();
 
       if (anySpecies) {
         if (!isSimPaused) {
-          for (int i = 0; i < ui.simControlsPanel->getSimSpeed(); ++i) { sim->simulate(currentTime, timeDelta); }
+          for (int i = 0; i < ui.simControlsPanel->getStepsPerFrame(); ++i) { sim->simulate(currentTime, timeDelta); }
         }
         renderer.render();
       }
