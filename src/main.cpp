@@ -12,12 +12,14 @@
 #include <magic_enum.hpp>
 #include <numbers>
 #include <pf_glfw/GLFW.h>
+#include <pf_imgui/dialogs/FileDialog.h>
 #include <pf_mainloop/MainLoop.h>
 #include <toml++/toml.h>
 #include <ui/UI.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
 
+// TODO: clean this up, divide
 /**
  * Load toml config located next to the exe - config.toml
  * @return
@@ -62,6 +64,7 @@ int main(int argc, char *argv[]) {
   using namespace pf;
   using namespace pf::glfw;
   using namespace pf::enum_operators;
+  using namespace pf::ui;
   auto config = loadConfig();
   const auto resourcesFolder = std::filesystem::path{config["files"]["resources_path"].value<std::string>().value()};
 
@@ -168,12 +171,12 @@ int main(int argc, char *argv[]) {
       try {
         saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
         MainLoop::Get()->enqueue([&ui, path] {
-          ui.imguiInterface->showNotification(ui::ig::NotificationType::Success,
+          ui.imguiInterface->showNotification(ig::NotificationType::Success,
                                               fmt::format("Image saved to '{}'", path.string()));
         });
       } catch (...) {
         MainLoop::Get()->enqueue([&ui] {
-          ui.imguiInterface->showNotification(ui::ig::NotificationType::Error, "Image failed to save",
+          ui.imguiInterface->showNotification(ig::NotificationType::Error, "Image failed to save",
                                               std::chrono::seconds{5});
         });
       }
@@ -188,7 +191,7 @@ int main(int argc, char *argv[]) {
   const auto updateUIPosition = [&] {
     const auto winSize = window->getSize();
     ui.dockWindow->setPosition(ImVec2{0.f, 19.f});
-    ui.dockWindow->setSize(ui::ig::Size{winSize.width, winSize.height - 19});
+    ui.dockWindow->setSize(ig::Size{winSize.width, winSize.height - 19});
   };
 
   window->setSizeListener([&](const auto &size) {
@@ -202,14 +205,43 @@ int main(int argc, char *argv[]) {
   const auto fpsLabelUpdateFrequency = std::chrono::milliseconds{100};
   auto timeSinceLastFpsLabelUpdate = fpsLabelUpdateFrequency;
 
-  VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); }, [](auto) { std::cout << "done" << std::endl; },
-                         [](auto e) { std::cout << e << std::endl; }};
+  VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); },
+                         [&](const auto &msg) {
+                           const auto errMsg = fmt::format("Recording has failed: '{}'", msg);
+                           ui.imguiInterface->showNotification(ig::NotificationType::Error, errMsg);
+                           fmt::print(stderr, errMsg);
+                         },
+                         [&](const auto &path) {
+                           ui.imguiInterface->showNotification(ig::NotificationType::Success,
+                                                               fmt::format("Recording has been saved to '{}'", path.string()));
+                         }};
 
+  const auto startRecording = [&] {
+    ui.imguiInterface->openFileDialog(
+        "Select save location", {ig::FileExtensionSettings{{"mp4"}, "mp4", ImVec4{1, 0, 0, 1}}},
+        [&](const auto &selected) {
+          const auto &dst = selected[0];
+          recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
+        },
+        [&] { ui.recorderPanel->setValue(RecordingState::Stopped); }, ig::Size{500, 400});
+  };
+
+  auto isRecordingPaused = false;
   ui.recorderPanel->addValueListener([&](RecordingState recState) {
     switch (recState) {
-      case RecordingState::Stopped: ui.imguiInterface->showNotification(ui::ig::NotificationType::Info, "Stop and save"); break;
-      case RecordingState::Running: ui.imguiInterface->showNotification(ui::ig::NotificationType::Info, "Start"); break;
-      case RecordingState::Paused: ui.imguiInterface->showNotification(ui::ig::NotificationType::Info, "Pause"); break;
+      case RecordingState::Stopped:
+        isRecordingPaused = false;
+        recorder.stop();
+        break;
+      case RecordingState::Running:
+        if (isRecordingPaused) {
+          isRecordingPaused = false;
+          return;
+        }
+        isRecordingPaused = false;
+        startRecording();
+        break;
+      case RecordingState::Paused: isRecordingPaused = true; break;
     }
   });
 
@@ -255,9 +287,14 @@ int main(int argc, char *argv[]) {
       window->swapBuffers();
       glfw.pollEvents();
       fpsCounter.onFrame();
+      if (recorder.isRecording() && !isRecordingPaused) {
+        auto texture = renderer.getRenderTexture();
+        auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);// TODO: speed this up
+        recorder.write(std::move(imageData));
+      }
     } catch (const std::exception &e) {
       fmt::print(stderr, "Exception: {}\n", e.what());
-      ui.imguiInterface->createMsgDlg("Exception", e.what(), Flags<ui::ig::MessageButtons>{ui::ig::MessageButtons::Ok},
+      ui.imguiInterface->createMsgDlg("Exception", e.what(), Flags<ig::MessageButtons>{ig::MessageButtons::Ok},
                                       [](auto) { return true; });
     }
   });

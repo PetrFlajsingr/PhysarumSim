@@ -18,7 +18,7 @@ VideoEncoder::VideoEncoder(std::uint32_t frameWidth, std::uint32_t frameHeight, 
     formatContext = std::unique_ptr<AVFormatContext, AVFormatContextDeleter>{tmpPtr, [](auto *) {}};
   }
 
-  auto codec = avcodec_find_encoder(AV_CODEC_ID_HEVC);
+  auto codec = avcodec_find_encoder(AV_CODEC_ID_H264);
 
   outputStream =
       std::unique_ptr<AVStream, AVStreamDeleter>{avformat_new_stream(formatContext.get(), nullptr), [](auto *) {}};
@@ -124,17 +124,13 @@ void VideoRecorder::runThread() {
   try {
     while (!stopped) {
       if (auto data = frameQueue->dequeue(); data.has_value()) {
-        std::cout << "frame " << std::endl;
         encoder->write(data.value());
       } else {
-        std::cout << "break " << std::endl;
         break;
       }
     }
-    std::cout << "done " << std::endl;
     synchronize([this] { onDone(videoPath); });
   } catch (const std::exception &e) {
-    std::cout << "exception " << std::endl;
     writingFailed = true;
     synchronize([this, what = e.what()] { onException(what); });
   }
@@ -155,6 +151,9 @@ bool VideoRecorder::didLastRecordingFail() const { return writingFailed; }
 void VideoRecorder::write(std::vector<std::byte> data) { frameQueue->enqueue(std::move(data)); }
 
 VideoRecorder::~VideoRecorder() {
-  if (recorderThread != nullptr) { recorderThread->join(); }
+  if (recorderThread != nullptr) {
+    stop();
+    recorderThread->join();
+  }
 }
 }// namespace pf
