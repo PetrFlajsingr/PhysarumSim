@@ -138,6 +138,16 @@ void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t
   details::SpeciesShaderDiffuseSettings newDiffSettings{config};
   diffuseSpeciesSettings[index] = newDiffSettings;
   diffSettings[index] = newDiffSettings;
+
+  const auto interactionData = speciesInteractionBuffer->map();
+  auto unmapInteraction = RAII{[&] { speciesInteractionBuffer->unmap(); }};
+  auto interSettings = std::span{reinterpret_cast<details::SpeciesShaderInteractionSettings *>(interactionData),
+                                simSpeciesSettings.size() * simSpeciesSettings.size()};
+  for (std::size_t i = 0; i < config.speciesInteractions.size(); ++i) {
+    details::SpeciesShaderInteractionSettings newSettings{static_cast<int>(config.speciesInteractions[i].interactionType), config.speciesInteractions[i].factor};
+    interSettings[simSpeciesSettings.size() * index + i] = newSettings;
+  }
+
 }
 
 void PhysarumSimulator::setAttractorPosition(const glm::vec2 &attractorPosition) {

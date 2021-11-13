@@ -68,15 +68,8 @@ void SpeciesPanel::setConfig(const PopulationConfig &config) {
   colorPanel->setColor(config.color);
   filterTypeCombobox->setSelectedItem(config.filterType);
   interactionsListbox->clearItems();
-  std::size_t idx = 0;
   std::ranges::for_each(config.speciesInteractions, [&](const auto &interaction) {
-    const auto index = idx++;
-    interactionsListbox->addItem(interaction)
-        .addValueListener([&, index](const physarum::SpeciesInteractionConfig &iConfig) {
-          auto config = getConfig();
-          config.speciesInteractions[index] = iConfig;
-          setValue(config);
-        });
+    addInteraction(interaction);
   });
 }
 
@@ -167,6 +160,19 @@ void SpeciesPanel::createTooltips() {
   diffuseRateDrag->setTooltip("Speed of trail diffusion");
   decayRateDrag->setTooltip("Speed of trail decay");
   maxTrailValueDrag->setTooltip("Highest possible trail value - may cause color artifacts");
+}
+
+void SpeciesPanel::addInteraction(const SpeciesInteractionConfig &interConfig) {
+  const auto index = interactionsListbox->getItems().size();
+  interactionsListbox->addItem(interConfig)
+      .addValueListener([&, index](const physarum::SpeciesInteractionConfig &iConfig) {
+        auto config = getConfig();
+        config.speciesInteractions[index] = iConfig;
+        setValue(config);
+      });
+}
+void SpeciesPanel::clearInteractions() {
+  interactionsListbox->clearItems();
 }
 
 }// namespace pf

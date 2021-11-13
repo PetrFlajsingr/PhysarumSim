@@ -90,11 +90,9 @@ class UI {
  private:
   ui::ig::Observable_impl<SpeciesPanel *> resetObservable;
 
-  std::vector<std::string> speciesInConfig;
-
   void setAllWinVisibility(bool visible);
 
-  [[nodiscard]] toml::table speciesToToml() const;
+  [[nodiscard]] toml::array speciesToToml() const;
 
   void loadFromToml(const toml::table &src);
 

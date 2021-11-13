@@ -29,7 +29,8 @@ class SpeciesPanel : public ui::ig::Element,
   [[nodiscard]] physarum::PopulationConfig getConfig() const;
   void setConfig(const physarum::PopulationConfig &config);
 
-  SpeciesInteractionListbox *interactionsListbox;
+  void addInteraction(const physarum::SpeciesInteractionConfig &interConfig);
+  void clearInteractions();
 
  protected:
   void unserialize_impl(const toml::table &src) override;
@@ -59,6 +60,7 @@ class SpeciesPanel : public ui::ig::Element,
     ui::ig::Input<int> *particleCountInput;
     ui::ig::Combobox<int> *sensorSizeCombobox;
     SpeciesColorPanel *colorPanel;
+    SpeciesInteractionListbox *interactionsListbox;
   // clang-format on
 };
 

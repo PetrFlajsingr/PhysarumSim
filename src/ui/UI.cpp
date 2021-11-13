@@ -150,7 +150,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
         "Select save location", {FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
-          const auto data = speciesToToml();
+          toml::table data;
+          data.insert("species", speciesToToml());
           std::ofstream ostream{dst};
           ostream << data;
         },
@@ -233,16 +234,18 @@ void pf::ogl::UI::setAllWinVisibility(bool visible) {
   viewInteractWin->setValue(visible);
 }
 
-toml::table pf::ogl::UI::speciesToToml() const {
-  toml::table result{};
-  auto openTabs = speciesTabBar->getTabs() | std::views::filter([](const auto &tab) { return tab.isOpen(); });
-
-  for (auto &tab : openTabs) {
-    auto panel = *std::ranges::find_if(
-        speciesPanels, [&](const auto &panel) { return panel->getName() == tab.getLabel() + "_species_panel"; });
-    result.insert(tab.getLabel(), panel->getConfig().toToml());
-  }
-  return result;
+toml::array pf::ogl::UI::speciesToToml() const {
+  const std::string speciesPanelPostfix = "_species_panel";
+  toml::array speciesArr;
+  std::ranges::for_each(speciesPanels, [&](const auto &panel) {
+    panel->setPersistent(true);
+    auto panelData = panel->serialize().value();
+    const auto name = panel->getName();
+    panelData.insert("speciesName", name.substr(0, name.length() - speciesPanelPostfix.length()));
+    speciesArr.emplace_back<toml::table>(panelData);
+    panel->setPersistent(false);
+  });
+  return speciesArr;
 }
 
 void pf::ogl::UI::loadFromToml(const toml::table &src) {
@@ -252,17 +255,17 @@ void pf::ogl::UI::loadFromToml(const toml::table &src) {
       | ranges::to_vector;
   for (const auto &tabName : tabNames) { speciesTabBar->removeTab(tabName); }
 
-  for (const auto &[name, data] : src) { createSpeciesTab(name, *data.as_table()); }
+  updateSpeciesTabBarFromConfig(src);
 }
 
 void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
-  using namespace ui::ig;
-  const std::string speciesPanelPostfix = "_species_panel";
-  for (const auto &[name, data] : config) {
-    if (!name.ends_with(speciesPanelPostfix)) { continue; }
-    speciesInConfig.emplace_back(name);
-    const auto speciesName = name.substr(0, name.length() - speciesPanelPostfix.length());
-    createSpeciesTab(speciesName, *data.as_table());
+  auto speciesToml = config["species"].as_array();
+  if (speciesToml == nullptr) {
+    return;
+  }
+  for (auto &s : *speciesToml) {
+    auto &data = *s.as_table();
+    createSpeciesTab(data["speciesName"].value<std::string>().value(), data);
   }
 }
 
@@ -284,14 +287,14 @@ void pf::ogl::UI::createSpeciesTab(const std::string &name) {
   using namespace ui::ig;
   using namespace physarum;
   auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
-  auto newPanel = speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes));
+  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel"));
   addSpeciesTabCloseConfirmation(tab, name);
 }
 
 void pf::ogl::UI::createSpeciesTab(const std::string &name, const toml::table &src) {
   using namespace ui::ig;
   auto &tab = speciesTabBar->addTab(name + "_species_tab", name, true);
-  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel", Persistent::Yes))
+  speciesPanels.emplace_back(&tab.createChild<SpeciesPanel>(name + "_species_panel"))
       ->setConfig(physarum::PopulationConfig::FromToml(src));
   addSpeciesTabCloseConfirmation(tab, name);
 }
@@ -309,12 +312,7 @@ void pf::ogl::UI::setMouseInteractionSpecies() {
 }
 
 void pf::ogl::UI::cleanupConfig(toml::table &config) {
-  auto speciesToErase =
-      speciesInConfig | std::views::filter([&](const auto &speciesName) {
-        return std::ranges::find(speciesPanels, speciesName, [](const auto &panel) { return panel->getName(); })
-            == speciesPanels.end();
-      });
-  std::ranges::for_each(speciesToErase, [&](const auto &erase) { config.erase(config.find(erase)); });
+  config.insert_or_assign("species", speciesToToml());
 }
 
 void pf::ogl::UI::reloadSpeciesInteractions() {
@@ -322,8 +320,8 @@ void pf::ogl::UI::reloadSpeciesInteractions() {
   int panelIndex = 0;
   std::ranges::for_each(speciesPanels, [&](const auto &panel) {
     int i = 0;
-    auto previousInteractions = panel->interactionsListbox->getItems() | ranges::to_vector;
-    panel->interactionsListbox->clearItems();
+    auto previousInteractions = panel->getConfig().speciesInteractions;
+    panel->clearInteractions();
 
     std::ranges::for_each(getSpeciesNames(), [&](const auto &name) {
       auto interactionType = i == panelIndex ? SpeciesInteraction::Follow : SpeciesInteraction::None;
@@ -333,7 +331,7 @@ void pf::ogl::UI::reloadSpeciesInteractions() {
         interactionType = iter->interactionType;
         factor = iter->factor;
       }
-      panel->interactionsListbox->addItem(SpeciesInteractionConfig{interactionType, factor, name, i++});
+      panel->addInteraction(SpeciesInteractionConfig{interactionType, factor, name, i++});
     });
     ++panelIndex;
   });
