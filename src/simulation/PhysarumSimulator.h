@@ -45,6 +45,10 @@ struct SpeciesShaderDiffuseSettings {
   SpeciesShaderDiffuseSettings() = default;
   SpeciesShaderDiffuseSettings(const PopulationConfig &src);
 };
+struct SpeciesShaderInteractionSettings {
+  int type;
+  float factor;
+};
 }// namespace details
 
 class PhysarumSimulator {
@@ -86,6 +90,7 @@ class PhysarumSimulator {
   std::shared_ptr<Texture> trailDiffuseTexture;
   std::shared_ptr<Buffer> speciesSettingsBuffer;
   std::shared_ptr<Buffer> speciesDiffuseSettingsBuffer;
+  std::shared_ptr<Buffer> speciesInteractionBuffer;
 
   std::shared_ptr<Shader> simulateShader;
   std::shared_ptr<Program> simulateProgram;
@@ -95,6 +100,7 @@ class PhysarumSimulator {
 
   std::vector<details::SpeciesShaderSettings> simSpeciesSettings;
   std::vector<details::SpeciesShaderDiffuseSettings> diffuseSpeciesSettings;
+  std::vector<details::SpeciesShaderInteractionSettings> speciesInteractionSettings;
   int totalParticleCount;
   int greatestParticleCount;
 

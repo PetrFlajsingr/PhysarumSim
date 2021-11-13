@@ -25,10 +25,12 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->set1f("mouseIntDistance", interactionConfig.distance);
   simulateProgram->set1f("mouseIntPower", interactionConfig.power);
   simulateProgram->set1i("interactedSpeciesId", interactionConfig.interactedSpecies);
+  simulateProgram->set1i("speciesCount", simSpeciesSettings.size());
 
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   trailTexture->bindImage(1);
   speciesSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
+  speciesInteractionBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 3);
   simulateProgram->dispatch(greatestParticleCount / 64 + 1, 1, simSpeciesSettings.size());
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -62,6 +64,7 @@ const std::shared_ptr<Texture> &PhysarumSimulator::getTrailTexture() const { ret
 void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populations) {
   simSpeciesSettings.clear();
   diffuseSpeciesSettings.clear();
+  speciesInteractionSettings.clear();
 
   std::vector<Particle> allParticles;
   totalParticleCount = ranges::accumulate(populations, 0, std::plus<>{}, &PopulationConfig::particleCount);
@@ -77,6 +80,9 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
     simSpeciesSettings.emplace_back(simSettings);
     details::SpeciesShaderDiffuseSettings diffSettings{population};
     diffuseSpeciesSettings.emplace_back(diffSettings);
+    std::ranges::for_each(population.speciesInteractions, [&](const SpeciesInteractionConfig &c) {
+      speciesInteractionSettings.emplace_back(static_cast<int>(c.interactionType), c.factor);
+    });
 
     switch (population.particleStart) {
       case ParticleStart::Random: generator = std::make_unique<RandomParticleGenerator>(textureSize); break;
@@ -109,6 +115,9 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
                                                    simSpeciesSettings.data());
   speciesDiffuseSettingsBuffer = std::make_shared<Buffer>(
       sizeof(details::SpeciesShaderDiffuseSettings) * diffuseSpeciesSettings.size(), diffuseSpeciesSettings.data());
+
+  speciesInteractionBuffer = std::make_shared<Buffer>(
+      sizeof(details::SpeciesShaderInteractionSettings) * speciesInteractionSettings.size(), speciesInteractionSettings.data());
 }
 
 void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t index) {

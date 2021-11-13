@@ -21,9 +21,21 @@ struct Settings {
     float maxSteerRandomness;
 };
 
+#define INTERACTION_TYPE int
+#define INTERACTION_NONE 0
+#define INTERACTION_FOLLOW 1
+#define INTERACTION_AVOID 2
+
+struct SpeciesInteraction {
+    INTERACTION_TYPE interactionType;
+    float factor;
+};
+const int SizeOfSpeciesInteraction = 4 + 4;
+
 layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
 layout(r32f, binding = 1) uniform image2DArray texTrail;
 layout(binding = 2, std430)buffer SpeciesSettings{ Settings settings[]; };
+layout(binding = 3, std430)buffer InteractionSettings{ SpeciesInteraction interaction[]; };
 
 #define MOUSE_INTERACTION int
 #define MOUSE_NONE 0
@@ -43,6 +55,7 @@ uniform vec2 mousePosition;
 uniform float mouseIntDistance;
 uniform float mouseIntPower;
 uniform int interactedSpeciesId;
+uniform int speciesCount;
 
 uniform float deltaT;
 uniform float time;
@@ -82,7 +95,15 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
     float tmp = 0;
     for (int x = -halfSensorSize; x <= halfSensorSize; ++x) {
         for (int y = -halfSensorSize; y <= halfSensorSize; ++y) {
-            tmp += imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), speciesId)).r;
+            for (int s = 0; s < speciesCount; ++s) {
+                SpeciesInteraction sInter = interaction[speciesId * speciesCount + s];
+                if (sInter.interactionType == INTERACTION_NONE) {
+                    continue;
+                }
+                const float mod = sInter.interactionType == INTERACTION_FOLLOW ? 1 : -1;
+                tmp += mod * sInter.factor * imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), s)).r;
+            }
+           // tmp += imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), speciesId)).r * interaction[speciesId * speciesCount + speciesId].factor;
         }
     }
 
