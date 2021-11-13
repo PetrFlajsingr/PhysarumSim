@@ -5,8 +5,7 @@ Sampler::Sampler() {
   glCreateSamplers(1, &this->getId());
 }
 
-Sampler::Sampler(
-    Sampler *sampler) : OpenGLObject() {
+Sampler::Sampler(Sampler *sampler) : OpenGLObject() {
   assert(this != nullptr);
   glCreateSamplers(1, &this->getId());
   GLfloat borderColor[4];

@@ -44,23 +44,23 @@ class SpeciesColorPanel : public ui::ig::Element,
   void registerListeners();
   void addTooltips();
 
+  // clang-format off
   ui::ig::BoxLayout layout;
+    ui::ig::Combobox<physarum::ColorType> *colorTypeCombobox;
+    ui::ig::DragInput<float> *trailPowDrag;
+    ui::ig::StackedLayout *stack;
 
-  ui::ig::Combobox<physarum::ColorType> *colorTypeCombobox;
-  ui::ig::DragInput<float> *trailPowDrag;
+      ui::ig::ColorEdit<glm::vec3> *simpleColorEdit;
 
-  ui::ig::StackedLayout *stack;
+      ui::ig::ColorEdit<glm::vec3> *gradientStartColorEdit;
+      ui::ig::ColorEdit<glm::vec3> *gradientEndColorEdit;
+      ui::ig::Button *flipGradientButton;
 
-  ui::ig::ColorEdit<glm::vec3> *simpleColorEdit;
+      ui::ig::Button *randomizeButton;
 
-  ui::ig::ColorEdit<glm::vec3> *gradientStartColorEdit;
-  ui::ig::ColorEdit<glm::vec3> *gradientEndColorEdit;
-  ui::ig::Button *flipGradientButton;
-
-  ui::ig::Button *randomizeButton;
-
-  ui::ig::Slider<float> *hueSlider;
+      ui::ig::Slider<float> *hueSlider;
+  // clang-format on
 };
 
-}
+}// namespace pf
 #endif//PHYSARUMSIM_SRC_UI_SPECIESCOLORPANEL_H

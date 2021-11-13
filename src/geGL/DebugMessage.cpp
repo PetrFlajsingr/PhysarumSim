@@ -3,51 +3,31 @@
 #include <geGL/OpenGLUtil.h>
 #include <string>
 
-void defaultDebugMessage(
-    GLenum source,
-    GLenum type,
-    GLuint /*id*/,
-    GLenum severity,
-    GLsizei /*length*/,
-    const GLchar *message,
-    void * /*userParam*/) {
-  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type) << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
+void defaultDebugMessage(GLenum source, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/,
+                         const GLchar *message, void * /*userParam*/) {
+  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type)
+            << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
 }
-void lowDebugMessage(
-    GLenum source,
-    GLenum type,
-    GLuint /*id*/,
-    GLenum severity,
-    GLsizei /*length*/,
-    const GLchar *message,
-    void * /*userParam*/) {
+void lowDebugMessage(GLenum source, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/,
+                     const GLchar *message, void * /*userParam*/) {
   if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
-  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type) << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
+  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type)
+            << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
 }
-void mediumDebugMessage(
-    GLenum source,
-    GLenum type,
-    GLuint /*id*/,
-    GLenum severity,
-    GLsizei /*length*/,
-    const GLchar *message,
-    void * /*userParam*/) {
+void mediumDebugMessage(GLenum source, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/,
+                        const GLchar *message, void * /*userParam*/) {
   if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
   if (severity == GL_DEBUG_SEVERITY_LOW) return;
-  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type) << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
+  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type)
+            << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
 }
-void highDebugMessage(
-    GLenum source,
-    GLenum type,
-    GLuint /*id*/,
-    GLenum severity,
-    GLsizei /*length*/,
-    const GLchar *message,
-    void * /*userParam*/) {
+void highDebugMessage(GLenum source, GLenum type, GLuint /*id*/, GLenum severity, GLsizei /*length*/,
+                      const GLchar *message, void * /*userParam*/) {
   if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) return;
   if (severity == GL_DEBUG_SEVERITY_LOW) return;
   if (severity == GL_DEBUG_SEVERITY_MEDIUM) return;
-  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type) << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
+  std::cerr << "source: " << translateDebugSource(source) << " type: " << translateDebugType(type)
+            << " severity: " << translateDebugSeverity(severity) << " : " << message << std::endl;
 }
 
 /**
@@ -88,9 +68,7 @@ void setDefaultDebugMessage() {
  * @param fce callback function
  * @param data callback user data
  */
-void setDebugMessage(
-    GLDEBUGPROC fce,
-    void *data) {
+void setDebugMessage(GLDEBUGPROC fce, void *data) {
   glEnable(GL_DEBUG_OUTPUT);
   glDebugMessageCallback(fce, data);
 }

@@ -1,0 +1,174 @@
+[files]
+resources_path = 'C:\Users\xflajs00\CLionProjects\PhysarumSim\resources'
+
+[imgui]
+path_icons = 'C:\Users\xflajs00\CLionProjects\PhysarumSim\resources\icons'
+
+    [imgui.background_color_edit]
+    color = [ 1.0, 1.0, 1.0 ]
+
+    [imgui.blend_type_combobox]
+    selected = 'AlphaMix'
+
+    [imgui.combobox_kernel_size]
+    selected = '3'
+
+    [imgui.combobox_particle_start]
+    selected = 'Point'
+
+    [imgui.combobox_sensor_size]
+    selected = '1'
+
+    [imgui.drag_decay_rate]
+    value = 0.4000000059604645
+
+    [imgui.drag_diffuse_rate]
+    value = 4.900000095367432
+
+    [imgui.drag_max_trail]
+    value = 0.9300000071525574
+
+    [imgui.drag_move_speed]
+    value = 100.0
+
+    [imgui.drag_sense_distance]
+    value = 80.0999984741211
+
+    [imgui.drag_trail_weight]
+    value = 8.199999809265137
+
+    [imgui.drag_turn_speed]
+    value = 0.20000000298023224
+
+    [imgui.dsfdsfsd_species_panel]
+    blurKernelSize = 3
+    decayRate = 0.20000000298023224
+    diffuseRate = 3.0
+    filterType = 1
+    maxSteerRandomness = 1.0
+    maxTrailValue = 1.0
+    movementSpeed = 20.0
+    particleCount = 100000
+    particleStart = 0
+    senseAngle = 30.0
+    senseDistance = 35.0
+    sensorSize = 1
+    trailWeight = 5.0
+    turnSpeed = 2.0
+
+        [imgui.dsfdsfsd_species_panel.color]
+        gradientEnd = [ 1.0, 1.0, 1.0 ]
+        gradientStart = [ 1.0, 1.0, 1.0 ]
+        simpleColor = [ 1.0, 0.0, 0.0 ]
+        startHue = 47.667999267578125
+        trailPow = 2.0299999713897705
+        type = 3
+
+        [[imgui.dsfdsfsd_species_panel.interactions]]
+        factor = 1.0
+        interactionType = 0
+        speciesIndex = 0
+        speciesName = 'sdfsdf'
+
+        [[imgui.dsfdsfsd_species_panel.interactions]]
+        factor = 1.0
+        interactionType = 1
+        speciesIndex = 1
+        speciesName = 'dsfdsfsd'
+
+    [imgui.group_sim_control]
+    collapsed = false
+
+    [imgui.group_trail_control]
+    collapsed = false
+
+    [imgui.input_particle_count]
+    value = 250000
+
+    [imgui.interaction_panel]
+    distance = 73.0
+    enableDrawFalloff = true
+    interactedSpecies = -1
+    interactionType = 2
+    power = 5.650000095367432
+
+    [imgui.radio_group_kernel_size]
+    selected = 1
+
+    [imgui.sdfsdf_species_panel]
+    blurKernelSize = 3
+    decayRate = 0.20000000298023224
+    diffuseRate = 3.0
+    filterType = 1
+    maxSteerRandomness = 1.0
+    maxTrailValue = 1.0
+    movementSpeed = 20.0
+    particleCount = 100000
+    particleStart = 0
+    senseAngle = 30.0
+    senseDistance = 173.0
+    sensorSize = 1
+    trailWeight = 5.0
+    turnSpeed = 2.0
+
+        [imgui.sdfsdf_species_panel.color]
+        gradientEnd = [ 0.0, 0.0, 0.0 ]
+        gradientStart = [ 1.0, 0.0, 0.0 ]
+        simpleColor = [ 0.7647058963775635, 1.0, 0.0 ]
+        startHue = 0.0
+        trailPow = 1.0
+        type = 1
+
+        [[imgui.sdfsdf_species_panel.interactions]]
+        factor = 1.0
+        interactionType = 1
+        speciesIndex = 0
+        speciesName = 'sdfsdf'
+
+        [[imgui.sdfsdf_species_panel.interactions]]
+        factor = 1.0
+        interactionType = 0
+        speciesIndex = 1
+        speciesName = 'dsfdsfsd'
+
+    [imgui.sense_angle_drag]
+    value = 22.899999618530273
+
+    [imgui.sense_angle_slider]
+    value = 0.5061454772949219
+
+    [imgui.show_images_menu]
+    checked = true
+
+    [imgui.show_info_menu]
+    checked = true
+
+    [imgui.show_interact_menu]
+    checked = true
+
+    [imgui.show_sim_menu]
+    checked = true
+
+    [imgui.show_species_menu]
+    checked = true
+
+    [imgui.sim_controls_panelsim_speed_drag]
+    value = 10
+
+    [imgui.sim_speed_drag]
+    value = 10
+
+    [imgui.species_buttons_layout]
+    collapsed = false
+
+    [imgui.trail_color_edit]
+    color = [ 0.25216251611709595, 0.0, 0.779411792755127, 1.0 ]
+
+[physarum]
+texture_height = 1080
+texture_width = 1920
+
+[window]
+height = 1148
+maximized = false
+width = 2255

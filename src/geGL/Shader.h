@@ -31,7 +31,8 @@ class Shader : public OpenGLObject {
   static std::string define(std::string const &name, uint32_t value);
   static std::string define(std::string const &name, uint32_t value0, uint32_t value1);
   static std::string define(std::string const &name, uint32_t value0, uint32_t value1, uint32_t value2);
-  static std::string define(std::string const &name, uint32_t value0, uint32_t value1, uint32_t value2, uint32_t value3);
+  static std::string define(std::string const &name, uint32_t value0, uint32_t value1, uint32_t value2,
+                            uint32_t value3);
   static std::string define(std::string const &name, uint32_t vectorSize, uint32_t const *values);
   static std::string define(std::string const &name, int32_t value);
   static std::string define(std::string const &name, int32_t value0, int32_t value1);
@@ -57,8 +58,7 @@ class Shader : public OpenGLObject {
 };
 
 template<typename... ARGS>
-Shader::Shader(GLenum type, ARGS... args) : Shader(type, Sources({args...})) {
-}
+Shader::Shader(GLenum type, ARGS... args) : Shader(type, Sources({args...})) {}
 
 template<typename... ARGS>
 void Shader::setSource(ARGS const &...sources) {

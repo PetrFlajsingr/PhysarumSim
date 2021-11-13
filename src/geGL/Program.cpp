@@ -18,18 +18,14 @@ std::shared_ptr<ProgramInfo> const &Program::getInfo() const { return impl->info
  *
  * @param enableWarning true for enabling warning
  */
-void Program::setNonexistingUniformWarning(bool enableWarning) {
-  printUniformWarnings = enableWarning;
-}
+void Program::setNonexistingUniformWarning(bool enableWarning) { printUniformWarnings = enableWarning; }
 
 /**
  * @brief is non existing uniform warning enabled
  *
  * @return true if warning is enabled
  */
-bool Program::isNonexistingUniformWarningEnabled() {
-  return printUniformWarnings;
-}
+bool Program::isNonexistingUniformWarningEnabled() { return printUniformWarnings; }
 
 GLint Program::_getParam(GLenum pname) const {
   assert(this != nullptr);
@@ -44,8 +40,7 @@ GLint Program::_getParam(GLenum pname) const {
  * @param table opengl function table 
  * @param vector of compiled shaders
  */
-Program::Program(
-    ShaderPointers const &shaders) : OpenGLObject() {
+Program::Program(ShaderPointers const &shaders) : OpenGLObject() {
   assert(this != nullptr);
   impl = new ProgramImpl();
   impl->info = std::make_shared<ProgramInfo>();
@@ -122,9 +117,7 @@ void Program::link(ShaderPointers const &shaders) {
   assert(this != nullptr);
   attachShaders(shaders);
   glLinkProgram(getId());
-  if (!getLinkStatus()) {
-    std::cerr << getInfoLog() << std::endl;
-  }
+  if (!getLinkStatus()) { std::cerr << getInfoLog() << std::endl; }
   _fillInfo();
 }
 
@@ -365,11 +358,7 @@ std::string Program::getInfoLog() const {
 GLint Program::getInterfaceParam(GLenum interf, GLenum pname) const {
   assert(this != nullptr);
   GLint params;
-  glGetProgramInterfaceiv(
-      getId(),
-      interf,
-      pname,
-      &params);
+  glGetProgramInterfaceiv(getId(), interf, pname, &params);
   return params;
 }
 
@@ -378,13 +367,7 @@ std::string Program::getResourceName(GLenum interf, GLuint index) const {
   GLuint maxLength = getInterfaceParam(interf, GL_MAX_NAME_LENGTH);
   char *buffer = new char[maxLength];
   assert(buffer != nullptr);
-  glGetProgramResourceName(
-      getId(),
-      interf,
-      index,
-      maxLength,
-      nullptr,
-      buffer);
+  glGetProgramResourceName(getId(), interf, index, maxLength, nullptr, buffer);
   std::string name(buffer);
   delete[] buffer;
   return name;
@@ -393,83 +376,70 @@ std::string Program::getResourceName(GLenum interf, GLuint index) const {
 GLint Program::getResourceParam(GLenum interf, GLenum pname, GLuint index) const {
   assert(this != nullptr);
   GLint param;
-  glGetProgramResourceiv(
-      getId(),
-      interf,
-      index,
-      1,
-      &pname,
-      1,
-      nullptr,
-      &param);
+  glGetProgramResourceiv(getId(), interf, index, 1, &pname, 1, nullptr, &param);
   return param;
 }
 
-#define GE_GL_PROGRAM_SET(fce, type, ...)                                  \
-  assert(this != nullptr);                                                 \
-  auto ii = impl->info->uniforms.find(name);                               \
-  if (ii == impl->info->uniforms.end()) {                                  \
-    if (printUniformWarnings)                                              \
-      throw std::invalid_argument("there is no such uniform: " + name);    \
-    return this;                                                           \
-  }                                                                        \
-  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type); \
-  std::get<ProgramInfo::LOCATION>(ii->second);                             \
-  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), __VA_ARGS__);  \
+#define GE_GL_PROGRAM_SET(fce, type, ...)                                                                              \
+  assert(this != nullptr);                                                                                             \
+  auto ii = impl->info->uniforms.find(name);                                                                           \
+  if (ii == impl->info->uniforms.end()) {                                                                              \
+    if (printUniformWarnings) throw std::invalid_argument("there is no such uniform: " + name);                        \
+    return this;                                                                                                       \
+  }                                                                                                                    \
+  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type);                                             \
+  std::get<ProgramInfo::LOCATION>(ii->second);                                                                         \
+  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), __VA_ARGS__);                                              \
   return this
 
-#define GE_GL_PROGRAM_SETI(fce, type0, type1, ...)                                                                                           \
-  assert(this != nullptr);                                                                                                                   \
-  auto ii = impl->info->uniforms.find(name);                                                                                                 \
-  if (ii == impl->info->uniforms.end()) {                                                                                                    \
-    if (printUniformWarnings)                                                                                                                \
-      throw std::invalid_argument("there is no such uniform: " + name);                                                                      \
-    return this;                                                                                                                             \
-  }                                                                                                                                          \
-  assert(                                                                                                                                    \
-      std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type0 || std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type1); \
-  std::get<ProgramInfo::LOCATION>(ii->second);                                                                                               \
-  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), __VA_ARGS__);                                                                    \
+#define GE_GL_PROGRAM_SETI(fce, type0, type1, ...)                                                                     \
+  assert(this != nullptr);                                                                                             \
+  auto ii = impl->info->uniforms.find(name);                                                                           \
+  if (ii == impl->info->uniforms.end()) {                                                                              \
+    if (printUniformWarnings) throw std::invalid_argument("there is no such uniform: " + name);                        \
+    return this;                                                                                                       \
+  }                                                                                                                    \
+  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type0                                              \
+         || std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type1);                                         \
+  std::get<ProgramInfo::LOCATION>(ii->second);                                                                         \
+  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), __VA_ARGS__);                                              \
   return this
 
-#define GE_GL_PROGRAM_SETV(fce, type)                                       \
-  assert(this != nullptr);                                                  \
-  auto ii = impl->info->uniforms.find(name);                                \
-  if (ii == impl->info->uniforms.end()) {                                   \
-    if (printUniformWarnings)                                               \
-      throw std::invalid_argument("there is no such uniform: " + name);     \
-    return this;                                                            \
-  }                                                                         \
-  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type);  \
-  assert(count <= std::get<ProgramInfo::SIZE>(impl->info->uniforms[name])); \
-  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), count, v0);     \
+#define GE_GL_PROGRAM_SETV(fce, type)                                                                                  \
+  assert(this != nullptr);                                                                                             \
+  auto ii = impl->info->uniforms.find(name);                                                                           \
+  if (ii == impl->info->uniforms.end()) {                                                                              \
+    if (printUniformWarnings) throw std::invalid_argument("there is no such uniform: " + name);                        \
+    return this;                                                                                                       \
+  }                                                                                                                    \
+  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type);                                             \
+  assert(count <= std::get<ProgramInfo::SIZE>(impl->info->uniforms[name]));                                            \
+  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), count, v0);                                                \
   return this
 
-#define GE_GL_PROGRAM_SETIV(fce, type0, type1)                                                                                               \
-  assert(this != nullptr);                                                                                                                   \
-  auto ii = impl->info->uniforms.find(name);                                                                                                 \
-  if (ii == impl->info->uniforms.end()) {                                                                                                    \
-    if (printUniformWarnings)                                                                                                                \
-      throw std::invalid_argument("there is no such uniform: " + name);                                                                      \
-    return this;                                                                                                                             \
-  }                                                                                                                                          \
-  assert(                                                                                                                                    \
-      std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type0 || std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type1); \
-  assert(count <= std::get<ProgramInfo::SIZE>(impl->info->uniforms[name]));                                                                  \
-  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), count, v0);                                                                      \
+#define GE_GL_PROGRAM_SETIV(fce, type0, type1)                                                                         \
+  assert(this != nullptr);                                                                                             \
+  auto ii = impl->info->uniforms.find(name);                                                                           \
+  if (ii == impl->info->uniforms.end()) {                                                                              \
+    if (printUniformWarnings) throw std::invalid_argument("there is no such uniform: " + name);                        \
+    return this;                                                                                                       \
+  }                                                                                                                    \
+  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type0                                              \
+         || std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type1);                                         \
+  assert(count <= std::get<ProgramInfo::SIZE>(impl->info->uniforms[name]));                                            \
+  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), count, v0);                                                \
   return this
 
-#define GE_GL_PROGRAM_SETMATRIX(fce, type)                                         \
-  assert(this != nullptr);                                                         \
-  auto ii = impl->info->uniforms.find(name);                                       \
-  if (ii == impl->info->uniforms.end()) {                                          \
-    if (printUniformWarnings)                                                      \
-      throw std::invalid_argument("there is no such uniform: " + name);            \
-    return this;                                                                   \
-  }                                                                                \
-  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type);         \
-  assert(count <= std::get<ProgramInfo::SIZE>(impl->info->uniforms[name]));        \
-  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), count, transpose, v0); \
+#define GE_GL_PROGRAM_SETMATRIX(fce, type)                                                                             \
+  assert(this != nullptr);                                                                                             \
+  auto ii = impl->info->uniforms.find(name);                                                                           \
+  if (ii == impl->info->uniforms.end()) {                                                                              \
+    if (printUniformWarnings) throw std::invalid_argument("there is no such uniform: " + name);                        \
+    return this;                                                                                                       \
+  }                                                                                                                    \
+  assert(std::get<ProgramInfo::TYPE>(impl->info->uniforms[name]) == type);                                             \
+  assert(count <= std::get<ProgramInfo::SIZE>(impl->info->uniforms[name]));                                            \
+  fce(getId(), std::get<ProgramInfo::LOCATION>(ii->second), count, transpose, v0);                                     \
   return this
 
 Program const *Program::set1f(std::string const &name, float v0) const {
@@ -568,83 +538,100 @@ Program const *Program::set4uiv(std::string const &name, uint32_t const *v0, GLs
   GE_GL_PROGRAM_SETV(glProgramUniform4uiv, GL_UNSIGNED_INT_VEC4);
 }
 
-Program const *Program::setMatrix4fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix4fv(std::string const &name, float const *v0, GLsizei count,
+                                     GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix4fv, GL_FLOAT_MAT4);
 }
 
-Program const *Program::setMatrix3fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix3fv(std::string const &name, float const *v0, GLsizei count,
+                                     GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix3fv, GL_FLOAT_MAT3);
 }
 
-Program const *Program::setMatrix2fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix2fv(std::string const &name, float const *v0, GLsizei count,
+                                     GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix2fv, GL_FLOAT_MAT2);
 }
 
-Program const *Program::setMatrix4x3fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix4x3fv(std::string const &name, float const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix4x3fv, GL_FLOAT_MAT4x3);
 }
 
-Program const *Program::setMatrix4x2fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix4x2fv(std::string const &name, float const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix4x2fv, GL_FLOAT_MAT4x2);
 }
 
-Program const *Program::setMatrix3x4fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix3x4fv(std::string const &name, float const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix3x4fv, GL_FLOAT_MAT3x4);
 }
 
-Program const *Program::setMatrix3x2fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix3x2fv(std::string const &name, float const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix3x2fv, GL_FLOAT_MAT3x2);
 }
 
-Program const *Program::setMatrix2x4fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix2x4fv(std::string const &name, float const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix2x4fv, GL_FLOAT_MAT2x4);
 }
 
-Program const *Program::setMatrix2x3fv(std::string const &name, float const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix2x3fv(std::string const &name, float const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix2x3fv, GL_FLOAT_MAT2x3);
 }
 
-Program const *Program::setMatrix4dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix4dv(std::string const &name, double const *v0, GLsizei count,
+                                     GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix4dv, GL_DOUBLE_MAT4);
 }
 
-Program const *Program::setMatrix3dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix3dv(std::string const &name, double const *v0, GLsizei count,
+                                     GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix3dv, GL_DOUBLE_MAT3);
 }
 
-Program const *Program::setMatrix2dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix2dv(std::string const &name, double const *v0, GLsizei count,
+                                     GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix2dv, GL_DOUBLE_MAT2);
 }
 
-Program const *Program::setMatrix4x3dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix4x3dv(std::string const &name, double const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix4x3dv, GL_DOUBLE_MAT4x3);
 }
 
-Program const *Program::setMatrix4x2dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix4x2dv(std::string const &name, double const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix4x2dv, GL_DOUBLE_MAT4x2);
 }
 
-Program const *Program::setMatrix3x4dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix3x4dv(std::string const &name, double const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix3x4dv, GL_DOUBLE_MAT3x4);
 }
 
-Program const *Program::setMatrix3x2dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix3x2dv(std::string const &name, double const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix3x2dv, GL_DOUBLE_MAT3x2);
 }
 
-Program const *Program::setMatrix2x4dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix2x4dv(std::string const &name, double const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix2x4dv, GL_DOUBLE_MAT2x4);
 }
 
-Program const *Program::setMatrix2x3dv(std::string const &name, double const *v0, GLsizei count, GLboolean transpose) const {
+Program const *Program::setMatrix2x3dv(std::string const &name, double const *v0, GLsizei count,
+                                       GLboolean transpose) const {
   GE_GL_PROGRAM_SETMATRIX(glProgramUniformMatrix2x3dv, GL_DOUBLE_MAT2x3);
 }
 
 GLint Program::_getUniform(std::string name) {
   assert(this != nullptr);
   auto ii = impl->info->uniforms.find(name);
-  if (ii == impl->info->uniforms.end())
-    return -1;
+  if (ii == impl->info->uniforms.end()) return -1;
   return std::get<ProgramInfo::LOCATION>(ii->second);
 }
 
@@ -671,11 +658,8 @@ void Program::_fillUniformInfo() {
       ss << s;
       ss << "]";
       std::string uniformNameWithIndexing = ss.str();
-      impl->info->uniforms[uniformNameWithIndexing] = ProgramInfo::Properties(
-          getUniformLocation(uniformNameWithIndexing),
-          type,
-          uniformNameWithIndexing,
-          1);
+      impl->info->uniforms[uniformNameWithIndexing] =
+          ProgramInfo::Properties(getUniformLocation(uniformNameWithIndexing), type, uniformNameWithIndexing, 1);
     }
   }
   delete[] buffer;
@@ -715,17 +699,8 @@ void Program::_fillBufferInfo() {
     GLint geometry = getResourceParam(GL_SHADER_STORAGE_BLOCK, GL_REFERENCED_BY_GEOMETRY_SHADER, i);
     GLint fragment = getResourceParam(GL_SHADER_STORAGE_BLOCK, GL_REFERENCED_BY_FRAGMENT_SHADER, i);
     GLint compute = getResourceParam(GL_SHADER_STORAGE_BLOCK, GL_REFERENCED_BY_COMPUTE_SHADER, i);
-    impl->info->buffers[name] = ProgramInfo::BufferProperties(
-        name,
-        binding,
-        dataSize,
-        nofActiveVariables,
-        vertex,
-        control,
-        evaluation,
-        geometry,
-        fragment,
-        compute);
+    impl->info->buffers[name] = ProgramInfo::BufferProperties(name, binding, dataSize, nofActiveVariables, vertex,
+                                                              control, evaluation, geometry, fragment, compute);
   }
 }
 
@@ -756,9 +731,7 @@ GLuint Program::getBufferBinding(std::string const &name) const {
   return std::get<ProgramInfo::BUFFER_BINDING>(ii->second);
 }
 
-Program const *Program::bindBuffer(
-    std::string const &name,
-    std::shared_ptr<Buffer> const &buffer) const {
+Program const *Program::bindBuffer(std::string const &name, std::shared_ptr<Buffer> const &buffer) const {
   return bindBuffer(name, &*buffer);
 }
 
@@ -766,8 +739,7 @@ Program const *Program::bindBuffer(std::string const &name, Buffer *const &buffe
   assert(this != nullptr);
   assert(buffer != nullptr);
   auto const &binding = getBufferBinding(name);
-  if (binding != Program::nonExistingBufferBinding)
-    buffer->bindBase(GL_SHADER_STORAGE_BUFFER, binding);
+  if (binding != Program::nonExistingBufferBinding) buffer->bindBase(GL_SHADER_STORAGE_BUFFER, binding);
   return this;
 }
 

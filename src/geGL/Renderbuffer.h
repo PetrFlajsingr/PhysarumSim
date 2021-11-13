@@ -6,17 +6,10 @@
 class Renderbuffer : public OpenGLObject {
  public:
   Renderbuffer();
-  Renderbuffer(
-      GLenum const &internalFormat,
-      GLsizei const &width,
-      GLsizei const &height,
-      GLsizei const &samples = 0);
+  Renderbuffer(GLenum const &internalFormat, GLsizei const &width, GLsizei const &height, GLsizei const &samples = 0);
   ~Renderbuffer();
-  void setStorage(
-      GLenum const &internalFormat,
-      GLsizei const &width,
-      GLsizei const &height,
-      GLsizei const &samples = 0) const;
+  void setStorage(GLenum const &internalFormat, GLsizei const &width, GLsizei const &height,
+                  GLsizei const &samples = 0) const;
   void bind() const;
   void unbind() const;
   GLint getWidth() const;

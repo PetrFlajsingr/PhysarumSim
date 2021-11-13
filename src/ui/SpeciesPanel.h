@@ -6,6 +6,7 @@
 #define PHYSARUMSIM_SRC_UI_SPECIESPANEL_H
 
 #include "SpeciesColorPanel.h"
+#include "SpeciesInteractionListbox.h"
 #include <pf_imgui/elements/ColorChooser.h>
 #include <pf_imgui/elements/Combobox.h>
 #include <pf_imgui/elements/DragInput.h>
@@ -28,34 +29,39 @@ class SpeciesPanel : public ui::ig::Element,
   [[nodiscard]] physarum::PopulationConfig getConfig() const;
   void setConfig(const physarum::PopulationConfig &config);
 
+  void addInteraction(const physarum::SpeciesInteractionConfig &interConfig);
+  void clearInteractions();
+
  protected:
   void unserialize_impl(const toml::table &src) override;
   toml::table serialize_impl() override;
 
- protected:
   void renderImpl() override;
 
  private:
   void createElements();
-
   void registerListeners();
+  void createTooltips();
 
+  // clang-format off
   ui::ig::BoxLayout root;
-  ui::ig::DragInput<float> *senseAngleDrag;
-  ui::ig::DragInput<float> *senseDistanceDrag;
-  ui::ig::DragInput<float> *turnSpeedDrag;
-  ui::ig::DragInput<float> *movementSpeedDrag;
-  ui::ig::DragInput<float> *maxSteerRandomnessDrag;
-  ui::ig::DragInput<float> *trailWeightDrag;
-  ui::ig::Combobox<physarum::FilterType> *filterTypeCombobox;
-  ui::ig::Combobox<int> *kernelSizeCombobox;
-  ui::ig::DragInput<float> *diffuseRateDrag;
-  ui::ig::DragInput<float> *decayRateDrag;
-  ui::ig::DragInput<float> *maxTrailValueDrag;
-  ui::ig::Combobox<physarum::ParticleStart> *particleInitCombobox;
-  ui::ig::Input<int> *particleCountInput;
-  ui::ig::Combobox<int> *sensorSizeCombobox;
-  SpeciesColorPanel *colorPanel;
+    ui::ig::DragInput<float> *senseAngleDrag;
+    ui::ig::DragInput<float> *senseDistanceDrag;
+    ui::ig::DragInput<float> *turnSpeedDrag;
+    ui::ig::DragInput<float> *movementSpeedDrag;
+    ui::ig::DragInput<float> *maxSteerRandomnessDrag;
+    ui::ig::DragInput<float> *trailWeightDrag;
+    ui::ig::Combobox<physarum::FilterType> *filterTypeCombobox;
+    ui::ig::Combobox<int> *kernelSizeCombobox;
+    ui::ig::DragInput<float> *diffuseRateDrag;
+    ui::ig::DragInput<float> *decayRateDrag;
+    ui::ig::DragInput<float> *maxTrailValueDrag;
+    ui::ig::Combobox<physarum::ParticleStart> *particleInitCombobox;
+    ui::ig::Input<int> *particleCountInput;
+    ui::ig::Combobox<int> *sensorSizeCombobox;
+    SpeciesColorPanel *colorPanel;
+    SpeciesInteractionListbox *interactionsListbox;
+  // clang-format on
 };
 
 }// namespace pf

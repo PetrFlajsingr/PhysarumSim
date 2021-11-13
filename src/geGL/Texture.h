@@ -10,83 +10,32 @@ class Texture : public OpenGLObject {
 
  public:
   Texture();
-  void create(
-      GLenum target,
-      GLenum internalFormat,
-      GLsizei levels,
-      GLsizei width,
-      GLsizei height = 0,
-      GLsizei depth = 0);
-  Texture(
-      GLenum target,
-      GLenum internalFormat,
-      GLsizei levels,
-      GLsizei width);
-  Texture(
-      GLenum target,
-      GLenum internalFormat,
-      GLsizei levels,
-      GLsizei width,
-      GLsizei height);
-  Texture(
-      GLenum target,
-      GLenum internalFormat,
-      GLsizei levels,
-      GLsizei width,
-      GLsizei height,
-      GLsizei depth);
+  void create(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width, GLsizei height = 0,
+              GLsizei depth = 0);
+  Texture(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width);
+  Texture(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width, GLsizei height);
+  Texture(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width, GLsizei height, GLsizei depth);
 
   ~Texture();
   void bind(GLuint unit) const;
   void unbind(GLuint unit) const;
-  void bindImage(
-      GLuint unit,
-      GLint level = 0,
-      GLenum format = 0,
-      GLenum access = GL_READ_WRITE,
-      GLboolean layered = GL_FALSE,
-      GLint layer = 0) const;
-  void setData1D(
-      const GLvoid *data,
-      GLenum format = GL_RGBA,
-      GLenum type = GL_UNSIGNED_BYTE,
-      GLint level = 0,
-      GLint xoffset = 0,
-      GLsizei width = 0) const;
-  void setData2D(
-      const GLvoid *data,
-      GLenum format = GL_RGBA,
-      GLenum type = GL_UNSIGNED_BYTE,
-      GLint level = 0,
-      GLenum target = 0,
-      GLint xoffset = 0,
-      GLint yoffset = 0,
-      GLsizei width = 0,
-      GLsizei height = 0,
-      GLint rowLength = 0) const;
-  void setData3D(
-      const GLvoid *data,
-      GLenum format = GL_RGBA,
-      GLenum type = GL_UNSIGNED_BYTE,
-      GLint level = 0,
-      GLenum target = 0,
-      GLint xoffset = 0,
-      GLint yoffset = 0,
-      GLint zoffset = 0,
-      GLsizei width = 0,
-      GLsizei height = 0,
-      GLsizei depth = 0,
-      GLint rowLength = 0,
-      GLint imgHeight = 0) const;
+  void bindImage(GLuint unit, GLint level = 0, GLenum format = 0, GLenum access = GL_READ_WRITE,
+                 GLboolean layered = GL_FALSE, GLint layer = 0) const;
+  void setData1D(const GLvoid *data, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, GLint level = 0,
+                 GLint xoffset = 0, GLsizei width = 0) const;
+  void setData2D(const GLvoid *data, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, GLint level = 0,
+                 GLenum target = 0, GLint xoffset = 0, GLint yoffset = 0, GLsizei width = 0, GLsizei height = 0,
+                 GLint rowLength = 0) const;
+  void setData3D(const GLvoid *data, GLenum format = GL_RGBA, GLenum type = GL_UNSIGNED_BYTE, GLint level = 0,
+                 GLenum target = 0, GLint xoffset = 0, GLint yoffset = 0, GLint zoffset = 0, GLsizei width = 0,
+                 GLsizei height = 0, GLsizei depth = 0, GLint rowLength = 0, GLint imgHeight = 0) const;
   void getCompressedData(void *data, GLsizei bufSize, GLint level);
   void getCompressedData(std::vector<uint8_t> &data, GLint level);
 
+  std::vector<std::byte> getData(GLint level, GLenum format, GLenum type);
+
   void generateMipmap() const;
-  void clear(
-      GLint level,
-      GLenum format,
-      GLenum type,
-      GLvoid const *data = nullptr);
+  void clear(GLint level, GLenum format, GLenum type, GLvoid const *data = nullptr);
   void texParameteri(GLenum pname, GLint params) const;
   void texParameterfv(GLenum pname, GLfloat *params) const;
   GLenum getFormat() const;

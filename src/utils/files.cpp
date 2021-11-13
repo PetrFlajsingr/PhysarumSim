@@ -11,8 +11,6 @@ std::filesystem::path pf::getExeFolder() {
 }
 std::optional<std::string> pf::readFile(const std::filesystem::path &path) {
   std::ifstream ifstream{path};
-  if (!ifstream.is_open()) {
-    return std::nullopt;
-  }
+  if (!ifstream.is_open()) { return std::nullopt; }
   return std::string{std::istreambuf_iterator<char>{ifstream}, std::istreambuf_iterator<char>{}};
 }

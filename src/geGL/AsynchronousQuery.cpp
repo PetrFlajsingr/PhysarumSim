@@ -7,10 +7,7 @@ AsynchronousQuery::AsynchronousQuery() {
   glGenQueries(1, &this->getId());
 }
 
-void AsynchronousQuery::create(
-    GLenum const &target,
-    GLenum const &waitingType,
-    ResultSize const &resultSize) {
+void AsynchronousQuery::create(GLenum const &target, GLenum const &waitingType, ResultSize const &resultSize) {
   assert(this != nullptr);
   this->_target = target;
   this->_waitingType = waitingType;
@@ -24,10 +21,7 @@ void AsynchronousQuery::create(
  * @param waitingType type of waiting for results
  * @param resultSize size and type of result
  */
-AsynchronousQuery::AsynchronousQuery(
-    GLenum const &target,
-    GLenum const &waitingType,
-    ResultSize const &resultSize) {
+AsynchronousQuery::AsynchronousQuery(GLenum const &target, GLenum const &waitingType, ResultSize const &resultSize) {
   assert(this != nullptr);
   glGenQueries(1, &this->getId());
   this->_target = target;
@@ -40,8 +34,7 @@ AsynchronousQuery::AsynchronousQuery(
  *
  * @param existingQuery This query has already been created
  */
-AsynchronousQuery::AsynchronousQuery(
-    AsynchronousQuery const *const &existingQuery) {
+AsynchronousQuery::AsynchronousQuery(AsynchronousQuery const *const &existingQuery) {
   assert(this != nullptr);
   glGenQueries(1, &this->getId());
   this->_target = existingQuery->_target;
@@ -72,18 +65,10 @@ void AsynchronousQuery::end() {
   assert(this != nullptr);
   glEndQuery(this->_target);
   switch (this->_resultSize) {
-    case INT32:
-      glGetQueryObjectiv(this->getId(), this->_waitingType, &this->_datai32);
-      break;
-    case UINT32:
-      glGetQueryObjectuiv(this->getId(), this->_waitingType, &this->_dataui32);
-      break;
-    case INT64:
-      glGetQueryObjecti64v(this->getId(), this->_waitingType, &this->_datai64);
-      break;
-    case UINT64:
-      glGetQueryObjectui64v(this->getId(), this->_waitingType, &this->_dataui64);
-      break;
+    case INT32: glGetQueryObjectiv(this->getId(), this->_waitingType, &this->_datai32); break;
+    case UINT32: glGetQueryObjectuiv(this->getId(), this->_waitingType, &this->_dataui32); break;
+    case INT64: glGetQueryObjecti64v(this->getId(), this->_waitingType, &this->_datai64); break;
+    case UINT64: glGetQueryObjectui64v(this->getId(), this->_waitingType, &this->_dataui64); break;
   }
 }
 

@@ -11,9 +11,7 @@ class DefaultLoader : public FunctionLoaderInterface {
          *
          * @param getProcAddress loading function like (SDL_GL_GetProcAddress, wglGetProcAddress, ...)
          */
-  DefaultLoader(GET_PROC_ADDRESS getProcAddress) {
-    this->m_getProcAddress = getProcAddress;
-  }
+  DefaultLoader(GET_PROC_ADDRESS getProcAddress) { this->m_getProcAddress = getProcAddress; }
   ~DefaultLoader() {}
   /**
          * @brief This function loads OpenGL function using its name

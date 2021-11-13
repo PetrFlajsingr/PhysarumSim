@@ -11,16 +11,9 @@ class AsynchronousQuery : public OpenGLObject {
     UINT64,
   };
   AsynchronousQuery();
-  void create(
-      GLenum const &target,
-      GLenum const &waitingType,
-      ResultSize const &resultSize);
-  AsynchronousQuery(
-      GLenum const &target,
-      GLenum const &waitingType,
-      ResultSize const &resultSize);
-  AsynchronousQuery(
-      AsynchronousQuery const *const &existingQuery);
+  void create(GLenum const &target, GLenum const &waitingType, ResultSize const &resultSize);
+  AsynchronousQuery(GLenum const &target, GLenum const &waitingType, ResultSize const &resultSize);
+  AsynchronousQuery(AsynchronousQuery const *const &existingQuery);
   ~AsynchronousQuery();
   void begin();
   void end();

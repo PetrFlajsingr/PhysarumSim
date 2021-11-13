@@ -6,18 +6,11 @@ class OpenGLObjectImpl {
   GLuint id = 0u;///<object id
 
   OpenGLObjectImpl(GLuint id = 0u) : id(id) {}
-  GLuint getId() const {
-    return id;
-  }
-  GLuint &getId() {
-    return id;
-  }
+  GLuint getId() const { return id; }
+  GLuint &getId() { return id; }
 };
 
-OpenGLObject::OpenGLObject(
-    GLuint id) {
-  impl = new OpenGLObjectImpl(id);
-}
+OpenGLObject::OpenGLObject(GLuint id) { impl = new OpenGLObjectImpl(id); }
 
 OpenGLObject::~OpenGLObject() {
   assert(this != nullptr);

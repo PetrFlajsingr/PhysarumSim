@@ -20,6 +20,6 @@ class RandomParticleGenerator : public ParticleGenerator {
   glm::uvec2 size;
 };
 
-}
+}// namespace pf::physarum
 
 #endif//PHYSARUMSIM_SRC_SIMULATION_RANDOMPARTICLEGENERATOR_H

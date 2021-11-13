@@ -69,24 +69,42 @@ class Program : public OpenGLObject {
   Program const *set2uiv(std::string const &name, uint32_t const *v0, GLsizei count = 1) const;
   Program const *set3uiv(std::string const &name, uint32_t const *v0, GLsizei count = 1) const;
   Program const *set4uiv(std::string const &name, uint32_t const *v0, GLsizei count = 1) const;
-  Program const *setMatrix4fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix3fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix2fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix4x3fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix4x2fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix3x4fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix3x2fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix2x4fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix2x3fv(std::string const &name, float const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix4dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix3dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix2dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix4x3dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix4x2dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix3x4dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix3x2dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix2x4dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
-  Program const *setMatrix2x3dv(std::string const &name, double const *v0, GLsizei count = 1, GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix4fv(std::string const &name, float const *v0, GLsizei count = 1,
+                              GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix3fv(std::string const &name, float const *v0, GLsizei count = 1,
+                              GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix2fv(std::string const &name, float const *v0, GLsizei count = 1,
+                              GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix4x3fv(std::string const &name, float const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix4x2fv(std::string const &name, float const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix3x4fv(std::string const &name, float const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix3x2fv(std::string const &name, float const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix2x4fv(std::string const &name, float const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix2x3fv(std::string const &name, float const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix4dv(std::string const &name, double const *v0, GLsizei count = 1,
+                              GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix3dv(std::string const &name, double const *v0, GLsizei count = 1,
+                              GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix2dv(std::string const &name, double const *v0, GLsizei count = 1,
+                              GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix4x3dv(std::string const &name, double const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix4x2dv(std::string const &name, double const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix3x4dv(std::string const &name, double const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix3x2dv(std::string const &name, double const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix2x4dv(std::string const &name, double const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
+  Program const *setMatrix2x3dv(std::string const &name, double const *v0, GLsizei count = 1,
+                                GLboolean transpose = GL_FALSE) const;
   void set(std::string const &name, float v0);
   void set(std::string const &name, float v0, float v1);
   void set(std::string const &name, float v0, float v1, float v2);

@@ -45,24 +45,24 @@ struct SpeciesShaderDiffuseSettings {
   SpeciesShaderDiffuseSettings() = default;
   SpeciesShaderDiffuseSettings(const PopulationConfig &src);
 };
+struct SpeciesShaderInteractionSettings {
+  int type;
+  float factor;
+};
 }// namespace details
 
 class PhysarumSimulator {
  public:
-  explicit PhysarumSimulator(const std::filesystem::path &shaderDir,
-                             glm::uvec2 textureSize) : textureSize(textureSize) {
+  explicit PhysarumSimulator(const std::filesystem::path &shaderDir, glm::uvec2 textureSize)
+      : textureSize(textureSize) {
 
     const auto simShaderSrc = readFile(shaderDir / "physarum_sim.comp");
-    if (!simShaderSrc.has_value()) {
-      throw std::runtime_error("Could not load 'physarum_sim.comp'");
-    }
+    if (!simShaderSrc.has_value()) { throw std::runtime_error("Could not load 'physarum_sim.comp'"); }
     simulateShader = std::make_shared<Shader>(GL_COMPUTE_SHADER, simShaderSrc.value());
     simulateProgram = std::make_shared<Program>(simulateShader);
 
     const auto diffuseTrailShaderSrc = readFile(shaderDir / "diffuse_trail.comp");
-    if (!diffuseTrailShaderSrc.has_value()) {
-      throw std::runtime_error("Could not load 'diffuse_trail.comp'");
-    }
+    if (!diffuseTrailShaderSrc.has_value()) { throw std::runtime_error("Could not load 'diffuse_trail.comp'"); }
     diffuseTrailShader = std::make_shared<Shader>(GL_COMPUTE_SHADER, diffuseTrailShaderSrc.value());
     diffuseTrailProgram = std::make_shared<Program>(diffuseTrailShader);
   }
@@ -76,19 +76,21 @@ class PhysarumSimulator {
   [[nodiscard]] const std::shared_ptr<Texture> &getTrailTexture() const;
 
   void setAttractorPosition(const glm::vec2 &attractorPosition);
-  void setAttractorEnabled(bool attractorEnabled);
+  void setMouseInteractionActive(bool mouseInteractionActive);
+  void setInteractionConfig(const InteractionConfig &interactionConfig);
 
  private:
   glm::uvec2 textureSize;
 
   glm::vec2 attractorPosition{};
-  bool attractorEnabled = false;
+  bool mouseInteractionActive = false;
 
   std::shared_ptr<Buffer> particleBuffer;
   std::shared_ptr<Texture> trailTexture;
   std::shared_ptr<Texture> trailDiffuseTexture;
   std::shared_ptr<Buffer> speciesSettingsBuffer;
   std::shared_ptr<Buffer> speciesDiffuseSettingsBuffer;
+  std::shared_ptr<Buffer> speciesInteractionBuffer;
 
   std::shared_ptr<Shader> simulateShader;
   std::shared_ptr<Program> simulateProgram;
@@ -98,8 +100,11 @@ class PhysarumSimulator {
 
   std::vector<details::SpeciesShaderSettings> simSpeciesSettings;
   std::vector<details::SpeciesShaderDiffuseSettings> diffuseSpeciesSettings;
+  std::vector<details::SpeciesShaderInteractionSettings> speciesInteractionSettings;
   int totalParticleCount;
   int greatestParticleCount;
+
+  InteractionConfig interactionConfig;
 };
 
 }// namespace pf::physarum

@@ -19,5 +19,5 @@ class InwardCircleParticleGenerator : public ParticleGenerator {
   glm::ivec2 size;
 };
 
-}
+}// namespace pf::physarum
 #endif//PHYSARUMSIM_SRC_SIMULATION_GENERATORS_INWARDCIRCLEPARTICLEGENERATOR_H

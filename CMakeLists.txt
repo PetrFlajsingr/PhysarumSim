@@ -61,12 +61,24 @@ CPMAddPackage(
         NAME pf_imgui
         GITHUB_REPOSITORY PetrFlajsingr/pf_imgui
         GIT_TAG master
+        OPTIONS "ENABLE_STYLES ON"
 )
 
+add_compile_definitions(PF_IMGUI_ENABLE_STYLES)
 
-#add_compile_definitions(SPDLOG_FMT_EXTERNAL)
-#hunter_add_package(spdlog)
-#find_package(spdlog CONFIG REQUIRED)
+find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE REQUIRED) #add here the list of ffmpeg components required
+
+if(FFMPEG_FOUND)
+    #  FFMPEG_INCLUDE_DIRS  - Include directory necessary for using the required components headers.
+    #  FFMPEG_LIBRARIES     - Link these to use the required ffmpeg components.
+    #  FFMPEG_DEFINITIONS   - Compiler switches required for using the required ffmpeg components.
+    message("FFMPEG_INCLUDE_DIRS = ${FFMPEG_INCLUDE_DIRS} ")
+    message("FFMPEG_LIBRARIES = ${FFMPEG_LIBRARIES} ")
+    message("FFMPEG_DEFINITIONS = ${FFMPEG_DEFINITIONS} ")
+
+    include_directories(${FFMPEG_INCLUDE_DIRS})
+
+endif()
 
 add_library(glad src/glad.c)
 
@@ -93,10 +105,38 @@ add_executable(PhysarumSim
         src/simulation/generators/RandomParticleGenerator.cpp
         src/simulation/generators/RandomParticleGenerator.h
         src/simulation/generators/PointParticleGenerator.cpp
-        src/simulation/generators/PointParticleGenerator.h src/simulation/SimConfig.h src/simulation/generators/InwardCircleParticleGenerator.cpp src/simulation/generators/InwardCircleParticleGenerator.h src/simulation/generators/RandomCircleParticleGenerator.cpp src/simulation/generators/RandomCircleParticleGenerator.h src/ui/SpeciesPanel.cpp src/ui/SpeciesPanel.h src/ui/SpeciesColorPanel.cpp src/ui/SpeciesColorPanel.h src/simulation/SimConfig.cpp)
+        src/simulation/generators/PointParticleGenerator.h
+        src/simulation/SimConfig.h
+        src/simulation/generators/InwardCircleParticleGenerator.cpp
+        src/simulation/generators/InwardCircleParticleGenerator.h
+        src/simulation/generators/RandomCircleParticleGenerator.cpp
+        src/simulation/generators/RandomCircleParticleGenerator.h
+        src/ui/SpeciesPanel.cpp
+        src/ui/SpeciesPanel.h
+        src/ui/SpeciesColorPanel.cpp
+        src/ui/SpeciesColorPanel.h
+        src/simulation/SimConfig.cpp
+        src/utils/FPSCounter.cpp
+        src/utils/FPSCounter.h
+        src/ui/MouseInteractionPanel.cpp
+        src/ui/MouseInteractionPanel.h
+        src/ui/SpeciesInteractionListbox.cpp
+        src/ui/SpeciesInteractionListbox.h
+        src/simulation/generators/UniformParticleGenerator.cpp
+        src/simulation/generators/UniformParticleGenerator.h
+        src/images/Formats.h
+        src/images/save.cpp
+        src/images/save.h src/ui/SimulationControlsPanel.cpp src/ui/SimulationControlsPanel.h src/GlobalThreadpool.h src/images/VideoRecorder.cpp src/images/VideoRecorder.h src/ui/RecorderPanel.cpp src/ui/RecorderPanel.h src/ui/AboutPanel.cpp src/ui/AboutPanel.h src/ui/HelpPanel.cpp src/ui/HelpPanel.h)
 
 
-target_link_libraries(PhysarumSim glad ${OPENGL_LIBRARIES} pf_common::pf_common pf_imgui::pf_imgui pf_mainloop::pf_mainloop pf_glfw::pf_glfw  #fmt::fmt spdlog::spdlog
+target_link_libraries(PhysarumSim
+        glad
+        ${OPENGL_LIBRARIES}
+        pf_common::pf_common
+        pf_imgui::pf_imgui
+        pf_mainloop::pf_mainloop
+        pf_glfw::pf_glfw
+        ${FFMPEG_LIBRARIES}
         )
 
 if(WIN32)

@@ -1,3 +1,5 @@
+#include "GlobalThreadpool.h"
+#include "app_icon.h"
 #include "renderers/PhysarumRenderer.h"
 #include "simulation/generators/PointParticleGenerator.h"
 #include "simulation/generators/RandomParticleGenerator.h"
@@ -5,14 +7,19 @@
 #include "utils/files.h"
 #include <filesystem>
 #include <fmt/format.h>
+#include <images/VideoRecorder.h>
+#include <images/save.h>
 #include <magic_enum.hpp>
 #include <numbers>
 #include <pf_glfw/GLFW.h>
+#include <pf_imgui/dialogs/FileDialog.h>
 #include <pf_mainloop/MainLoop.h>
 #include <toml++/toml.h>
 #include <ui/UI.h>
+#include <utils/FPSCounter.h>
 #include <utils/rand.h>
 
+// TODO: clean this up, divide
 /**
  * Load toml config located next to the exe - config.toml
  * @return
@@ -27,32 +34,63 @@ toml::table loadConfig() {
 /**
  * Serialize UI, save it to the config and save the config next to the exe into config.toml
  */
-void saveConfig(toml::table config, pf::ui::ig::ImGuiInterface &imguiInterface) {
+void saveConfig(toml::table config, pf::ogl::UI &ui) {
   const auto configPath = pf::getExeFolder() / "config.toml";
   const auto configPathStr = configPath.string();
   fmt::print("Saving config file to: '{}'\n", configPathStr);
-  imguiInterface.updateConfig();
-  config.insert_or_assign("imgui", imguiInterface.getConfig());
+  ui.imguiInterface->updateConfig();
+  auto imguiConfig = ui.imguiInterface->getConfig();
+  ui.cleanupConfig(imguiConfig);
+  config.insert_or_assign("imgui", imguiConfig);
   auto ofstream = std::ofstream(configPathStr);
   ofstream << config;
 }
 
+glm::vec2 mousePosToTexPos(pf::glfw::Position<double> mousePos, pf::glfw::Size<int> winSize, glm::ivec2 texSize) {
+  const auto nX = mousePos.x / winSize.width;
+  const auto nY = mousePos.y / winSize.height;
+  return glm::vec2{texSize} * glm::vec2{nX, nY};
+}
+
+glm::vec2 mousePosToTexPos(ImVec2 mousePos, pf::ui::ig::Size winSize, glm::ivec2 texSize) {
+  const auto nX = mousePos.x / winSize.width;
+  const auto nY = mousePos.y / winSize.height;// TODO: check this on windows
+  return glm::vec2{texSize} * glm::vec2{nX, nY};
+}
+
+// TODO: texture size change in UI
 int main(int argc, char *argv[]) {
+  pf::initGlobalThreadPool(4);
   using namespace pf;
-  const auto config = loadConfig();
+  using namespace pf::glfw;
+  using namespace pf::enum_operators;
+  using namespace pf::ui;
+  auto config = loadConfig();
   const auto resourcesFolder = std::filesystem::path{config["files"]["resources_path"].value<std::string>().value()};
 
-  const glm::ivec2 windowSize{config["window"]["width"].value<int>().value(),
-                              config["window"]["height"].value<int>().value()};
+  const glm::ivec2 trailTextureSize{config["physarum"]["texture_width"].value<int>().value(),
+                                    config["physarum"]["texture_height"].value<int>().value()};
 
   fmt::print("Initializing window and OpenGL\n");
   glfw::GLFW glfw{};
-  auto window = glfw.createWindow({.width = static_cast<size_t>(windowSize.x),
-                                   .height = static_cast<size_t>(windowSize.y),
-                                   .title = config["window"]["title"].value<std::string>().value(),
+  auto window = glfw.createWindow({.width = static_cast<size_t>(config["window"]["width"].value<int>().value()),
+                                   .height = static_cast<size_t>(config["window"]["height"].value<int>().value()),
+                                   .title = "Physarum",
                                    .majorOpenGLVersion = 4,
                                    .minorOpenGLVersion = 6});
   window->setCurrent();
+  if (config["window"]["maximized"].value<bool>().value_or(false)) { window->maximize(); }
+
+  auto s = std::span{APP_ICON.pixel_data, static_cast<std::size_t>(APP_ICON.width * APP_ICON.height)};
+
+  // FIXME
+  GLFWimage imageHandle;
+  imageHandle.width = APP_ICON.width;
+  imageHandle.height = APP_ICON.height;
+  imageHandle.pixels = const_cast<unsigned char *>(APP_ICON.pixel_data);
+
+  glfwSetWindowIcon(window->getHandle(), 1, &imageHandle);
+
   if (!gladLoadGLLoader((GLADloadproc) glfw.getLoaderFnc())) {
     fmt::print(stderr, "Error while initializing GLAD");
     return -1;
@@ -62,18 +100,19 @@ int main(int argc, char *argv[]) {
 
   auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle()};
 
-  window->setInputIgnorePredicate([&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
+  window->setInputIgnorePredicate(
+      [&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
 
-  auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, windowSize);
+  auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 
-  ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), windowSize};
+  ogl::PhysarumRenderer renderer{shaderFolder, sim->getTrailTexture(), trailTextureSize};
 
   bool anySpecies = false;
+  std::vector<Subscription> speciesSubscriptions{};
   const auto initFromUI = [&] {
+    std::ranges::for_each(speciesSubscriptions, &Subscription::unsubscribe);
     anySpecies = !ui.speciesPanels.empty();
-    if (!anySpecies) {
-      return;
-    }
+    if (!anySpecies) { return; }
     std::vector<physarum::PopulationConfig> configs;
     std::ranges::transform(ui.speciesPanels, std::back_inserter(configs), &SpeciesPanel::getConfig);
     std::vector<physarum::PopulationColor> colors;
@@ -81,10 +120,10 @@ int main(int argc, char *argv[]) {
     int cnt = 0;
     std::ranges::for_each(ui.speciesPanels, [&](const auto panel) {
       int index = cnt++;
-      panel->addValueListener([&, index](const physarum::PopulationConfig &config) {
+      speciesSubscriptions.emplace_back(panel->addValueListener([&, index](const physarum::PopulationConfig &config) {
         sim->updateConfig(config, index);
         renderer.setConfig(config.color, index);
-      });
+      }));
     });
     sim->initialize(configs);
     renderer.init(colors);
@@ -95,67 +134,166 @@ int main(int argc, char *argv[]) {
 
   ui.setOutImage(renderer.getRenderTexture());
 
-  bool isAttractorActive = false;
-  window->setMouseButtonCallback([&](glfw::MouseButton btn, glfw::MouseButtonAction action, const Flags<glfw::ModifierKey> &mods) {
-    if (ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured()) { return; }
-    if (btn == glfw::MouseButton::Left) {
-      isAttractorActive = action == glfw::MouseButtonAction::Press;
-      sim->setAttractorEnabled(isAttractorActive);
-      const auto cursorPos = window->getCursorPosition();
-      sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
-    }
-  });
-  window->setCursorPositionCallback([&](const auto &cursorPos) {
-    sim->setAttractorPosition({cursorPos.x, window->getSize().height - cursorPos.y});
-  });
-
   bool isSimPaused = true;
-  ui.playPauseButton->addClickListener([&] {
-    isSimPaused = !isSimPaused;
-    if (isSimPaused) {
-      ui.playPauseButton->setLabel("Start");
-    } else {
-      ui.playPauseButton->setLabel("Pause");
+  ui.simControlsPanel->addSimStateListener([&](bool running) { isSimPaused = !running; });
+
+  window->setCursorPositionCallback([&](const auto &cursorPos) {
+    const auto attractorPosition = mousePosToTexPos(window->getCursorPosition(), window->getSize(), trailTextureSize);
+
+    sim->setMouseInteractionActive(window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down);
+    sim->setAttractorPosition(attractorPosition);
+  });
+  window->setKeyCallback([&](Key key, KeyAction action, Flags<ModifierKey> mods) {
+    if (key == Key::H && action == KeyAction::Down) {
+      ui.imguiInterface->setVisibility(!ui.imguiInterface->getVisibility());
+    } else if (key == Key::Space && action == KeyAction::Down) {
+      isSimPaused = !isSimPaused;
+      ui.simControlsPanel->setSimRunning(!isSimPaused);
+    } else if (key == Key::Enter && action == KeyAction::Down && mods.is(ModifierKey::Alt)) {
+      // TODO: fullscreen switch
     }
   });
 
-  ui.restartSimButton->addClickListener(initFromUI);
+  ui.outImage->addMousePositionListener([&](const auto &mousePos) {
+    const auto size = ui.outImage->getSize();
+    const auto isBtnDown = window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down;
+    sim->setMouseInteractionActive(isBtnDown);
+    sim->setAttractorPosition(mousePosToTexPos(mousePos, size, trailTextureSize));
+  });
 
-  ui.backgroundColorEdit->addValueListener([&](const auto &color) {
-    renderer.setBackgroundColor(color);
-  },
-                                           true);
-  ui.blendTypeCombobox->addValueListener([&](const auto blendType) {
-    renderer.setBlendType(blendType);
-  },
-                                          true);
+  ui.mouseInteractionPanel->addValueListener([&](const auto config) { sim->setInteractionConfig(config); }, true);
+
+  ui.onScreenshotSave = [&](const auto &path) {
+    const auto imgFormat = getImageFormat(path).value();
+    auto texture = renderer.getRenderTexture();
+    auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);
+    GlobalThreadPool().enqueue([path, imgFormat, trailTextureSize, data = std::move(imageData), &ui] {
+      try {
+        saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
+        MainLoop::Get()->enqueue([&ui, path] {
+          ui.imguiInterface->showNotification(ig::NotificationType::Success,
+                                              fmt::format("Image saved to '{}'", path.string()));
+        });
+      } catch (...) {
+        MainLoop::Get()->enqueue([&ui] {
+          ui.imguiInterface->showNotification(ig::NotificationType::Error, "Image failed to save",
+                                              std::chrono::seconds{5});
+        });
+      }
+    });
+  };
+
+  ui.simControlsPanel->addRestartClickListener(initFromUI);
+
+  ui.backgroundColorEdit->addValueListener([&](const auto &color) { renderer.setBackgroundColor(color); }, true);
+  ui.blendTypeCombobox->addValueListener([&](const auto blendType) { renderer.setBlendType(blendType); }, true);
+
+  const auto updateUIPosition = [&] {
+    const auto winSize = window->getSize();
+    ui.dockWindow->setPosition(ImVec2{0.f, 19.f});
+    ui.dockWindow->setSize(ig::Size{winSize.width, winSize.height - 19});
+  };
+
+  window->setSizeListener([&](const auto &size) {
+    updateUIPosition();
+    glViewport(0, 0, size.width, size.height);
+  });
+
+  updateUIPosition();
+
+  FPSCounter fpsCounter{};
+  const auto fpsLabelUpdateFrequency = std::chrono::milliseconds{100};
+  auto timeSinceLastFpsLabelUpdate = fpsLabelUpdateFrequency;
+
+  VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); },
+                         [&](const auto &msg) {
+                           const auto errMsg = fmt::format("Recording has failed: '{}'", msg);
+                           ui.imguiInterface->showNotification(ig::NotificationType::Error, errMsg);
+                           fmt::print(stderr, errMsg);
+                         },
+                         [&](const auto &path) {
+                           ui.imguiInterface->showNotification(ig::NotificationType::Success,
+                                                               fmt::format("Recording has been saved to '{}'", path.string()));
+                         }};
+
+  const auto startRecording = [&] {
+    ui.imguiInterface->openFileDialog(
+        "Select save location", {ig::FileExtensionSettings{{"mp4"}, "mp4", ImVec4{1, 0, 0, 1}}},
+        [&](const auto &selected) {
+          const auto &dst = selected[0];
+          recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
+        },
+        [&] { ui.recorderPanel->setValue(RecordingState::Stopped); }, ig::Size{500, 400});
+  };
+
+  auto isRecordingPaused = false;
+  ui.recorderPanel->addValueListener([&](RecordingState recState) {
+    switch (recState) {
+      case RecordingState::Stopped:
+        isRecordingPaused = false;
+        recorder.stop();
+        break;
+      case RecordingState::Running:
+        if (isRecordingPaused) {
+          isRecordingPaused = false;
+          return;
+        }
+        isRecordingPaused = false;
+        startRecording();
+        break;
+      case RecordingState::Paused: isRecordingPaused = true; break;
+    }
+  });
 
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
-    if (window->shouldClose()) {
-      MainLoop::Get()->stop();
-    }
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    try {
+      glfw.setSwapInterval(0);
+      if (window->shouldClose()) { MainLoop::Get()->stop(); }
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const float currentTime = std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
-    const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
+      const float currentTime =
+          std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
+      const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f;
 
-    if (anySpecies) {
-      if (!isSimPaused) {
-        for (int i = 0; i < ui.simSpeedDrag->getValue(); ++i) {
-          sim->simulate(currentTime, timeDelta);
+      if (anySpecies) {
+        if (!isSimPaused) {
+          for (int i = 0; i < ui.simControlsPanel->getSimSpeed(); ++i) { sim->simulate(currentTime, timeDelta); }
         }
+        renderer.render();
       }
-      renderer.render();
+      ui.fpsAveragePlot->addValue(fpsCounter.averageFPS());
+      ui.fpsCurrentPlot->addValue(fpsCounter.currentFPS());
+      timeSinceLastFpsLabelUpdate += std::chrono::duration_cast<std::chrono::milliseconds>(deltaT);
+      if (timeSinceLastFpsLabelUpdate >= fpsLabelUpdateFrequency) {
+        timeSinceLastFpsLabelUpdate = std::chrono::milliseconds{0};
+        ui.fpsLabel->setText("Average FPS: {}", fpsCounter.averageFPS());
+      }
+      ui.imguiInterface->render();
+      window->swapBuffers();
+      glfw.pollEvents();
+      fpsCounter.onFrame();
+      if (recorder.isRecording() && !isRecordingPaused) {
+        auto texture = renderer.getRenderTexture();
+        auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);// TODO: speed this up somehow
+        recorder.write(std::move(imageData));
+      }
+    } catch (const std::exception &e) {
+      fmt::print(stderr, "Exception: {}\n", e.what());
+      ui.imguiInterface->createMsgDlg("Exception", e.what(), Flags<ig::MessageButtons>{ig::MessageButtons::Ok},
+                                      [](auto) { return true; });
     }
-    ui.imguiInterface->render();
-    window->swapBuffers();
-    glfw.pollEvents();
   });
 
   fmt::print("Starting main loop\n");
   MainLoop::Get()->run();
   fmt::print("Main loop ended\n");
 
-  saveConfig(config, *ui.imguiInterface);
+  const auto windowSize = window->getSize();
+  config["window"].as_table()->insert_or_assign("width", windowSize.width);
+  config["window"].as_table()->insert_or_assign("height", windowSize.height);
+  config["window"].as_table()->insert_or_assign("maximized", window->isMaximized());
+  saveConfig(config, ui);
+
+  GlobalThreadPool().cancelAndStop();
   return 0;
 }

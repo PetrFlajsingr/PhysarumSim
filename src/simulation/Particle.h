@@ -15,6 +15,6 @@ struct Particle {
   float PADDING;
 };
 
-}
+}// namespace pf::physarum
 
 #endif//PHYSARUMSIM_SRC_SIMULATION_PARTICLE_H

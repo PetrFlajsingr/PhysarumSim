@@ -29,7 +29,7 @@ vec3 additiveColor(ivec2 texCoord) {
     float t = 0;
     for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
         const Settings sSettings = settings[speciesId];
-        const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+        const float trailValue = min(1.0, imageLoad(texTrail, ivec3(texCoord, speciesId)).r);
 
         if (trailValue == 0) {
             continue;
@@ -50,7 +50,7 @@ vec3 layeredColor(ivec2 texCoord) {
     float t = 0;
     for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
         const Settings sSettings = settings[speciesId];
-        const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+        const float trailValue = min(1.0, imageLoad(texTrail, ivec3(texCoord, speciesId)).r);
 
         if (trailValue == 0) {
             continue;
@@ -69,14 +69,14 @@ vec3 layeredColor(ivec2 texCoord) {
 vec3 alphaMixColor(ivec2 texCoord) {
     float totalTrailVal = 0;
     for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
-        totalTrailVal += imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+        totalTrailVal += min(1.0, imageLoad(texTrail, ivec3(texCoord, speciesId)).r);
     }
     vec3 finColor = vec3(0);
     float t = 0;
     if (totalTrailVal > 0) {
         for (int speciesId = 0; speciesId < speciesCount; ++speciesId) {
             const Settings sSettings = settings[speciesId];
-            const float trailValue = imageLoad(texTrail, ivec3(texCoord, speciesId)).r;
+            const float trailValue = min(1.0, imageLoad(texTrail, ivec3(texCoord, speciesId)).r);
 
             if (trailValue == 0) {
                 continue;

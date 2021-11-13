@@ -10,9 +10,7 @@ template<typename T>
 class LoaderTableDecorator : public T {
  public:
   template<typename... ARGS>
-  LoaderTableDecorator(
-      std::shared_ptr<FunctionLoaderInterface> const &functionLoader,
-      ARGS &&...args) : T(args...) {
+  LoaderTableDecorator(std::shared_ptr<FunctionLoaderInterface> const &functionLoader, ARGS &&...args) : T(args...) {
     assert(this != nullptr);
     this->m_functionLoader = functionLoader;
   }

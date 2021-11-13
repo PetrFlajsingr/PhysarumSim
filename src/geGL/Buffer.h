@@ -14,27 +14,16 @@ class Buffer : public OpenGLObject {
     KEEP_DATA_ID = KEEP_ID | KEEP_DATA,
   };
   Buffer();
-  Buffer(GLsizeiptr size,
-         GLvoid const *data = nullptr,
-         GLbitfield flags = GL_STATIC_DRAW);
+  Buffer(GLsizeiptr size, GLvoid const *data = nullptr, GLbitfield flags = GL_STATIC_DRAW);
   virtual ~Buffer();
-  void alloc(GLsizeiptr size,
-             GLvoid const *data = nullptr,
-             GLbitfield flags = GL_STATIC_DRAW);
+  void alloc(GLsizeiptr size, GLvoid const *data = nullptr, GLbitfield flags = GL_STATIC_DRAW);
   GLvoid *map(GLbitfield access = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT) const;
-  GLvoid *map(GLintptr offset,
-              GLsizeiptr size,
-              GLbitfield access = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT) const;
+  GLvoid *map(GLintptr offset, GLsizeiptr size, GLbitfield access = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT) const;
   void unmap() const;
-  void setData(GLvoid const *data,
-               GLsizeiptr size = 0,
-               GLintptr offset = 0) const;
+  void setData(GLvoid const *data, GLsizeiptr size = 0, GLintptr offset = 0) const;
   void getData(GLvoid *data, GLsizeiptr size = 0, GLintptr offset = 0) const;
   void bind(GLenum target) const;
-  void bindRange(GLenum target,
-                 GLuint index,
-                 GLintptr offset,
-                 GLsizeiptr size) const;
+  void bindRange(GLenum target, GLuint index, GLintptr offset, GLsizeiptr size) const;
   void bindBase(GLenum target, GLuint index) const;
   void unbind(GLenum target) const;
   void unbindRange(GLenum target, GLuint index) const;
@@ -43,15 +32,8 @@ class Buffer : public OpenGLObject {
   void copy(Buffer const &buffer) const;
   void flushMapped(GLsizeiptr size = 0, GLintptr offset = 0) const;
   void invalidate(GLsizeiptr size = 0, GLintptr offset = 0) const;
-  void clear(GLenum internalFormat,
-             GLenum format,
-             GLenum type,
-             GLvoid const *Data = nullptr) const;
-  void clear(GLenum internalFormat,
-             GLintptr offset,
-             GLsizeiptr size,
-             GLenum format,
-             GLenum type,
+  void clear(GLenum internalFormat, GLenum format, GLenum type, GLvoid const *Data = nullptr) const;
+  void clear(GLenum internalFormat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type,
              GLvoid const *Data = nullptr) const;
   GLsizeiptr getSize() const;
   GLbitfield getUsage() const;

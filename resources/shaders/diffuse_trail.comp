@@ -15,10 +15,24 @@ struct Settings {
 
 layout(r32f, binding = 0) uniform image2DArray texTrail;
 layout(r32f, binding = 1) uniform image2DArray texTrailDiffuse;
-layout(binding = 2, std430)buffer SpeciesSettings{Settings settings[]; };
+layout(binding = 2, std430)buffer SpeciesSettings{ Settings settings[]; };
 
+#define FALSE 0
+#define TRUE 1
+
+#define MOUSE_DRAW_TYPE int
+#define MOUSE_DRAW_NONE 0
+#define MOUSE_DRAW_DRAW 1
+#define MOUSE_DRAW_ERASE 2
 
 uniform float deltaT;
+
+uniform MOUSE_DRAW_TYPE mouseDrawType;
+uniform vec2 mousePosition;
+uniform float mouseDrawDistance;
+uniform float mouseDrawPower;
+uniform int mouseDrawSpecies;
+uniform int mouseDrawFalloff;
 
 
 float boxBlur(ivec2 center, int size, ivec2 texSize) {
@@ -103,6 +117,24 @@ void main() {
 
     const float diffuseW = clamp(sSettings.diffuseRate * deltaT, 0.f, 1.f);
     col = trailValue * (1.0 - diffuseW) + col * diffuseW;
+
+    if (mouseDrawType != MOUSE_DRAW_NONE && (mouseDrawSpecies == speciesId || mouseDrawSpecies == -1)) {
+        const float dist = distance(vec2(texCoord + 0.5f), mousePosition);
+        if (dist <= mouseDrawDistance) {
+            float diff;
+            if (mouseDrawFalloff == TRUE) {
+                const float distN = (1.f - (dist / mouseDrawDistance)) / 100;
+                diff = mouseDrawPower * distN;
+            } else {
+                diff = mouseDrawPower;
+            }
+            if (mouseDrawType == MOUSE_DRAW_DRAW) {
+                col += diff;
+            } else {
+                col -= diff;
+            }
+        }
+    }
 
     imageStore(texTrailDiffuse, ivec3(texCoord, speciesId), vec4(max(0, col - sSettings.decayRate * deltaT)));
 }

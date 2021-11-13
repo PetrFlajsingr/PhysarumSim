@@ -23,4 +23,4 @@ std::vector<Particle> pf::physarum::InwardCircleParticleGenerator::generateParti
   return result;
 }
 
-}
+}// namespace pf::physarum

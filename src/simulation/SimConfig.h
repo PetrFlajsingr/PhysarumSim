@@ -5,8 +5,8 @@
 #ifndef PHYSARUMSIM_SRC_SIMULATION_SIMCONFIG_H
 #define PHYSARUMSIM_SRC_SIMULATION_SIMCONFIG_H
 
-#include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <magic_enum.hpp>
 #include <pf_common/enums.h>
 #include <pf_imgui/serialization.h>
@@ -16,12 +16,39 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::physarum)
 
 namespace pf::physarum {
 
-enum class ColorType {
-  Simple, TwoColorGradient, Random/*, Heatmap*/, Rainbow
+enum class MouseInteraction { None = 0, Attract = 1, Repel = 2, Draw = 3, Erase = 4 };
+
+enum class SpeciesInteraction { None = 0, Follow = 1, Avoid = 2 };
+
+struct SpeciesInteractionConfig {
+  SpeciesInteraction interactionType;
+  float factor;
+  std::string speciesName;
+  int speciesIndex;
+
+  static SpeciesInteractionConfig FromToml(const toml::table &src);
+  [[nodiscard]] toml::table toToml() const;
+
+  bool operator==(const SpeciesInteractionConfig &rhs) const;
+  bool operator!=(const SpeciesInteractionConfig &rhs) const;
 };
 
-enum class FilterType {
-  Median = 0, Blur = 1
+enum class ColorType { Simple, TwoColorGradient, Random /*, Heatmap*/, Rainbow };
+
+enum class FilterType { Median = 0, Blur = 1 };
+
+struct InteractionConfig {
+  MouseInteraction interactionType = MouseInteraction::None;
+  float distance = 100.f;
+  float power = 10.f;
+  int interactedSpecies = -1;
+  bool enableDrawFalloff = false;
+
+  static InteractionConfig FromToml(const toml::table &src);
+  [[nodiscard]] toml::table toToml() const;
+
+  [[nodiscard]] bool operator==(const InteractionConfig &rhs) const;
+  [[nodiscard]] bool operator!=(const InteractionConfig &rhs) const;
 };
 
 class PopulationColor {
@@ -68,12 +95,7 @@ class PopulationColor {
   float trailPow = 1.f;
 };
 
-enum class ParticleStart {
-  Random,
-  Point,
-  InwardCircle,
-  RandomCircle
-};
+enum class ParticleStart { Random, Point, InwardCircle, RandomCircle, Uniform };
 
 struct PopulationConfig {
   float senseAngle;
@@ -91,6 +113,7 @@ struct PopulationConfig {
   PopulationColor color;
   FilterType filterType;
   float maxSteerRandomness;
+  std::vector<SpeciesInteractionConfig> speciesInteractions;
 
   static PopulationConfig FromToml(const toml::table &src);
   [[nodiscard]] toml::table toToml() const;

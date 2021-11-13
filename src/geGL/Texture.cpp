@@ -5,13 +5,8 @@
 
 Texture::Texture() {}
 
-void Texture::create(
-    GLenum target,
-    GLenum internalFormat,
-    GLsizei levels,
-    GLsizei width,
-    GLsizei height,
-    GLsizei depth) {
+void Texture::create(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width, GLsizei height,
+                     GLsizei depth) {
   assert(this != nullptr);
   assert((width != 0) || (width != 0 && height != 0) || (width != 0 && height != 0 && depth != 0));
   this->_target = target;
@@ -26,48 +21,42 @@ void Texture::create(
   } else {
     if (target == GL_TEXTURE_CUBE_MAP) {
       for (uint32_t i = 0; i < 6; ++i) {
-        if (height == 0) glTextureImage1DEXT(this->getId(), GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this->_format, width, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        if (height == 0)
+          glTextureImage1DEXT(this->getId(), GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this->_format, width, 0, GL_RGBA,
+                              GL_UNSIGNED_BYTE, nullptr);
         else if (depth == 0)
-          glTextureImage2DEXT(this->getId(), GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this->_format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+          glTextureImage2DEXT(this->getId(), GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this->_format, width, height, 0,
+                              GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         else
-          glTextureImage3DEXT(this->getId(), GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this->_format, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+          glTextureImage3DEXT(this->getId(), GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, this->_format, width, height, depth,
+                              0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
       }
     } else {
-      if (height == 0) glTextureImage1DEXT(this->getId(), this->_target, 0, this->_format, width, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+      if (height == 0)
+        glTextureImage1DEXT(this->getId(), this->_target, 0, this->_format, width, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                            nullptr);
       else if (depth == 0)
-        glTextureImage2DEXT(this->getId(), this->_target, 0, this->_format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTextureImage2DEXT(this->getId(), this->_target, 0, this->_format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                            nullptr);
       else
-        glTextureImage3DEXT(this->getId(), this->_target, 0, this->_format, width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTextureImage3DEXT(this->getId(), this->_target, 0, this->_format, width, height, depth, 0, GL_RGBA,
+                            GL_UNSIGNED_BYTE, nullptr);
     }
   }
 }
 
-Texture::Texture(
-    GLenum target,
-    GLenum internalFormat,
-    GLsizei levels,
-    GLsizei width) : OpenGLObject() {
+Texture::Texture(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width) : OpenGLObject() {
   assert(this != nullptr);
   this->create(target, internalFormat, levels, width);
 }
 
-Texture::Texture(
-    GLenum target,
-    GLenum internalFormat,
-    GLsizei levels,
-    GLsizei width,
-    GLsizei height) : OpenGLObject() {
+Texture::Texture(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width, GLsizei height) : OpenGLObject() {
   assert(this != nullptr);
   this->create(target, internalFormat, levels, width, height);
 }
 
-Texture::Texture(
-    GLenum target,
-    GLenum internalFormat,
-    GLsizei levels,
-    GLsizei width,
-    GLsizei height,
-    GLsizei depth) : OpenGLObject() {
+Texture::Texture(GLenum target, GLenum internalFormat, GLsizei levels, GLsizei width, GLsizei height, GLsizei depth)
+    : OpenGLObject() {
   assert(this != nullptr);
   this->create(target, internalFormat, levels, width, height, depth);
 }
@@ -81,10 +70,8 @@ Texture::~Texture() {
   for (auto const &f : fs) {
     std::vector<GLenum> attachments;
     for (auto const &a : f->_textureAttachments)
-      if (a.second == this)
-        attachments.push_back(a.first);
-    for (auto const &a : attachments)
-      f->attachTexture(a, nullptr);
+      if (a.second == this) attachments.push_back(a.first);
+    for (auto const &a : attachments) f->attachTexture(a, nullptr);
   }
   glDeleteTextures(1, &this->getId());
 }
@@ -119,43 +106,22 @@ void Texture::unbind(GLuint unit) const {
  * @param layered use layered 
  * @param layer index of layer
  */
-void Texture::bindImage(
-    GLuint unit,
-    GLint level,
-    GLenum format,
-    GLenum access,
-    GLboolean layered,
-    GLint layer) const {
+void Texture::bindImage(GLuint unit, GLint level, GLenum format, GLenum access, GLboolean layered, GLint layer) const {
   assert(this != nullptr);
   if (format == 0) format = this->_format;
-  glBindImageTexture(unit, this->getId(), level, layered,
-                     layer, access, format);
+  glBindImageTexture(unit, this->getId(), level, layered, layer, access, format);
 }
 
-void Texture::setData1D(
-    const GLvoid *data,
-    GLenum format,
-    GLenum type,
-    GLint level,
-    GLint xoffset,
-    GLsizei width) const {
+void Texture::setData1D(const GLvoid *data, GLenum format, GLenum type, GLint level, GLint xoffset,
+                        GLsizei width) const {
   assert(this != nullptr);
   if (width == 0) width = this->getWidth(0);
   for (GLint l = 0; l < level; ++l) width /= 2;
   glTextureSubImage1D(this->getId(), level, xoffset, width, format, type, data);
 }
 
-void Texture::setData2D(
-    const GLvoid *data,
-    GLenum format,
-    GLenum type,
-    GLint level,
-    GLenum target,
-    GLint xoffset,
-    GLint yoffset,
-    GLsizei width,
-    GLsizei height,
-    GLint rowLength) const {
+void Texture::setData2D(const GLvoid *data, GLenum format, GLenum type, GLint level, GLenum target, GLint xoffset,
+                        GLint yoffset, GLsizei width, GLsizei height, GLint rowLength) const {
   assert(this != nullptr);
   if (width == 0) {
     width = this->getWidth(0);
@@ -179,20 +145,9 @@ void Texture::setData2D(
   glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 }
 
-void Texture::setData3D(
-    const GLvoid *data,
-    GLenum format,
-    GLenum type,
-    GLint level,
-    GLenum target,
-    GLint xoffset,
-    GLint yoffset,
-    GLint zoffset,
-    GLsizei width,
-    GLsizei height,
-    GLsizei depth,
-    GLint rowLength,
-    GLint imgHeight) const {
+void Texture::setData3D(const GLvoid *data, GLenum format, GLenum type, GLint level, GLenum target, GLint xoffset,
+                        GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLint rowLength,
+                        GLint imgHeight) const {
   assert(this != nullptr);
   if (width == 0) {
     width = this->getWidth(0);
@@ -210,9 +165,11 @@ void Texture::setData3D(
   glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, imgHeight);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   if (target != 0)
-    glTextureSubImage3DEXT(this->getId(), target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
+    glTextureSubImage3DEXT(this->getId(), target, level, xoffset, yoffset, zoffset, width, height, depth, format, type,
+                           data);
   else
-    glTextureSubImage3DEXT(this->getId(), this->_target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, data);
+    glTextureSubImage3DEXT(this->getId(), this->_target, level, xoffset, yoffset, zoffset, width, height, depth, format,
+                           type, data);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
   glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
   glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
@@ -228,16 +185,20 @@ void Texture::getCompressedData(std::vector<uint8_t> &data, GLint level) {
   getCompressedData(data.data(), bufSize, level);
 }
 
+std::vector<std::byte> Texture::getData(GLint level, GLenum format, GLenum type) {
+  assert(format == GL_RGBA);
+  std::vector<std::byte> result;
+  result.resize(getWidth(level) * getHeight(level) * 4);
+  glGetTextureImage(getId(), level, format, type, result.size(), result.data());
+  return result;
+}
+
 void Texture::generateMipmap() const {
   assert(this != nullptr);
   glGenerateTextureMipmap(this->getId());
 }
 
-void Texture::clear(
-    GLint level,
-    GLenum format,
-    GLenum type,
-    GLvoid const *data) {
+void Texture::clear(GLint level, GLenum format, GLenum type, GLvoid const *data) {
   assert(this != nullptr);
   glClearTexImage(this->getId(), level, format, type, data);
 }
@@ -910,7 +871,8 @@ std::string Texture::getInfo() const {
   ss << "GL_TEXTURE_SWIZZLE_A: " << translateTextureSwizzle(this->getSwizzleA()) << std::endl;
   GLfloat bColor[4];
   this->getBorderColor(bColor);
-  ss << "GL_TEXTURE_BORDER_COLOR: " << bColor[0] << " " << bColor[1] << " " << bColor[2] << " " << bColor[3] << std::endl;
+  ss << "GL_TEXTURE_BORDER_COLOR: " << bColor[0] << " " << bColor[1] << " " << bColor[2] << " " << bColor[3]
+     << std::endl;
   ss << "GL_TEXTURE_MIN_FILTER: " << translateTextureFilter(this->getMinFilter()) << std::endl;
   ss << "GL_TEXTURE_MAG_FILTER: " << translateTextureFilter(this->getMagFilter()) << std::endl;
   ss << "GL_TEXTURE_WRAP_S: " << translateTextureWrap(this->getWrapS()) << std::endl;
@@ -925,7 +887,8 @@ std::string Texture::getInfo() const {
   ss << "GL_DEPTH_STENCIL_TEXTURE_MODE: " << this->getDepthStencilTextureMode() << std::endl;
   ss << "GL_TEXTURE_COMPARE_MODE: " << translateTextureCompareMode(this->getCompareMode()) << std::endl;
   ss << "GL_TEXTURE_COMPARE_FUNC: " << translateTextureCompareFunc(this->getCompareFunc()) << std::endl;
-  ss << "GL_IMAGE_FORMAT_COMPATIBILITY_TYPE: " << translateImageFormatCompatibilityType(this->getImageFormatCompatibilityType()) << std::endl;
+  ss << "GL_IMAGE_FORMAT_COMPATIBILITY_TYPE: "
+     << translateImageFormatCompatibilityType(this->getImageFormatCompatibilityType()) << std::endl;
   ss << "GL_TEXTURE_IMMUTABLE_FORMAT: " << (bool) (0 != this->getImmutableFormat()) << std::endl;
   ss << "GL_TEXTURE_IMMUTABLE_LEVELS: " << this->getImmutableLevels() << std::endl;
   ss << "GL_TEXTURE_VIEW_MIN_LEVEL: " << this->getViewMinLevel() << std::endl;
@@ -981,7 +944,6 @@ unsigned long long Texture::getSize() const {
   assert(this != nullptr);
   GLint nofLevels = this->getViewNumLayers();//TODO neco lepsiho?
   unsigned long long size = 0;
-  for (GLint l = 0; l < nofLevels; ++l)
-    size += this->getLevelSize(l);
+  for (GLint l = 0; l < nofLevels; ++l) size += this->getLevelSize(l);
   return size;
 }

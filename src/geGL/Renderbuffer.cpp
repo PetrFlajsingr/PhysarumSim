@@ -5,9 +5,7 @@
 /**
  * @brief Construct new renderbuffer (reserve its id)
  */
-Renderbuffer::Renderbuffer() {
-  glCreateRenderbuffers(1, &this->getId());
-}
+Renderbuffer::Renderbuffer() { glCreateRenderbuffers(1, &this->getId()); }
 
 /**
  * @brief Construct new renderbuffer
@@ -18,11 +16,9 @@ Renderbuffer::Renderbuffer() {
  * @param height height of renderbuffer
  * @param samples number of samples per pixel of renderbuffer (multisampling)
  */
-Renderbuffer::Renderbuffer(
-    GLenum const &internalFormat,
-    GLsizei const &width,
-    GLsizei const &height,
-    GLsizei const &samples) : OpenGLObject() {
+Renderbuffer::Renderbuffer(GLenum const &internalFormat, GLsizei const &width, GLsizei const &height,
+                           GLsizei const &samples)
+    : OpenGLObject() {
   assert(this != nullptr);
   glCreateRenderbuffers(1, &this->getId());
   this->setStorage(internalFormat, width, height, samples);
@@ -36,11 +32,8 @@ Renderbuffer::Renderbuffer(
  * @param height height of renderbuffer
  * @param samples number of samples per pixel of renderbuffer (more than one means multisampling)
  */
-void Renderbuffer::setStorage(
-    GLenum const &internalFormat,
-    GLsizei const &width,
-    GLsizei const &height,
-    GLsizei const &samples) const {
+void Renderbuffer::setStorage(GLenum const &internalFormat, GLsizei const &width, GLsizei const &height,
+                              GLsizei const &samples) const {
   assert(this != nullptr);
   glNamedRenderbufferStorageMultisample(this->getId(), internalFormat, samples, width, height);
 }
@@ -54,10 +47,8 @@ Renderbuffer::~Renderbuffer() {
   for (auto const &f : fs) {
     std::vector<GLenum> attachments;
     for (auto const &a : f->_renderbufferAttachments)
-      if (a.second == this)
-        attachments.push_back(a.first);
-    for (auto const &a : attachments)
-      f->attachRenderbuffer(a, nullptr);
+      if (a.second == this) attachments.push_back(a.first);
+    for (auto const &a : attachments) f->attachRenderbuffer(a, nullptr);
   }
   glDeleteRenderbuffers(1, &this->getId());
 }
