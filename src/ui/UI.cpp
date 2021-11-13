@@ -127,7 +127,6 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
             return;
           }
           createSpeciesTab(input);
-          reloadSpeciesInteractions();
         },
         [] {});
   });
@@ -143,6 +142,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     auto closedTabNames = closedTabs | std::views::transform(&Tab::getName) | ranges::to_vector;
     std::ranges::for_each(closedTabNames, [&](const auto &tabName) { speciesTabBar->removeTab(tabName); });
     setMouseInteractionSpecies();
+    reloadSpeciesInteractions();
   });
 
   saveSpeciesButton->addClickListener([&] {
@@ -327,11 +327,13 @@ void pf::ogl::UI::reloadSpeciesInteractions() {
 
     std::ranges::for_each(getSpeciesNames(), [&](const auto &name) {
       auto interactionType = i == panelIndex ? SpeciesInteraction::Follow : SpeciesInteraction::None;
+      auto factor = 1.f;
       if (const auto iter = std::ranges::find(previousInteractions, name, &SpeciesInteractionConfig::speciesName);
           iter != previousInteractions.end()) {
         interactionType = iter->interactionType;
+        factor = iter->factor;
       }
-      panel->interactionsListbox->addItem(SpeciesInteractionConfig{interactionType, 1.f, name, i++});
+      panel->interactionsListbox->addItem(SpeciesInteractionConfig{interactionType, factor, name, i++});
     });
     ++panelIndex;
   });

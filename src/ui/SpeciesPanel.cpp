@@ -68,8 +68,16 @@ void SpeciesPanel::setConfig(const PopulationConfig &config) {
   colorPanel->setColor(config.color);
   filterTypeCombobox->setSelectedItem(config.filterType);
   interactionsListbox->clearItems();
-  std::ranges::for_each(config.speciesInteractions,
-                        [&](const auto &interaction) { interactionsListbox->addItem(interaction); });
+  std::size_t idx = 0;
+  std::ranges::for_each(config.speciesInteractions, [&](const auto &interaction) {
+    const auto index = idx++;
+    interactionsListbox->addItem(interaction)
+        .addValueListener([&, index](const physarum::SpeciesInteractionConfig &iConfig) {
+          auto config = getConfig();
+          config.speciesInteractions[index] = iConfig;
+          setValue(config);
+        });
+  });
 }
 
 void SpeciesPanel::createElements() {

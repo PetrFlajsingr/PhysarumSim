@@ -27,6 +27,8 @@ class SpeciesInteractionRow : public ui::ig::Element,
   [[nodiscard]] physarum::SpeciesInteractionConfig getConfig() const;
   void setConfig(const physarum::SpeciesInteractionConfig &config);
 
+
+
  protected:
   void renderImpl() override;
 
@@ -54,6 +56,8 @@ class SpeciesInteractionListbox
     : public ui::ig::CustomListbox<physarum::SpeciesInteractionConfig, SpeciesInteractionRow> {
  public:
   SpeciesInteractionListbox(const std::string &elementName, const std::string &label, const ui::ig::Size &s);
+
+  SpeciesInteractionRow &addItem(const physarum::SpeciesInteractionConfig &item);
 };
 }// namespace pf
 

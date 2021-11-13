@@ -66,4 +66,13 @@ SpeciesInteractionListbox::SpeciesInteractionListbox(const std::string &elementN
                                                      const Size &s)
     : CustomListbox<physarum::SpeciesInteractionConfig, SpeciesInteractionRow>(elementName, label,
                                                                                SpeciesInteractionRowFactory{}, s) {}
+
+SpeciesInteractionRow &SpeciesInteractionListbox::addItem(const SpeciesInteractionConfig &item) {
+  auto &result = ui::ig::CustomListbox<physarum::SpeciesInteractionConfig, SpeciesInteractionRow>::addItem(item);
+  const auto itemIndex = items.size() - 1;
+  result.addValueListener([this, itemIndex](const physarum::SpeciesInteractionConfig &item) {
+    items[itemIndex].first = item;
+  });
+  return result;
+}
 }// namespace pf

@@ -153,7 +153,7 @@ bool PopulationConfig::operator==(const PopulationConfig &rhs) const {
       && movementSpeed == rhs.movementSpeed && trailWeight == rhs.trailWeight && blurKernelSize == rhs.blurKernelSize
       && diffuseRate == rhs.diffuseRate && decayRate == rhs.decayRate && maxTrailValue == rhs.maxTrailValue
       && particleStart == rhs.particleStart && particleCount == rhs.particleCount && sensorSize == rhs.sensorSize
-      && color == rhs.color && filterType == rhs.filterType;
+      && color == rhs.color && filterType == rhs.filterType && speciesInteractions == rhs.speciesInteractions;
 }
 
 bool PopulationConfig::operator!=(const PopulationConfig &rhs) const { return !(rhs == *this); }

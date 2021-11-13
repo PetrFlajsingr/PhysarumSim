@@ -31,12 +31,14 @@ class RecorderPanel : public ui::ig::Element, public ui::ig::ValueObservable<Rec
   void renderImpl() override;
 
  private:
+  void setRecordTimeText();
   // clang-format off
   ui::ig::BoxLayout layout;
     ui::ig::Button *startStopRecordButton;
     ui::ig::Button *pauseResumeRecordButton;
     ui::ig::Text *recordTimeText;
   // clang-format on
+  std::chrono::milliseconds recordDuration;
 };
 
 }// namespace pf
