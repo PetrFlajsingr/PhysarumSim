@@ -46,7 +46,7 @@ void saveConfig(toml::table config, pf::ogl::UI &ui) {
 
 glm::vec2 mousePosToTexPos(pf::glfw::Position<double> mousePos, pf::glfw::Size<int> winSize, glm::ivec2 texSize) {
   const auto nX = mousePos.x / winSize.width;
-  const auto nY = 1.f - mousePos.y / winSize.height;
+  const auto nY = mousePos.y / winSize.height;
   return glm::vec2{texSize} * glm::vec2{nX, nY};
 }
 
@@ -204,6 +204,14 @@ int main(int argc, char *argv[]) {
 
   VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); }, [](auto) { std::cout << "done" << std::endl; },
                          [](auto e) { std::cout << e << std::endl; }};
+
+  ui.recorderPanel->addValueListener([&](RecordingState recState) {
+    switch (recState) {
+      case RecordingState::Stopped: ui.imguiInterface->showNotification(ui::ig::NotificationType::Info, "Stop and save"); break;
+      case RecordingState::Running: ui.imguiInterface->showNotification(ui::ig::NotificationType::Info, "Start"); break;
+      case RecordingState::Paused: ui.imguiInterface->showNotification(ui::ig::NotificationType::Info, "Pause"); break;
+    }
+  });
 
   /*  auto g = recorder.start(1920, 1080, 60, AVPixelFormat::AV_PIX_FMT_RGBA, "C:\\Users\\xflajs00\\Desktop\\test\\test.mp4");
     if (g.has_value()) {

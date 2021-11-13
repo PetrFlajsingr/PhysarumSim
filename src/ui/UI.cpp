@@ -87,6 +87,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   imagesMenuBar = &imagesWindow->getMenuBar();
   fileImagesSubmenu = &imagesMenuBar->addSubmenu("images_file_submenu", "File");
   saveImageButton = &fileImagesSubmenu->addButtonItem("save_image_btn", ICON_FK_FLOPPY_O " Save screenshot");
+  startRecordingButton = &fileImagesSubmenu->addButtonItem("start_rec_btn", ICON_FK_VIDEO_CAMERA " Recording");
 
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
@@ -182,10 +183,22 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   });
 
   recordingWindow = &imguiInterface->createWindow("rec_window", "REC");
-  recordingWindow->setUserResizable(false);// set focus on show
+  recordingWindow->setUserResizable(false);
+  recordingWindow->setCloseable(true);
   recordingWindow->setSize(Size{140, 60});
+  recordingWindow->setVisibility(Visibility::Invisible);
   recorderPanel = &recordingWindow->createChild<RecorderPanel>("rec_panel");
   recordingWindow->setColor<style::ColorOf::TitleBackgroundActive>(ImVec4(65, 0, 0, 1));
+  recordingWindow->setColor<style::ColorOf::TitleBackground>(ImVec4(65, 0, 0, 1));
+
+  startRecordingButton->addClickListener([&] { recordingWindow->setVisibility(Visibility::Visible); });
+  recorderPanel->addValueListener([&](const auto recState) {
+    if (recState == RecordingState::Stopped) {
+      recordingWindow->setCloseable(true);
+    } else {
+      recordingWindow->setCloseable(false);
+    }
+  });
 
   updateSpeciesTabBarFromConfig(config);
 

@@ -8,7 +8,6 @@
 namespace pf {
 using namespace ui::ig;
 
-// TODO: pause resume button
 RecorderPanel::RecorderPanel(const std::string &name)
     : Element(name), ValueObservable(RecordingState::Stopped),
       layout(name + "_root", LayoutDirection::LeftToRight, Size{Width::Auto(), 25}) {
@@ -18,7 +17,7 @@ RecorderPanel::RecorderPanel(const std::string &name)
 
   startStopRecordButton->addClickListener([&] {
     const auto state = getValue();
-    if (state == RecordingState::Stopped || state == RecordingState::Paused) {
+    if (state == RecordingState::Stopped) {
       setRecordingState(RecordingState::Running);
     } else {
       setRecordingState(RecordingState::Stopped);

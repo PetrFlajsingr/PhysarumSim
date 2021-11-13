@@ -27,9 +27,25 @@ pf::ogl::PhysarumRenderer::PhysarumRenderer(const std::filesystem::path &shaderD
   renderTexture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   renderTexture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
+  /*const std::vector<float> quadVertices{
+      -1.0f, 1.0f, 0.0f,
+      0.0f, 1.0f,
+      -1.0f, -1.0f, 0.0f,
+      0.0f, 0.0f,
+      1.0f,  1.0f, 0.0f,
+      1.0f, 1.0f,
+      1.0f,  -1.0f, 0.0f,
+      1.0f, 0.0f,
+  };*/
   const std::vector<float> quadVertices{
-      -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-      1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
+      -1.0f, 1.0f, 0.0f,
+      0.0f, 0.0f,
+      -1.0f, -1.0f, 0.0f,
+      0.0f, 1.0f,
+      1.0f,  1.0f, 0.0f,
+      1.0f, 0.0f,
+      1.0f,  -1.0f, 0.0f,
+      1.0f, 1.0f,
   };
   quadVBO = std::make_shared<Buffer>(sizeof(float) * quadVertices.size(), quadVertices.data());
   quadVAO = std::make_shared<VertexArray>();
