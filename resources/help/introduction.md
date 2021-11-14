@@ -2,7 +2,7 @@
 
 ![](imgs/intro.png)
 
-This project is based on [https://uwe-repository.worktribe.com/output/980579](https://uwe-repository.worktribe.com/output/980579). Another nice description of how this simulation work is over here [https://sagejenson.com/physarum](https://sagejenson.com/physarum). (Click links to copy them to your clipboard).
+This project is based on [https://uwe-repository.worktribe.com/output/980579](https://uwe-repository.worktribe.com/output/980579). Another nice description of how this simulation works is over here [https://sagejenson.com/physarum](https://sagejenson.com/physarum). (Click links to copy them to your clipboard).
 
 All of the UI elements have tooltips/hints which mention what they do, but you need to read through this help to figure out how they affect the simulation (or just experiment and try it out yourself :)). This information can be found in the **Controls** category on the left.
 
