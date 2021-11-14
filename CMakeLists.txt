@@ -126,7 +126,7 @@ add_executable(PhysarumSim
         src/simulation/generators/UniformParticleGenerator.h
         src/images/Formats.h
         src/images/save.cpp
-        src/images/save.h src/ui/SimulationControlsPanel.cpp src/ui/SimulationControlsPanel.h src/GlobalThreadpool.h src/images/VideoRecorder.cpp src/images/VideoRecorder.h src/ui/RecorderPanel.cpp src/ui/RecorderPanel.h src/ui/AboutPanel.cpp src/ui/AboutPanel.h src/ui/HelpPanel.cpp src/ui/HelpPanel.h)
+        src/images/save.h src/ui/SimulationControlsPanel.cpp src/ui/SimulationControlsPanel.h src/GlobalThreadpool.h src/images/VideoRecorder.cpp src/images/VideoRecorder.h src/ui/RecorderPanel.cpp src/ui/RecorderPanel.h src/ui/AboutPanel.cpp src/ui/AboutPanel.h src/ui/HelpPanel.cpp src/ui/HelpPanel.h src/ui/help_data/HelpLoader.h src/ui/help_data/HelpData.h src/ui/help_data/FolderHelpLoader.cpp src/ui/help_data/FolderHelpLoader.h)
 
 
 target_link_libraries(PhysarumSim

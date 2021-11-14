@@ -19,6 +19,8 @@
 #include <pf_imgui/layouts/layouts.h>
 #include <renderers/PhysarumRenderer.h>
 #include <toml++/toml.h>
+#include "HelpPanel.h"
+#include "help_data/HelpLoader.h"
 
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ui::ig)
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
@@ -28,7 +30,7 @@ namespace pf::ogl {
 // TODO: refactor this hard
 class UI {
  public:
-  UI(const toml::table &config, GLFWwindow *windowHandle);
+  UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader);
 
   // clang-format off
   ui::ig::AppMenuBar *appMenuBar;
@@ -73,6 +75,9 @@ class UI {
       std::vector<SpeciesPanel*> speciesPanels;
   ui::ig::Window *recordingWindow;
     RecorderPanel *recorderPanel;
+  ui::ig::Window *helpWindow;
+    HelpPanel *helpPanel;
+    ui::ig::Checkbox *showHelpOnStartupCheckbox;
   // clang-format on
 
   void setOutImage(const std::shared_ptr<Texture> &texture);

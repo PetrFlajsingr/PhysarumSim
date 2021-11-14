@@ -16,6 +16,7 @@
 #include <pf_mainloop/MainLoop.h>
 #include <toml++/toml.h>
 #include <ui/UI.h>
+#include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
 
@@ -97,8 +98,9 @@ int main(int argc, char *argv[]) {
   }
 
   const auto shaderFolder = resourcesFolder / "shaders";
+  const auto helpFolder = resourcesFolder / "help";
 
-  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle()};
+  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder)};
 
   window->setInputIgnorePredicate(
       [&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });

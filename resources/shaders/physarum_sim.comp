@@ -109,7 +109,7 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
 
     return tmp;
 }
-
+// TODO: add deltaT mult
 vec2 mouseInteractionDelta(Particle particle) {
     const uint speciesId = gl_GlobalInvocationID.z;
     if (mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE || mouseInteractionType == MOUSE_DRAW) { return vec2(0, 0); }

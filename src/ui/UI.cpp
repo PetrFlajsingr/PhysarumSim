@@ -9,7 +9,7 @@
 
 using namespace pf::enum_operators;
 
-pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
+pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader) {
   using namespace ui::ig;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(
       ImGuiGlfwOpenGLConfig{.windowHandle = windowHandle,
@@ -201,6 +201,17 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     }
   });
 
+  helpWindow = &imguiInterface->createWindow("help_window", ICON_FK_QUESTION_CIRCLE " Help");
+  helpWindow->setCloseable(true);
+  helpWindow->setSize(Size{700, 600});
+  helpPanel = &helpWindow->createChild<HelpPanel>("help_panel", Size{Width::Auto(), -30},
+                                                  std::move(helpLoader), *imguiInterface);
+  helpPanel->selectItem({"Introduction"});
+  showHelpOnStartupCheckbox =
+      &helpWindow->createChild<Checkbox>("show_startup_checkbox", "Show on startup", true, Persistent::Yes);
+
+  helpButton->addClickListener([this] { helpWindow->setVisibility(Visibility::Visible); });
+
   updateSpeciesTabBarFromConfig(config);
 
   if (speciesPanels.empty()) {
@@ -212,6 +223,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   addSpeciesButton->setTooltip("Add new species");
 
   imguiInterface->setStateFromConfig();
+  helpWindow->setVisibility(showHelpOnStartupCheckbox->getValue() ? Visibility::Visible : Visibility::Invisible);
 }
 
 void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture> &texture) {
@@ -260,9 +272,7 @@ void pf::ogl::UI::loadFromToml(const toml::table &src) {
 
 void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
   auto speciesToml = config["species"].as_array();
-  if (speciesToml == nullptr) {
-    return;
-  }
+  if (speciesToml == nullptr) { return; }
   for (auto &s : *speciesToml) {
     auto &data = *s.as_table();
     createSpeciesTab(data["speciesName"].value<std::string>().value(), data);
@@ -311,9 +321,7 @@ void pf::ogl::UI::setMouseInteractionSpecies() {
   mouseInteractionPanel->setInteractableSpecies(interInfo);
 }
 
-void pf::ogl::UI::cleanupConfig(toml::table &config) {
-  config.insert_or_assign("species", speciesToToml());
-}
+void pf::ogl::UI::cleanupConfig(toml::table &config) { config.insert_or_assign("species", speciesToToml()); }
 
 void pf::ogl::UI::reloadSpeciesInteractions() {
   using namespace physarum;

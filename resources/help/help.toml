@@ -1,0 +1,11 @@
+[[pages]]
+menu = ["Introduction"]
+markdown = "introduction.md"
+
+[[pages]]
+menu = ["Controls", "Overview"]
+markdown = "controls_overview.md"
+
+[[pages]]
+menu = ["Controls", "UI", "Time"]
+markdown = "sim_time_controls.md"
