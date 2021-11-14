@@ -253,6 +253,7 @@ int main(int argc, char *argv[]) {
                                                 fmt::format("Error while starting recording: '{}'", *res));
             ui.recorderPanel->setValue(RecordingState::Stopped);
           }
+          ui.recorderPanel->startCounter();
         },
         [&] { ui.recorderPanel->setValue(RecordingState::Stopped); }, ig::Size{500, 400});
   };

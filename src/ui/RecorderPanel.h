@@ -10,6 +10,8 @@
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/ValueObservable.h>
 #include <pf_imgui/layouts/BoxLayout.h>
+#include <pf_mainloop/MainLoop.h>
+#include <optional>
 
 namespace pf {
 
@@ -27,6 +29,8 @@ class RecorderPanel : public ui::ig::Element, public ui::ig::ValueObservable<Rec
   [[nodiscard]] RecordingState getRecordingState() const;
   void setValue(const RecordingState &newValue) override;
 
+  void startCounter();
+
  protected:
   void renderImpl() override;
 
@@ -39,6 +43,10 @@ class RecorderPanel : public ui::ig::Element, public ui::ig::ValueObservable<Rec
     ui::ig::Text *recordTimeText;
   // clang-format on
   std::chrono::milliseconds recordDuration;
+
+  bool counting = false;
+
+  std::optional<RepeatCancel> blinkCancel;
 };
 
 }// namespace pf

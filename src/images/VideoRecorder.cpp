@@ -30,11 +30,12 @@ VideoEncoder::VideoEncoder(std::uint32_t frameWidth, std::uint32_t frameHeight, 
   codecContext->codec_id = codec->id;
   codecContext->width = static_cast<int>(frameWidth);
   codecContext->height = static_cast<int>(frameHeight);
-  codecContext->bit_rate = 32000 * frameRate;
+  codecContext->bit_rate = frameWidth * frameHeight * frameRate;
   codecContext->time_base = outputStream->time_base = {.num = 1, .den = static_cast<int>(frameRate)};
-  codecContext->gop_size = 12;
+  codecContext->gop_size = 10;
   codecContext->max_b_frames = 1;
   codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+  codecContext->profile = FF_PROFILE_H264_EXTENDED;
 
   av_opt_set(codecContext->priv_data, "preset", "slow", 0);
 
