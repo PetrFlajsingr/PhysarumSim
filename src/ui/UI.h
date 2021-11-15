@@ -92,6 +92,8 @@ class UI {
 
   std::unique_ptr<ui::ig::ImGuiInterface> imguiInterface;
 
+  void openHelp(const std::vector<std::string> &section);
+
  private:
   ui::ig::Observable_impl<SpeciesPanel *> resetObservable;
 

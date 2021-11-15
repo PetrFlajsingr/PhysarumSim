@@ -52,6 +52,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
       [&](bool value) { interactionWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible); }, true);
   interactionWindow->setCloseable(true);
   interactionWindow->setIsDockable(true);
+  interactionWindow->getMenuBar().addButtonItem("inter_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Interaction"});
+  });
   mouseInteractionPanel = &interactionWindow->createChild<MouseInteractionPanel>("interaction_panel", Persistent::Yes);
 
   infoWindow = &imguiInterface->createWindow("info_window", ICON_FK_INFO " Info");
@@ -67,6 +70,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
       [&](bool value) { infoWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible); }, true);
   infoWindow->setCloseable(true);
   infoWindow->setIsDockable(true);
+  infoWindow->getMenuBar().addButtonItem("info_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Info"});
+  });
 
   simWindow = &imguiInterface->createWindow("sim_window", ICON_FK_WRENCH " Simulation");
   viewSimWin->addValueListener(
@@ -74,6 +80,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   simWindow->addCloseListener([&]() { viewSimWin->setValue(false); });
   simWindow->setCloseable(true);
   simWindow->setIsDockable(true);
+  simWindow->getMenuBar().addButtonItem("sim_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Simulation"});
+  });
 
   simControlsPanel = &simWindow->createChild<SimulationControlsPanel>("sim_controls_panel");
 
@@ -88,6 +97,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   fileImagesSubmenu = &imagesMenuBar->addSubmenu("images_file_submenu", "File");
   saveImageButton = &fileImagesSubmenu->addButtonItem("save_image_btn", ICON_FK_FLOPPY_O " Save screenshot");
   startRecordingButton = &fileImagesSubmenu->addButtonItem("start_rec_btn", ICON_FK_VIDEO_CAMERA " Recording");
+  imagesMenuBar->addButtonItem("img_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Image"});
+  });
 
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
@@ -103,6 +115,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   fileSpeciesSubmenu = &speciesMenuBar->addSubmenu("species_file_submenu", "File");
   saveSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_save_button", ICON_FK_FLOPPY_O " Save");
   loadSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_load_button", ICON_FK_FILE_O " Load");
+  speciesMenuBar->addButtonItem("species_help_submenu", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Species"});
+  });
 
   blendTypeCombobox = &speciesWindow->createChild<Combobox<BlendType>>("blend_type_combobox", "Blend type", "Select",
                                                                        magic_enum::enum_values<BlendType>(),
@@ -343,4 +358,9 @@ void pf::ogl::UI::reloadSpeciesInteractions() {
     });
     ++panelIndex;
   });
+}
+
+void pf::ogl::UI::openHelp(const std::vector<std::string> &section) {
+  helpWindow->setVisibility(ui::ig::Visibility::Visible);
+  helpPanel->selectItem(section);
 }
