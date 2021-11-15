@@ -15,7 +15,7 @@ std::vector<Particle> pf::physarum::InwardCircleParticleGenerator::generateParti
   auto result = std::vector<Particle>{};
   const auto center = glm::vec2{size / 2};
   for (std::size_t i = 0; i < count; ++i) {
-    const auto pos = center + fastRandomUnitCircle() * static_cast<float>(size.y) * .5f;
+    const auto pos = center + fastRandomUnitCircle() * static_cast<float>(size.y) * .15f;
     const auto angle = std::atan2(glm::normalize(center - pos).y, glm::normalize(center - pos).x);
 
     result.emplace_back(pos, angle);

@@ -7,5 +7,21 @@ menu = ["Controls", "Overview"]
 markdown = "controls_overview.md"
 
 [[pages]]
-menu = ["Controls", "UI", "Time"]
+menu = ["Controls", "UI", "Info"]
+markdown = "info_controls.md"
+
+[[pages]]
+menu = ["Controls", "UI", "Simulation"]
 markdown = "sim_time_controls.md"
+
+[[pages]]
+menu = ["Controls", "UI", "Interaction"]
+markdown = "interaction_controls.md"
+
+[[pages]]
+menu = ["Controls", "UI", "Species"]
+markdown = "species_controls.md"
+
+[[pages]]
+menu = ["Controls", "UI", "Image"]
+markdown = "image_controls.md"
