@@ -97,7 +97,9 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
     std::ranges::copy(particles, std::back_inserter(allParticles));
     ++speciesID;
   });
-  particleBuffer = std::make_shared<Buffer>(allParticles.size() * sizeof(Particle), allParticles.data());
+  currentParticleCapacity = allParticles.size() + EXTRA_PARTICLE_ALLOC;
+  particleBuffer = std::make_shared<Buffer>(currentParticleCapacity * sizeof(Particle));
+  particleBuffer->setData(allParticles);
 
   // TODO: fix zero init
   trailTexture =
@@ -117,8 +119,9 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
   speciesDiffuseSettingsBuffer = std::make_shared<Buffer>(
       sizeof(details::SpeciesShaderDiffuseSettings) * diffuseSpeciesSettings.size(), diffuseSpeciesSettings.data());
 
-  speciesInteractionBuffer = std::make_shared<Buffer>(
-      sizeof(details::SpeciesShaderInteractionSettings) * speciesInteractionSettings.size(), speciesInteractionSettings.data());
+  speciesInteractionBuffer =
+      std::make_shared<Buffer>(sizeof(details::SpeciesShaderInteractionSettings) * speciesInteractionSettings.size(),
+                               speciesInteractionSettings.data());
 }
 
 void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t index) {
@@ -143,12 +146,12 @@ void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t
   const auto interactionData = speciesInteractionBuffer->map();
   auto unmapInteraction = RAII{[&] { speciesInteractionBuffer->unmap(); }};
   auto interSettings = std::span{reinterpret_cast<details::SpeciesShaderInteractionSettings *>(interactionData),
-                                simSpeciesSettings.size() * simSpeciesSettings.size()};
+                                 simSpeciesSettings.size() * simSpeciesSettings.size()};
   for (std::size_t i = 0; i < config.speciesInteractions.size(); ++i) {
-    details::SpeciesShaderInteractionSettings newSettings{static_cast<int>(config.speciesInteractions[i].interactionType), config.speciesInteractions[i].factor};
+    details::SpeciesShaderInteractionSettings newSettings{
+        static_cast<int>(config.speciesInteractions[i].interactionType), config.speciesInteractions[i].factor};
     interSettings[simSpeciesSettings.size() * index + i] = newSettings;
   }
-
 }
 
 void PhysarumSimulator::setAttractorPosition(const glm::vec2 &attractorPosition) {
@@ -161,6 +164,21 @@ void PhysarumSimulator::setInteractionConfig(const InteractionConfig &interactio
 
 void PhysarumSimulator::setMouseInteractionActive(bool mouseInteractionActive) {
   PhysarumSimulator::mouseInteractionActive = mouseInteractionActive;
+}
+
+void PhysarumSimulator::addParticles(std::span<Particle> particles) {
+  if (totalParticleCount + particles.size() >= currentParticleCapacity) {
+    auto oldBuffer = std::move(particleBuffer);
+    const auto newBufferCapacity = totalParticleCount + particles.size() + EXTRA_PARTICLE_ALLOC;
+    auto newBuffer = std::make_unique<Buffer>(newBufferCapacity * sizeof(Particle));
+    glCopyNamedBufferSubData(oldBuffer->getId(), newBuffer->getId(), 0, 0, totalParticleCount * sizeof(Particle));
+    particleBuffer = std::move(newBuffer);
+    currentParticleCapacity = newBufferCapacity;
+  }
+  auto particleData = reinterpret_cast<Particle *>(particleBuffer->map());
+  auto unmap = RAII{[&] { particleBuffer->unmap(); }};
+  for (std::size_t i = 0; i < particles.size(); ++i) { particleData[totalParticleCount + i] = particles[i]; }
+  totalParticleCount += particles.size();
 }
 
 details::SpeciesShaderSettings::SpeciesShaderSettings(const PopulationConfig &src) {
