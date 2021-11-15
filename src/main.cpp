@@ -105,7 +105,8 @@ int main(int argc, char *argv[]) {
   const auto helpFolder = resourcesFolder / "help";
   const auto aboutFolder = resourcesFolder / "licenses";
 
-  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder), std::make_unique<FolderAboutDataLoader>(aboutFolder)};
+  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder),
+                    std::make_unique<FolderAboutDataLoader>(aboutFolder)};
 
   auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 
@@ -288,11 +289,10 @@ int main(int argc, char *argv[]) {
       const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f
           * ui.simControlsPanel->getTimeMultiplier();
 
-      if (anySpecies) {
-        if (!isSimPaused) {
-          for (int i = 0; i < ui.simControlsPanel->getStepsPerFrame(); ++i) { sim->simulate(currentTime, timeDelta); }
-        }
-        renderer.render();
+      if (anySpecies) { renderer.render(); }
+
+      if (anySpecies && !isSimPaused) {
+        for (int i = 0; i < ui.simControlsPanel->getStepsPerFrame(); ++i) { sim->simulate(currentTime, timeDelta); }
       }
       ui.fpsAveragePlot->addValue(fpsCounter.averageFPS());
       ui.fpsCurrentPlot->addValue(fpsCounter.currentFPS());
@@ -306,7 +306,7 @@ int main(int argc, char *argv[]) {
       glfw.pollEvents();
       fpsCounter.onFrame();
       if (recorder.isRecording() && !isRecordingPaused) {
-        auto texture = renderer.getRenderTexture();
+        const auto& texture = renderer.getRenderTexture();
         auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);// TODO: speed this up somehow
         recorder.write(std::move(imageData));
       }
