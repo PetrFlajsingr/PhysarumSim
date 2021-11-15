@@ -26,6 +26,7 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->set1f("mouseIntPower", interactionConfig.power);
   simulateProgram->set1i("interactedSpeciesId", interactionConfig.interactedSpecies);
   simulateProgram->set1i("speciesCount", simSpeciesSettings.size());
+  simulateProgram->set1ui("totalParticleCount", totalParticleCount);
 
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   trailTexture->bindImage(1);
