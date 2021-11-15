@@ -5,10 +5,13 @@
 #ifndef OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 #define OPENGL_TEMPLATE_SRC_UI_DEMOIMGUI_H
 
+#include "AboutPanel.h"
+#include "HelpPanel.h"
 #include "MouseInteractionPanel.h"
+#include "RecorderPanel.h"
 #include "SimulationControlsPanel.h"
 #include "SpeciesPanel.h"
-#include "RecorderPanel.h"
+#include "help_data/HelpLoader.h"
 #include "simulation/SimConfig.h"
 #include <GLFW/glfw3.h>
 #include <geGL/Texture.h>
@@ -19,18 +22,16 @@
 #include <pf_imgui/layouts/layouts.h>
 #include <renderers/PhysarumRenderer.h>
 #include <toml++/toml.h>
-#include "HelpPanel.h"
-#include "help_data/HelpLoader.h"
 
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ui::ig)
 ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::ogl)
-
 
 namespace pf::ogl {
 // TODO: refactor this hard
 class UI {
  public:
-  UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader);
+  UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader,
+     std::unique_ptr<AboutDataLoader> aboutLoader);
 
   // clang-format off
   ui::ig::AppMenuBar *appMenuBar;
@@ -78,6 +79,8 @@ class UI {
   ui::ig::Window *helpWindow;
     HelpPanel *helpPanel;
     ui::ig::Checkbox *showHelpOnStartupCheckbox;
+  ui::ig::Window *aboutWindow;
+    AboutPanel *aboutPanel;
   // clang-format on
 
   void setOutImage(const std::shared_ptr<Texture> &texture);

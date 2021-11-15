@@ -1,9 +1,7 @@
 #include "GlobalThreadpool.h"
 #include "app_icon.h"
 #include "renderers/PhysarumRenderer.h"
-#include "simulation/generators/PointParticleGenerator.h"
 #include "simulation/generators/RandomParticleGenerator.h"
-#include "ui/UI.h"
 #include "utils/files.h"
 #include <filesystem>
 #include <fmt/format.h>
@@ -17,6 +15,7 @@
 #include <pf_mainloop/MainLoop.h>
 #include <toml++/toml.h>
 #include <ui/UI.h>
+#include <ui/about_data/FolderAboutDataLoader.h>
 #include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
@@ -104,8 +103,9 @@ int main(int argc, char *argv[]) {
 
   const auto shaderFolder = resourcesFolder / "shaders";
   const auto helpFolder = resourcesFolder / "help";
+  const auto aboutFolder = resourcesFolder / "licenses";
 
-  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder)};
+  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder), std::make_unique<FolderAboutDataLoader>(aboutFolder)};
 
   auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 

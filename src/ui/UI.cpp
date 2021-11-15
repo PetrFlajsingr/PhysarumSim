@@ -9,7 +9,8 @@
 
 using namespace pf::enum_operators;
 
-pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader) {
+pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader,
+                std::unique_ptr<AboutDataLoader> aboutLoader) {
   using namespace ui::ig;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(
       ImGuiGlfwOpenGLConfig{.windowHandle = windowHandle,
@@ -219,13 +220,22 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   helpWindow = &imguiInterface->createWindow("help_window", ICON_FK_QUESTION_CIRCLE " Help");
   helpWindow->setCloseable(true);
   helpWindow->setSize(Size{700, 600});
-  helpPanel = &helpWindow->createChild<HelpPanel>("help_panel", Size{Width::Auto(), -30},
-                                                  std::move(helpLoader), *imguiInterface);
+  helpPanel = &helpWindow->createChild<HelpPanel>("help_panel", Size{Width::Auto(), -30}, std::move(helpLoader),
+                                                  *imguiInterface);
   helpPanel->selectItem({"Introduction"});
   showHelpOnStartupCheckbox =
       &helpWindow->createChild<Checkbox>("show_startup_checkbox", "Show on startup", true, Persistent::Yes);
 
   helpButton->addClickListener([this] { helpWindow->setVisibility(Visibility::Visible); });
+
+  aboutWindow = &imguiInterface->createWindow("about_window", "About");
+  aboutPanel =
+      &aboutWindow->createChild<AboutPanel>("about_panel", Size::Auto(), std::move(aboutLoader), *imguiInterface);
+  aboutWindow->setCloseable(true);
+  aboutWindow->setVisibility(Visibility::Invisible);
+  aboutButton->addClickListener([&] {
+    aboutWindow->setVisibility(Visibility::Visible);
+  });
 
   updateSpeciesTabBarFromConfig(config);
 

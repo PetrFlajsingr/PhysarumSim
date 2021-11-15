@@ -82,7 +82,7 @@ endif()
 
 add_library(glad src/glad.c)
 
-file(GLOB GEGL_SOURCES src/geGL/*.cpp src/geGL/private/*.cpp)
+file(GLOB GEGL_SOURCES include/geGL/*.cpp include/geGL/private/*.cpp)
 
 add_executable(PhysarumSim
         src/main.cpp
@@ -94,8 +94,8 @@ add_executable(PhysarumSim
         ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_glfw.cpp
         ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_opengl3.cpp
         src/renderers/PhysarumRenderer.cpp src/renderers/PhysarumRenderer.h
-        src/geGL/Shader.cpp
-        src/geGL/Shader.h
+        include/geGL/Shader.cpp
+        include/geGL/Shader.h
         ${GEGL_SOURCES}
         src/simulation/PhysarumSimulator.cpp
         src/simulation/PhysarumSimulator.h
@@ -126,7 +126,13 @@ add_executable(PhysarumSim
         src/simulation/generators/UniformParticleGenerator.h
         src/images/Formats.h
         src/images/save.cpp
-        src/images/save.h src/ui/SimulationControlsPanel.cpp src/ui/SimulationControlsPanel.h src/GlobalThreadpool.h src/images/VideoRecorder.cpp src/images/VideoRecorder.h src/ui/RecorderPanel.cpp src/ui/RecorderPanel.h src/ui/AboutPanel.cpp src/ui/AboutPanel.h src/ui/HelpPanel.cpp src/ui/HelpPanel.h src/ui/help_data/HelpLoader.h src/ui/help_data/HelpData.h src/ui/help_data/FolderHelpLoader.cpp src/ui/help_data/FolderHelpLoader.h)
+        src/images/save.h src/ui/SimulationControlsPanel.cpp
+        src/images/VideoRecorder.cpp
+        src/ui/RecorderPanel.cpp
+        src/ui/AboutPanel.cpp
+        src/ui/HelpPanel.cpp
+        src/ui/help_data/FolderHelpLoader.cpp
+        src/ui/about_data/AboutData.h src/ui/about_data/AboutDataLoader.h src/ui/about_data/FolderAboutDataLoader.cpp src/ui/about_data/FolderAboutDataLoader.h)
 
 
 target_link_libraries(PhysarumSim
