@@ -1,9 +1,7 @@
 #include "GlobalThreadpool.h"
 #include "app_icon.h"
 #include "renderers/PhysarumRenderer.h"
-#include "simulation/generators/PointParticleGenerator.h"
 #include "simulation/generators/RandomParticleGenerator.h"
-#include "ui/UI.h"
 #include "utils/files.h"
 #include <filesystem>
 #include <fmt/format.h>
@@ -17,6 +15,7 @@
 #include <pf_mainloop/MainLoop.h>
 #include <toml++/toml.h>
 #include <ui/UI.h>
+#include <ui/about_data/FolderAboutDataLoader.h>
 #include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>

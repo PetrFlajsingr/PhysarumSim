@@ -132,7 +132,7 @@ add_executable(PhysarumSim
         src/ui/AboutPanel.cpp
         src/ui/HelpPanel.cpp
         src/ui/help_data/FolderHelpLoader.cpp
-        )
+        src/ui/about_data/AboutData.h src/ui/about_data/AboutDataLoader.h src/ui/about_data/FolderAboutDataLoader.cpp src/ui/about_data/FolderAboutDataLoader.h)
 
 
 target_link_libraries(PhysarumSim
