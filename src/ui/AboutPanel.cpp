@@ -16,6 +16,17 @@ AboutPanel::AboutPanel(const std::string &name, const ui::ig::Size &size, std::u
       libList(listLayout.createChild<Listbox<std::string>>(name + "_list_tree", "", Size::Fill())),
       textStack(layout.createChild<StackedLayout>(name + "_stack", Size::Auto(), ShowBorder::Yes)),
       loader(std::move(dataLoader)) {
+  /* TODO auto &stack = textStack.pushStack();
+  auto &itemLayout = stack.createChild<BoxLayout>(uniqueId(), LayoutDirection::TopToBottom, Size::Auto());
+  itemLayout.setScrollable(true);
+  const auto aboutThis = u8R"md(
+# PhysarumSim
+
+)md";
+  auto &markdownUI = itemLayout.createChild<MarkdownText>(uniqueId(), imguiInterface, aboutData.markdown, 12.f);
+  libList.addItem(aboutData.label).addValueListener([&](const auto selected) {
+    if (selected) { stack.setActive(); }
+  });*/
   std::ranges::for_each(loader->getAboutData(), [this, &imguiInterface](const auto &aboutData) {
     auto &stack = textStack.pushStack();
     auto &itemLayout = stack.createChild<BoxLayout>(uniqueId(), LayoutDirection::TopToBottom, Size::Auto());

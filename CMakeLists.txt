@@ -82,7 +82,7 @@ endif()
 
 add_library(glad src/glad.c)
 
-file(GLOB GEGL_SOURCES src/geGL/*.cpp src/geGL/private/*.cpp)
+file(GLOB GEGL_SOURCES include/geGL/*.cpp include/geGL/private/*.cpp)
 
 add_executable(PhysarumSim
         src/main.cpp
@@ -94,8 +94,8 @@ add_executable(PhysarumSim
         ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_glfw.cpp
         ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_opengl3.cpp
         src/renderers/PhysarumRenderer.cpp src/renderers/PhysarumRenderer.h
-        src/geGL/Shader.cpp
-        src/geGL/Shader.h
+        include/geGL/Shader.cpp
+        include/geGL/Shader.h
         ${GEGL_SOURCES}
         src/simulation/PhysarumSimulator.cpp
         src/simulation/PhysarumSimulator.h
