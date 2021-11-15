@@ -13,7 +13,7 @@ class UniformParticleGenerator : public ParticleGenerator {
  public:
   explicit UniformParticleGenerator(glm::uvec2 imageSize, float step);
 
-  std::vector<Particle> generateParticles(std::size_t count) override;
+  std::vector<Particle> generateParticles(std::size_t count, std::uint32_t speciesID) override;
 
  private:
   float step;

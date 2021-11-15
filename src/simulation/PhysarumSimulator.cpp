@@ -31,7 +31,7 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   trailTexture->bindImage(1);
   speciesSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
   speciesInteractionBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 3);
-  simulateProgram->dispatch(greatestParticleCount / 64 + 1, 1, simSpeciesSettings.size());
+  simulateProgram->dispatch(totalParticleCount / 64 + 1, 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   diffuseTrailProgram->use();
@@ -68,12 +68,11 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
 
   std::vector<Particle> allParticles;
   totalParticleCount = ranges::accumulate(populations, 0, std::plus<>{}, &PopulationConfig::particleCount);
-  greatestParticleCount =
-      ranges::max(populations | std::views::transform(&PopulationConfig::particleCount), std::greater<int>{});
   allParticles.reserve(totalParticleCount);
   const auto populationsCount = populations.size();
   std::unique_ptr<ParticleGenerator> generator = nullptr;
   std::vector<int> speciesParticleOffsets;
+  std::uint32_t speciesID = 0;
   std::ranges::for_each(populations, [&](const PopulationConfig &population) {
     details::SpeciesShaderSettings simSettings{population};
     simSettings.particlesOffset = allParticles.size();
@@ -93,8 +92,9 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
         generator = std::make_unique<UniformParticleGenerator>(textureSize, population.senseDistance);
         break;// TODO: step
     }
-    const auto particles = generator->generateParticles(population.particleCount);
+    const auto particles = generator->generateParticles(population.particleCount, speciesID);
     std::ranges::copy(particles, std::back_inserter(allParticles));
+    ++speciesID;
   });
   particleBuffer = std::make_shared<Buffer>(allParticles.size() * sizeof(Particle), allParticles.data());
 

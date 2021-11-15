@@ -10,9 +10,11 @@
 namespace pf::physarum {
 
 struct Particle {
+  inline Particle(const glm::vec2 &position, float angleDirection, uint32_t speciesId)
+      : position(position), angleDirection(angleDirection), speciesID(speciesId) {}
   glm::vec2 position;
   float angleDirection;
-  float PADDING;
+  std::uint32_t speciesID;
 };
 
 }// namespace pf::physarum

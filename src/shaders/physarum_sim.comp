@@ -5,7 +5,7 @@ layout(local_size_x=64) in;
 struct Particle {
     vec2 position;
     float angleDirection;
-    float PADDING;
+    uint speciesID;
 };
 
 struct Settings {
@@ -82,7 +82,7 @@ float scaleToRange01(uint state) {
 }
 
 float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSettings) {
-    const uint speciesId = gl_GlobalInvocationID.z;
+    const uint speciesId = particle.speciesID;
     const float angle = particle.angleDirection + sensorAngle;
     const vec2 sensorDir = vec2(cos(angle), sin(angle));
 
@@ -111,7 +111,7 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
 }
 // TODO: add deltaT mult
 vec2 mouseInteractionDelta(Particle particle) {
-    const uint speciesId = gl_GlobalInvocationID.z;
+    const uint speciesId = particle.speciesID;
     if (mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE || mouseInteractionType == MOUSE_DRAW) { return vec2(0, 0); }
     if (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId) { return vec2(0, 0); }
     vec2 dir = mousePosition - particle.position;
@@ -126,12 +126,12 @@ vec2 mouseInteractionDelta(Particle particle) {
 }
 
 void main() {
-    const uint speciesId = gl_GlobalInvocationID.z;
+    //if (gl_GlobalInvocationID.x >= sSettings.particleCount) { return; }
+
+
+    Particle particle = particles[gl_GlobalInvocationID.x];
+    const uint speciesId = particle.speciesID;
     const Settings sSettings = settings[speciesId];
-    if (gl_GlobalInvocationID.x >= sSettings.particleCount) { return; }
-
-
-    Particle particle = particles[sSettings.particlesOffset + gl_GlobalInvocationID.x];
     const vec2 oldPos = particle.position;
 
 
@@ -149,11 +149,11 @@ void main() {
     if (fwdVal > leftVal && fwdVal > rightVal) {
         //
     } else if (fwdVal < leftVal && fwdVal < rightVal) {
-        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection += (rndSteer - 0.5) * 2 * turnSpeedR * deltaT;
+        particles[gl_GlobalInvocationID.x].angleDirection += (rndSteer - 0.5) * 2 * turnSpeedR * deltaT;
     } else if (rightVal > leftVal) {
-        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection -= rndSteer * turnSpeedR * deltaT;
+        particles[gl_GlobalInvocationID.x].angleDirection -= rndSteer * turnSpeedR * deltaT;
     } else if (leftVal > rightVal) {
-        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection += rndSteer * turnSpeedR * deltaT;
+        particles[gl_GlobalInvocationID.x].angleDirection += rndSteer * turnSpeedR * deltaT;
     }
 
     const vec2 newDir = vec2(cos(particle.angleDirection), sin(particle.angleDirection));
@@ -164,14 +164,14 @@ void main() {
         const float randomAngle = scaleToRange01(random) * 2 * PI;
         newPos.x = min(texSize.x - 1, max(0, newPos.x));
         newPos.y = min(texSize.y - 1, max(0, newPos.y));
-        particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].angleDirection = randomAngle;
+        particles[gl_GlobalInvocationID.x].angleDirection = randomAngle;
     } else {
         const ivec2 tCoord = ivec2(newPos);
         const float prevTrail = imageLoad(texTrail, ivec3(tCoord, speciesId)).r;
         imageStore(texTrail, ivec3(tCoord, speciesId), vec4(min(sSettings.maxTrailValue, prevTrail + sSettings.trailWeight * deltaT)));
     }
     const vec2 attractionDelta = mouseInteractionDelta(particle);
-    particles[sSettings.particlesOffset + gl_GlobalInvocationID.x].position = newPos + attractionDelta;
+    particles[gl_GlobalInvocationID.x].position = newPos + attractionDelta;
 }
 
 

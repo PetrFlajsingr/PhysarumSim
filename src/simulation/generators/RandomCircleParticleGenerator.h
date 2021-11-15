@@ -13,7 +13,7 @@ namespace pf::physarum {
 class RandomCircleParticleGenerator : public ParticleGenerator {
  public:
   RandomCircleParticleGenerator(const glm::ivec2 &size);
-  std::vector<Particle> generateParticles(std::size_t count) override;
+  std::vector<Particle> generateParticles(std::size_t count, std::uint32_t speciesID) override;
 
  private:
   glm::ivec2 size;

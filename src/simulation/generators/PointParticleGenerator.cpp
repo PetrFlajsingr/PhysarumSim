@@ -9,10 +9,11 @@
 namespace pf::physarum {
 
 PointParticleGenerator::PointParticleGenerator(glm::uvec2 point) : point(point) {}
-std::vector<Particle> PointParticleGenerator::generateParticles(std::size_t count) {
+
+std::vector<Particle> PointParticleGenerator::generateParticles(std::size_t count, std::uint32_t speciesID) {
   auto result = std::vector<Particle>{};
   for (std::size_t i = 0; i < count; ++i) {
-    result.emplace_back(glm::vec2{point}, fastRandom(0.f, 1.f) * std::numbers::pi_v<float> * 2.f);
+    result.emplace_back(glm::vec2{point}, fastRandom(0.f, 1.f) * std::numbers::pi_v<float> * 2.f, speciesID);
   }
   return result;
 }

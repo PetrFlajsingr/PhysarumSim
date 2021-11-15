@@ -102,7 +102,6 @@ class PhysarumSimulator {
   std::vector<details::SpeciesShaderDiffuseSettings> diffuseSpeciesSettings;
   std::vector<details::SpeciesShaderInteractionSettings> speciesInteractionSettings;
   int totalParticleCount;
-  int greatestParticleCount;
 
   InteractionConfig interactionConfig;
 };

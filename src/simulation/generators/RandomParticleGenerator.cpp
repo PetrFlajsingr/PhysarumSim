@@ -10,12 +10,12 @@ namespace pf::physarum {
 
 RandomParticleGenerator::RandomParticleGenerator(glm::uvec2 imageSize) : size(imageSize) {}
 
-std::vector<Particle> RandomParticleGenerator::generateParticles(std::size_t count) {
+std::vector<Particle> RandomParticleGenerator::generateParticles(std::size_t count, std::uint32_t speciesID) {
   auto result = std::vector<Particle>{};
   for (std::size_t i = 0; i < count; ++i) {
     const auto rndAngle = fastRandom(0.f, 1.f) * std::numbers::pi_v<float> * 2.f;
     result.emplace_back(
-        glm::vec2{fastRandom(0.f, static_cast<float>(size.x)), fastRandom(0.f, static_cast<float>(size.y))}, rndAngle);
+        glm::vec2{fastRandom(0.f, static_cast<float>(size.x)), fastRandom(0.f, static_cast<float>(size.y))}, rndAngle, speciesID);
   }
   return result;
 }
