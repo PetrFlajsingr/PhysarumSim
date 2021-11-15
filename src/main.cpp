@@ -13,9 +13,11 @@
 #include <numbers>
 #include <pf_glfw/GLFW.h>
 #include <pf_imgui/dialogs/FileDialog.h>
+#include <pf_imgui/enums.h>
 #include <pf_mainloop/MainLoop.h>
 #include <toml++/toml.h>
 #include <ui/UI.h>
+#include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
 
@@ -25,7 +27,11 @@
  * @return
  */
 toml::table loadConfig() {
+  constexpr auto DEFAULT_CONFIG = R"toml(
+
+)toml";
   const auto configPath = pf::getExeFolder() / "config.toml";
+  if (!exists(configPath)) {}
   const auto configPathStr = configPath.string();
   fmt::print("Loading config from: '{}'\n", configPathStr);
   return toml::parse_file(configPathStr);
@@ -97,11 +103,9 @@ int main(int argc, char *argv[]) {
   }
 
   const auto shaderFolder = resourcesFolder / "shaders";
+  const auto helpFolder = resourcesFolder / "help";
 
-  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle()};
-
-  window->setInputIgnorePredicate(
-      [&] { return ui.imguiInterface->isWindowHovered() || ui.imguiInterface->isKeyboardCaptured(); });
+  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder)};
 
   auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 
@@ -138,21 +142,41 @@ int main(int argc, char *argv[]) {
   ui.simControlsPanel->addSimStateListener([&](bool running) { isSimPaused = !running; });
 
   window->setCursorPositionCallback([&](const auto &cursorPos) {
+    if (ui.imguiInterface->isWindowHovered()) { return; }
     const auto attractorPosition = mousePosToTexPos(window->getCursorPosition(), window->getSize(), trailTextureSize);
 
     sim->setMouseInteractionActive(window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down);
     sim->setAttractorPosition(attractorPosition);
   });
-  window->setKeyCallback([&](Key key, KeyAction action, Flags<ModifierKey> mods) {
-    if (key == Key::H && action == KeyAction::Down) {
-      ui.imguiInterface->setVisibility(!ui.imguiInterface->getVisibility());
-    } else if (key == Key::Space && action == KeyAction::Down) {
-      isSimPaused = !isSimPaused;
-      ui.simControlsPanel->setSimRunning(!isSimPaused);
-    } else if (key == Key::Enter && action == KeyAction::Down && mods.is(ModifierKey::Alt)) {
-      // TODO: fullscreen switch
-    }
-  });
+  window->setKeyCallback(
+      [&](Key key, KeyAction action, const Flags<ModifierKey> &mods) {
+        if (key == Key::H && action == KeyAction::Down && mods.is(ModifierKey::Alt)) {
+          ui.imguiInterface->setVisibility(!ui.imguiInterface->getVisibility());
+        } else if (key == Key::Enter && action == KeyAction::Down && mods.is(ModifierKey::Alt)) {
+          // TODO: fullscreen switch
+        }
+        if (ui.imguiInterface->isKeyboardCaptured()) { return; }
+        if (action == KeyAction::Up) { return; }
+        switch (key) {
+          case Key::Space: {
+            isSimPaused = !isSimPaused;
+            ui.simControlsPanel->setSimRunning(!isSimPaused);
+            break;
+          }
+          case Key::Right: {
+            const auto newSteps = std::clamp(ui.simControlsPanel->getStepsPerFrame() + 1, 1, 10);
+            ui.simControlsPanel->setStepsPerFrame(newSteps);
+            break;
+          }
+          case Key::Left: {
+            const auto newSteps = std::clamp(ui.simControlsPanel->getStepsPerFrame() - 1, 1, 10);
+            ui.simControlsPanel->setStepsPerFrame(newSteps);
+            break;
+          }
+          default: break;
+        }
+      },
+      true);
 
   ui.outImage->addMousePositionListener([&](const auto &mousePos) {
     const auto size = ui.outImage->getSize();
@@ -165,7 +189,7 @@ int main(int argc, char *argv[]) {
 
   ui.onScreenshotSave = [&](const auto &path) {
     const auto imgFormat = getImageFormat(path).value();
-    auto texture = renderer.getRenderTexture();
+    const auto &texture = renderer.getRenderTexture();
     auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);
     GlobalThreadPool().enqueue([path, imgFormat, trailTextureSize, data = std::move(imageData), &ui] {
       try {
@@ -222,7 +246,14 @@ int main(int argc, char *argv[]) {
         "Select save location", {ig::FileExtensionSettings{{"mp4"}, "mp4", ImVec4{1, 0, 0, 1}}},
         [&](const auto &selected) {
           const auto &dst = selected[0];
-          recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
+          const auto res =
+              recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
+          if (res.has_value()) {
+            ui.imguiInterface->showNotification(ig::NotificationType::Error,
+                                                fmt::format("Error while starting recording: '{}'", *res));
+            ui.recorderPanel->setValue(RecordingState::Stopped);
+          }
+          ui.recorderPanel->startCounter();
         },
         [&] { ui.recorderPanel->setValue(RecordingState::Stopped); }, ig::Size{500, 400});
   };

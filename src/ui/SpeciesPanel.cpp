@@ -68,9 +68,7 @@ void SpeciesPanel::setConfig(const PopulationConfig &config) {
   colorPanel->setColor(config.color);
   filterTypeCombobox->setSelectedItem(config.filterType);
   interactionsListbox->clearItems();
-  std::ranges::for_each(config.speciesInteractions, [&](const auto &interaction) {
-    addInteraction(interaction);
-  });
+  std::ranges::for_each(config.speciesInteractions, [&](const auto &interaction) { addInteraction(interaction); });
 }
 
 void SpeciesPanel::createElements() {
@@ -119,8 +117,8 @@ void SpeciesPanel::createElements() {
 
   colorPanel = &root.createChild<SpeciesColorPanel>(getName() + "color_panel");
 
-  interactionsListbox = &root.createChild<SpeciesInteractionListbox>(getName() + "inter_listbox", "Interactions",
-                                                                     Size{Width::Auto(), 100});
+  interactionsListbox =
+      &root.createChild<SpeciesInteractionListbox>(getName() + "inter_listbox", "Interactions", Size::Auto());
 }
 
 void SpeciesPanel::registerListeners() {
@@ -171,8 +169,6 @@ void SpeciesPanel::addInteraction(const SpeciesInteractionConfig &interConfig) {
         setValue(config);
       });
 }
-void SpeciesPanel::clearInteractions() {
-  interactionsListbox->clearItems();
-}
+void SpeciesPanel::clearInteractions() { interactionsListbox->clearItems(); }
 
 }// namespace pf

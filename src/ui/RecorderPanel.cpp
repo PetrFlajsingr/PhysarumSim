@@ -37,8 +37,14 @@ RecorderPanel::RecorderPanel(const std::string &name)
 }
 
 void RecorderPanel::setRecordingState(RecordingState state) {
+  if (blinkCancel.has_value()) {
+    blinkCancel->cancel();
+    blinkCancel= std::nullopt;
+    layout.unsetColor<style::ColorOf::ChildBackground>();
+  }
   switch (state) {
     case RecordingState::Stopped:
+      counting = false;
       recordDuration = 0ms;
       recordTimeText->setVisibility(Visibility::Invisible);
       startStopRecordButton->setLabel(ICON_FK_CIRCLE);
@@ -54,6 +60,13 @@ void RecorderPanel::setRecordingState(RecordingState state) {
       pauseResumeRecordButton->setLabel(ICON_FK_PAUSE);
       pauseResumeRecordButton->setVisibility(Visibility::Visible);
       pauseResumeRecordButton->setTooltip("Pause recording");
+      blinkCancel = MainLoop::Get()->repeat([this] {
+        if (layout.getColor<style::ColorOf::ChildBackground>().has_value()) {
+          layout.unsetColor<style::ColorOf::ChildBackground>();
+        } else {
+          layout.setColor<style::ColorOf::ChildBackground>(ImVec4{60, 0, 0, 1});
+        }
+      }, std::chrono::milliseconds{500});
       break;
     case RecordingState::Paused:
       recordTimeText->setVisibility(Visibility::Visible);
@@ -73,7 +86,7 @@ void RecorderPanel::setValue(const RecordingState &newValue) { setRecordingState
 
 void RecorderPanel::renderImpl() {
   layout.render();
-  if (getValue() == RecordingState::Running) {
+  if (getValue() == RecordingState::Running && counting) {
     recordDuration += 16ms;
     setRecordTimeText();
   }
@@ -81,6 +94,9 @@ void RecorderPanel::renderImpl() {
 
 void RecorderPanel::setRecordTimeText() {
   recordTimeText->setText("{:%M:%S}", recordDuration);
+}
+void RecorderPanel::startCounter() {
+  counting = true;
 }
 
 }// namespace pf

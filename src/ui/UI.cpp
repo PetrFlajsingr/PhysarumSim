@@ -9,7 +9,7 @@
 
 using namespace pf::enum_operators;
 
-pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
+pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader) {
   using namespace ui::ig;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(
       ImGuiGlfwOpenGLConfig{.windowHandle = windowHandle,
@@ -52,6 +52,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
       [&](bool value) { interactionWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible); }, true);
   interactionWindow->setCloseable(true);
   interactionWindow->setIsDockable(true);
+  interactionWindow->getMenuBar().addButtonItem("inter_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Interaction"});
+  });
   mouseInteractionPanel = &interactionWindow->createChild<MouseInteractionPanel>("interaction_panel", Persistent::Yes);
 
   infoWindow = &imguiInterface->createWindow("info_window", ICON_FK_INFO " Info");
@@ -67,6 +70,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
       [&](bool value) { infoWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible); }, true);
   infoWindow->setCloseable(true);
   infoWindow->setIsDockable(true);
+  infoWindow->getMenuBar().addButtonItem("info_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Info"});
+  });
 
   simWindow = &imguiInterface->createWindow("sim_window", ICON_FK_WRENCH " Simulation");
   viewSimWin->addValueListener(
@@ -74,6 +80,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   simWindow->addCloseListener([&]() { viewSimWin->setValue(false); });
   simWindow->setCloseable(true);
   simWindow->setIsDockable(true);
+  simWindow->getMenuBar().addButtonItem("sim_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Simulation"});
+  });
 
   simControlsPanel = &simWindow->createChild<SimulationControlsPanel>("sim_controls_panel");
 
@@ -88,6 +97,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   fileImagesSubmenu = &imagesMenuBar->addSubmenu("images_file_submenu", "File");
   saveImageButton = &fileImagesSubmenu->addButtonItem("save_image_btn", ICON_FK_FLOPPY_O " Save screenshot");
   startRecordingButton = &fileImagesSubmenu->addButtonItem("start_rec_btn", ICON_FK_VIDEO_CAMERA " Recording");
+  imagesMenuBar->addButtonItem("img_help_btn", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Image"});
+  });
 
   outImageStretch = &imagesWindow->createChild<StretchLayout>("out_img_stretch", Size::Auto(), Stretch::All);
 
@@ -103,6 +115,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   fileSpeciesSubmenu = &speciesMenuBar->addSubmenu("species_file_submenu", "File");
   saveSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_save_button", ICON_FK_FLOPPY_O " Save");
   loadSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_load_button", ICON_FK_FILE_O " Load");
+  speciesMenuBar->addButtonItem("species_help_submenu", "Help").addClickListener([this] {
+    openHelp({"Controls", "UI", "Species"});
+  });
 
   blendTypeCombobox = &speciesWindow->createChild<Combobox<BlendType>>("blend_type_combobox", "Blend type", "Select",
                                                                        magic_enum::enum_values<BlendType>(),
@@ -201,6 +216,17 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
     }
   });
 
+  helpWindow = &imguiInterface->createWindow("help_window", ICON_FK_QUESTION_CIRCLE " Help");
+  helpWindow->setCloseable(true);
+  helpWindow->setSize(Size{700, 600});
+  helpPanel = &helpWindow->createChild<HelpPanel>("help_panel", Size{Width::Auto(), -30},
+                                                  std::move(helpLoader), *imguiInterface);
+  helpPanel->selectItem({"Introduction"});
+  showHelpOnStartupCheckbox =
+      &helpWindow->createChild<Checkbox>("show_startup_checkbox", "Show on startup", true, Persistent::Yes);
+
+  helpButton->addClickListener([this] { helpWindow->setVisibility(Visibility::Visible); });
+
   updateSpeciesTabBarFromConfig(config);
 
   if (speciesPanels.empty()) {
@@ -212,6 +238,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle) {
   addSpeciesButton->setTooltip("Add new species");
 
   imguiInterface->setStateFromConfig();
+  helpWindow->setVisibility(showHelpOnStartupCheckbox->getValue() ? Visibility::Visible : Visibility::Invisible);
 }
 
 void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture> &texture) {
@@ -260,9 +287,7 @@ void pf::ogl::UI::loadFromToml(const toml::table &src) {
 
 void pf::ogl::UI::updateSpeciesTabBarFromConfig(const toml::table &config) {
   auto speciesToml = config["species"].as_array();
-  if (speciesToml == nullptr) {
-    return;
-  }
+  if (speciesToml == nullptr) { return; }
   for (auto &s : *speciesToml) {
     auto &data = *s.as_table();
     createSpeciesTab(data["speciesName"].value<std::string>().value(), data);
@@ -311,9 +336,7 @@ void pf::ogl::UI::setMouseInteractionSpecies() {
   mouseInteractionPanel->setInteractableSpecies(interInfo);
 }
 
-void pf::ogl::UI::cleanupConfig(toml::table &config) {
-  config.insert_or_assign("species", speciesToToml());
-}
+void pf::ogl::UI::cleanupConfig(toml::table &config) { config.insert_or_assign("species", speciesToToml()); }
 
 void pf::ogl::UI::reloadSpeciesInteractions() {
   using namespace physarum;
@@ -335,4 +358,9 @@ void pf::ogl::UI::reloadSpeciesInteractions() {
     });
     ++panelIndex;
   });
+}
+
+void pf::ogl::UI::openHelp(const std::vector<std::string> &section) {
+  helpWindow->setVisibility(ui::ig::Visibility::Visible);
+  helpPanel->selectItem(section);
 }

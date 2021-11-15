@@ -39,7 +39,7 @@ void SimulationControlsPanel::registerListeners() {
 }
 
 void SimulationControlsPanel::addTooltips() {
-  playPauseButton->setTooltip("Pause simulation");
+  playPauseButton->setTooltip("Resum simulation");
   restartSimButton->setTooltip("Restart simulation");
   simSpeedDrag->setTooltip("Set how many simulations steps are computed per frame");
   timeMultiplierDrag->setTooltip("Set simulation time multiplier");
@@ -51,10 +51,10 @@ void SimulationControlsPanel::setSimRunning(bool isRunning) {
   running = isRunning;
   if (running) {
     playPauseButton->setLabel(ICON_FK_PAUSE);
-    playPauseButton->setTooltip("Resume simulation");
+    playPauseButton->setTooltip("Pause simulation");
   } else {
     playPauseButton->setLabel(ICON_FK_PLAY);
-    playPauseButton->setTooltip("Pause simulation");
+    playPauseButton->setTooltip("Resume simulation");
   }
 }
 
