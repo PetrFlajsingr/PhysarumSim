@@ -104,8 +104,9 @@ int main(int argc, char *argv[]) {
 
   const auto shaderFolder = resourcesFolder / "shaders";
   const auto helpFolder = resourcesFolder / "help";
+  const auto aboutFolder = resourcesFolder / "licenses";
 
-  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder)};
+  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder), std::make_unique<FolderAboutDataLoader>(aboutFolder)};
 
   auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 
