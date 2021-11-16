@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
     const auto size = ui.outImage->getSize();
     const auto texPos = mousePosToTexPos(mousePos, size, trailTextureSize);
     const auto isBtnDown = window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down;
-   /* if (isBtnDown && ui.mouseInteractionPanel->getConfig().interactionType == physarum::MouseInteraction::None) {
+    /* if (isBtnDown && ui.mouseInteractionPanel->getConfig().interactionType == physarum::MouseInteraction::None) {
       auto gen = physarum::PointParticleGenerator{texPos};
       auto particles = gen.generateParticles(10, 0);
       sim->addParticles(std::span{particles});
@@ -203,13 +203,16 @@ int main(int argc, char *argv[]) {
       try {
         saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
         MainLoop::Get()->enqueue([&ui, path] {
-          ui.imguiInterface->showNotification(ig::NotificationType::Success,
-                                              fmt::format("Image saved to '{}'", path.string()));
+          ui.imguiInterface->getNotificationManager()
+              .createNotification(ig::NotificationType::Success, ig::uniqueId(), "Success")
+              .createChild<ig::Text>(ig::uniqueId(), fmt::format("Image saved to '{}'", path.string()));
         });
       } catch (...) {
         MainLoop::Get()->enqueue([&ui] {
-          ui.imguiInterface->showNotification(ig::NotificationType::Error, "Image failed to save",
-                                              std::chrono::seconds{5});
+          ui.imguiInterface->getNotificationManager()
+              .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error",
+                                  std::chrono::seconds{5})
+              .createChild<ig::Text>(ig::uniqueId(), "Image failed to save");
         });
       }
     });
@@ -240,13 +243,15 @@ int main(int argc, char *argv[]) {
   VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); },
                          [&](const auto &msg) {
                            const auto errMsg = fmt::format("Recording has failed: '{}'", msg);
-                           ui.imguiInterface->showNotification(ig::NotificationType::Error, errMsg);
+                           ui.imguiInterface->getNotificationManager()
+                               .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error")
+                               .createChild<ig::Text>(ig::uniqueId(), errMsg);
                            fmt::print(stderr, errMsg);
                          },
                          [&](const auto &path) {
-                           ui.imguiInterface->showNotification(
-                               ig::NotificationType::Success,
-                               fmt::format("Recording has been saved to '{}'", path.string()));
+                           ui.imguiInterface->getNotificationManager()
+                               .createNotification(ig::NotificationType::Success, ig::uniqueId(), "Success")
+                               .createChild<ig::Text>(ig::uniqueId(), fmt::format("Recording has been saved to '{}'", path.string()));
                          }};
 
   const auto startRecording = [&] {
@@ -257,8 +262,9 @@ int main(int argc, char *argv[]) {
           const auto res =
               recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
           if (res.has_value()) {
-            ui.imguiInterface->showNotification(ig::NotificationType::Error,
-                                                fmt::format("Error while starting recording: '{}'", *res));
+            ui.imguiInterface->getNotificationManager()
+                .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error")
+                .createChild<ig::Text>(ig::uniqueId(), fmt::format("Error while starting recording: '{}'", *res));
             ui.recorderPanel->setValue(RecordingState::Stopped);
           }
           ui.recorderPanel->startCounter();
@@ -313,7 +319,7 @@ int main(int argc, char *argv[]) {
       glfw.pollEvents();
       fpsCounter.onFrame();
       if (recorder.isRecording() && !isRecordingPaused) {
-        const auto& texture = renderer.getRenderTexture();
+        const auto &texture = renderer.getRenderTexture();
         auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);// TODO: speed this up somehow
         recorder.write(std::move(imageData));
       }
