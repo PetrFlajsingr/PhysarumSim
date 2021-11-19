@@ -195,6 +195,7 @@ void PhysarumSimulator::addParticles(std::span<Particle> particles) {
   }
   glNamedBufferSubData(particleBuffer->getId(), totalParticleCount * sizeof(Particle),
                        particles.size() * sizeof(Particle), particles.data());
+  totalParticleCount += particles.size();
 }
 
 details::SpeciesShaderSettings::SpeciesShaderSettings(const PopulationConfig &src) {
