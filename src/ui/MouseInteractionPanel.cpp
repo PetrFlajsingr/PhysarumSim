@@ -45,9 +45,10 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
   const auto onChange = [&](auto) { setValue(getConfig()); };
   mouseInteractionCombobox->addValueListener(
       [this, onChange](const auto type) {
-        const auto optionsVisibility = (type == MouseInteraction::None || type == MouseInteraction::Emit) ? Visibility::Invisible : Visibility::Visible;
-        distanceDrag->setVisibility(optionsVisibility);
-        powerDrag->setVisibility(optionsVisibility);
+        const auto distanceVisibility = isIn(type, std::vector{MouseInteraction::None, MouseInteraction::Emit}) ? Visibility::Invisible : Visibility::Visible;
+        const auto powerVisibility = isIn(type, std::vector{MouseInteraction::None, MouseInteraction::Emit, MouseInteraction::Kill})? Visibility::Invisible : Visibility::Visible;
+        distanceDrag->setVisibility(distanceVisibility);
+        powerDrag->setVisibility(powerVisibility);
         drawFalloffCheckbox->setVisibility(type == MouseInteraction::Draw || type == MouseInteraction::Erase
                                                ? Visibility::Visible
                                                : Visibility::Invisible);

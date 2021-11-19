@@ -17,7 +17,7 @@ ENABLE_PF_ENUM_OUT_FOR_NAMESPACE(pf::physarum)
 namespace pf::physarum {
 
 // TODO: refactor the whole mouse interaction thing
-enum class MouseInteraction { None = 0, Attract = 1, Repel = 2, Draw = 3, Erase = 4, Emit = 5 };
+enum class MouseInteraction { None = 0, Attract = 1, Repel = 2, Draw = 3, Erase = 4, Emit = 5, Kill = 6 };
 
 enum class SpeciesInteraction { None = 0, Follow = 1, Avoid = 2 };
 

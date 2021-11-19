@@ -2,6 +2,7 @@
 
 layout(local_size_x=64) in;
 
+#define DEAD_PARTICLE 0xFFFFFFFFu
 struct Particle {
     vec2 position;
     float angleDirection;
@@ -42,6 +43,7 @@ layout(binding = 3, std430)buffer InteractionSettings{ SpeciesInteraction intera
 #define MOUSE_ATTRACT 1
 #define MOUSE_REPEL 2
 #define MOUSE_DRAW 3
+#define MOUSE_KILL 6
 
 #define PI 3.1415
 #define TRUE 1
@@ -127,11 +129,27 @@ vec2 mouseInteractionDelta(Particle particle) {
     return vec2(0, 0);
 }
 
+uint updateSpecies(Particle particle) {
+    const uint speciesId = particle.speciesID;
+    if (mouseInteractionActive == FALSE || mouseInteractionType != MOUSE_KILL) { return particle.speciesID; }
+    if (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId) { return particle.speciesID; }
+    const float dist = distance(particle.position, mousePosition);
+    if (dist < mouseIntDistance) {
+        return DEAD_PARTICLE;
+    }
+    return particle.speciesID;
+}
+
 void main() {
     if (gl_GlobalInvocationID.x >= totalParticleCount) { return; }
 
 
     Particle particle = particles[gl_GlobalInvocationID.x];
+    if (particle.speciesID == DEAD_PARTICLE) { return; }
+    particle.speciesID = updateSpecies(particle);
+    if (particle.speciesID == DEAD_PARTICLE) {
+        particles[gl_GlobalInvocationID.x].speciesID = DEAD_PARTICLE;
+    }
     const uint speciesId = particle.speciesID;
     const Settings sSettings = settings[speciesId];
     const vec2 oldPos = particle.position;
