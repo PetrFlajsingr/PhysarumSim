@@ -12,7 +12,7 @@ namespace pf::physarum {
 
 InwardCircleParticleGenerator::InwardCircleParticleGenerator(const glm::ivec2 &size) : size(size) {}
 
-std::vector<Particle> pf::physarum::InwardCircleParticleGenerator::generateParticles(std::size_t count) {
+std::vector<Particle> pf::physarum::InwardCircleParticleGenerator::generateParticles(std::size_t count, std::uint32_t speciesID) {
   auto result = std::vector<Particle>{};
   const auto center = glm::vec2{size / 2};
   const auto radius = glm::min(static_cast<float>(size.x), static_cast<float>(size.y)) * 0.4f;
@@ -20,7 +20,7 @@ std::vector<Particle> pf::physarum::InwardCircleParticleGenerator::generateParti
     const auto pos = center + fastRandomUnitCircle() * radius;
     const auto angle = std::atan2(glm::normalize(center - pos).y, glm::normalize(center - pos).x);
 
-    result.emplace_back(pos, angle);
+    result.emplace_back(pos, angle, speciesID);
   }
   return result;
 }

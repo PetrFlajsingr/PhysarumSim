@@ -14,7 +14,7 @@ class RandomParticleGenerator : public ParticleGenerator {
  public:
   explicit RandomParticleGenerator(glm::uvec2 imageSize);
 
-  std::vector<Particle> generateParticles(std::size_t count) override;
+  std::vector<Particle> generateParticles(std::size_t count, std::uint32_t speciesID) override;
 
  private:
   glm::uvec2 size;

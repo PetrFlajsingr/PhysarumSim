@@ -15,23 +15,42 @@
 namespace pf::physarum {
 
 void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
+  if (mouseInteractionActive && interactionConfig.interactionType == MouseInteraction::Emit) {
+    auto gen = physarum::PointParticleGenerator{attractorPosition};
+    std::vector<Particle> particles;
+    if (interactionConfig.interactedSpecies == -1) {
+      for (int i = 0; i < simSpeciesSettings.size(); ++i) {
+        std::ranges::copy(gen.generateParticles(interactionConfig.particleCount, i), std::back_inserter(particles));
+      }
+    } else {
+      particles = gen.generateParticles(interactionConfig.particleCount, interactionConfig.interactedSpecies);
+    }
+    addParticles(std::span{particles});
+  }
   simulateProgram->use();
   simulateProgram->set1f("deltaT", deltaTime);
   simulateProgram->set1f("time", currentTime);
 
-  simulateProgram->set1i("mouseInteractionType", static_cast<int>(interactionConfig.interactionType));
+  int interactionType;
+  switch (interactionConfig.interactionType) {
+    case MouseInteraction::Emit: interactionType = 0; break;
+    default: interactionType = static_cast<int>(interactionConfig.interactionType); break;
+  }
+
+  simulateProgram->set1i("mouseInteractionType", interactionType);
   simulateProgram->set1i("mouseInteractionActive", mouseInteractionActive ? 1 : 0);
   simulateProgram->set2fv("mousePosition", &attractorPosition[0]);
   simulateProgram->set1f("mouseIntDistance", interactionConfig.distance);
   simulateProgram->set1f("mouseIntPower", interactionConfig.power);
   simulateProgram->set1i("interactedSpeciesId", interactionConfig.interactedSpecies);
   simulateProgram->set1i("speciesCount", simSpeciesSettings.size());
+  simulateProgram->set1ui("totalParticleCount", totalParticleCount);
 
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   trailTexture->bindImage(1);
   speciesSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
   speciesInteractionBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 3);
-  simulateProgram->dispatch(greatestParticleCount / 64 + 1, 1, simSpeciesSettings.size());
+  simulateProgram->dispatch(totalParticleCount / 64 + 1, 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   diffuseTrailProgram->use();
@@ -68,12 +87,11 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
 
   std::vector<Particle> allParticles;
   totalParticleCount = ranges::accumulate(populations, 0, std::plus<>{}, &PopulationConfig::particleCount);
-  greatestParticleCount =
-      ranges::max(populations | std::views::transform(&PopulationConfig::particleCount), std::greater<int>{});
   allParticles.reserve(totalParticleCount);
   const auto populationsCount = populations.size();
   std::unique_ptr<ParticleGenerator> generator = nullptr;
   std::vector<int> speciesParticleOffsets;
+  std::uint32_t speciesID = 0;
   std::ranges::for_each(populations, [&](const PopulationConfig &population) {
     details::SpeciesShaderSettings simSettings{population};
     simSettings.particlesOffset = allParticles.size();
@@ -93,10 +111,13 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
         generator = std::make_unique<UniformParticleGenerator>(textureSize, population.senseDistance);
         break;// TODO: step
     }
-    const auto particles = generator->generateParticles(population.particleCount);
+    const auto particles = generator->generateParticles(population.particleCount, speciesID);
     std::ranges::copy(particles, std::back_inserter(allParticles));
+    ++speciesID;
   });
-  particleBuffer = std::make_shared<Buffer>(allParticles.size() * sizeof(Particle), allParticles.data());
+  currentParticleCapacity = allParticles.size() + EXTRA_PARTICLE_ALLOC;
+  particleBuffer = std::make_shared<Buffer>(currentParticleCapacity * sizeof(Particle), nullptr, GL_DYNAMIC_DRAW);
+  particleBuffer->setData(allParticles);
 
   // TODO: fix zero init
   trailTexture =
@@ -116,8 +137,9 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
   speciesDiffuseSettingsBuffer = std::make_shared<Buffer>(
       sizeof(details::SpeciesShaderDiffuseSettings) * diffuseSpeciesSettings.size(), diffuseSpeciesSettings.data());
 
-  speciesInteractionBuffer = std::make_shared<Buffer>(
-      sizeof(details::SpeciesShaderInteractionSettings) * speciesInteractionSettings.size(), speciesInteractionSettings.data());
+  speciesInteractionBuffer =
+      std::make_shared<Buffer>(sizeof(details::SpeciesShaderInteractionSettings) * speciesInteractionSettings.size(),
+                               speciesInteractionSettings.data());
 }
 
 void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t index) {
@@ -142,12 +164,12 @@ void PhysarumSimulator::updateConfig(const PopulationConfig &config, std::size_t
   const auto interactionData = speciesInteractionBuffer->map();
   auto unmapInteraction = RAII{[&] { speciesInteractionBuffer->unmap(); }};
   auto interSettings = std::span{reinterpret_cast<details::SpeciesShaderInteractionSettings *>(interactionData),
-                                simSpeciesSettings.size() * simSpeciesSettings.size()};
+                                 simSpeciesSettings.size() * simSpeciesSettings.size()};
   for (std::size_t i = 0; i < config.speciesInteractions.size(); ++i) {
-    details::SpeciesShaderInteractionSettings newSettings{static_cast<int>(config.speciesInteractions[i].interactionType), config.speciesInteractions[i].factor};
+    details::SpeciesShaderInteractionSettings newSettings{
+        static_cast<int>(config.speciesInteractions[i].interactionType), config.speciesInteractions[i].factor};
     interSettings[simSpeciesSettings.size() * index + i] = newSettings;
   }
-
 }
 
 void PhysarumSimulator::setAttractorPosition(const glm::vec2 &attractorPosition) {
@@ -160,6 +182,20 @@ void PhysarumSimulator::setInteractionConfig(const InteractionConfig &interactio
 
 void PhysarumSimulator::setMouseInteractionActive(bool mouseInteractionActive) {
   PhysarumSimulator::mouseInteractionActive = mouseInteractionActive;
+}
+
+void PhysarumSimulator::addParticles(std::span<Particle> particles) {
+  if (totalParticleCount + particles.size() >= currentParticleCapacity) {
+    auto oldBuffer = std::move(particleBuffer);
+    const auto newBufferCapacity = totalParticleCount + particles.size() + EXTRA_PARTICLE_ALLOC;
+    auto newBuffer = std::make_shared<Buffer>(newBufferCapacity * sizeof(Particle), nullptr, GL_DYNAMIC_DRAW);
+    glCopyNamedBufferSubData(oldBuffer->getId(), newBuffer->getId(), 0, 0, totalParticleCount * sizeof(Particle));
+    particleBuffer = std::move(newBuffer);
+    currentParticleCapacity = newBufferCapacity;
+  }
+  glNamedBufferSubData(particleBuffer->getId(), totalParticleCount * sizeof(Particle),
+                       particles.size() * sizeof(Particle), particles.data());
+  totalParticleCount += particles.size();
 }
 
 details::SpeciesShaderSettings::SpeciesShaderSettings(const PopulationConfig &src) {

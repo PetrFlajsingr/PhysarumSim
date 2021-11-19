@@ -22,6 +22,8 @@
 
 namespace pf::physarum {
 
+constexpr inline static auto EXTRA_PARTICLE_ALLOC = 10000;
+
 namespace details {
 struct SpeciesShaderSettings {
   int particlesOffset;
@@ -79,6 +81,12 @@ class PhysarumSimulator {
   void setMouseInteractionActive(bool mouseInteractionActive);
   void setInteractionConfig(const InteractionConfig &interactionConfig);
 
+  void addParticles(std::span<Particle> particles);
+
+  [[nodiscard]] std::size_t getParticleCount() const {
+    return totalParticleCount;
+  }
+
  private:
   glm::uvec2 textureSize;
 
@@ -102,9 +110,9 @@ class PhysarumSimulator {
   std::vector<details::SpeciesShaderDiffuseSettings> diffuseSpeciesSettings;
   std::vector<details::SpeciesShaderInteractionSettings> speciesInteractionSettings;
   int totalParticleCount;
-  int greatestParticleCount;
 
   InteractionConfig interactionConfig;
+  std::size_t currentParticleCapacity;
 };
 
 }// namespace pf::physarum

@@ -14,7 +14,7 @@ class PointParticleGenerator : public ParticleGenerator {
  public:
   explicit PointParticleGenerator(glm::uvec2 point);
 
-  std::vector<Particle> generateParticles(std::size_t count) override;
+  std::vector<Particle> generateParticles(std::size_t count, std::uint32_t speciesID) override;
 
  private:
   glm::uvec2 point;

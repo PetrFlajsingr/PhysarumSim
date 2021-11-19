@@ -19,6 +19,7 @@
 #include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
+#include <geGL/DebugMessage.h>
 
 // TODO: clean this up, divide
 /**
@@ -49,6 +50,11 @@ void saveConfig(toml::table config, pf::ogl::UI &ui) {
   config.insert_or_assign("imgui", imguiConfig);
   auto ofstream = std::ofstream(configPathStr);
   ofstream << config;
+}
+typedef void (APIENTRY *GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+
+void glDebugMessage(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam) {
+  fmt::print("{}\n", std::string(message, length));
 }
 
 glm::vec2 mousePosToTexPos(pf::glfw::Position<double> mousePos, pf::glfw::Size<int> winSize, glm::ivec2 texSize) {
@@ -181,9 +187,10 @@ int main(int argc, char *argv[]) {
 
   ui.outImage->addMousePositionListener([&](const auto &mousePos) {
     const auto size = ui.outImage->getSize();
+    const auto texPos = mousePosToTexPos(mousePos, size, trailTextureSize);
     const auto isBtnDown = window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down;
     sim->setMouseInteractionActive(isBtnDown);
-    sim->setAttractorPosition(mousePosToTexPos(mousePos, size, trailTextureSize));
+    sim->setAttractorPosition(texPos);
   });
 
   ui.mouseInteractionPanel->addValueListener([&](const auto config) { sim->setInteractionConfig(config); }, true);
@@ -196,13 +203,16 @@ int main(int argc, char *argv[]) {
       try {
         saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
         MainLoop::Get()->enqueue([&ui, path] {
-          ui.imguiInterface->showNotification(ig::NotificationType::Success,
-                                              fmt::format("Image saved to '{}'", path.string()));
+          ui.imguiInterface->getNotificationManager()
+              .createNotification(ig::NotificationType::Success, ig::uniqueId(), "Success")
+              .createChild<ig::Text>(ig::uniqueId(), fmt::format("Image saved to '{}'", path.string()));
         });
       } catch (...) {
         MainLoop::Get()->enqueue([&ui] {
-          ui.imguiInterface->showNotification(ig::NotificationType::Error, "Image failed to save",
-                                              std::chrono::seconds{5});
+          ui.imguiInterface->getNotificationManager()
+              .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error",
+                                  std::chrono::seconds{5})
+              .createChild<ig::Text>(ig::uniqueId(), "Image failed to save");
         });
       }
     });
@@ -233,13 +243,15 @@ int main(int argc, char *argv[]) {
   VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); },
                          [&](const auto &msg) {
                            const auto errMsg = fmt::format("Recording has failed: '{}'", msg);
-                           ui.imguiInterface->showNotification(ig::NotificationType::Error, errMsg);
+                           ui.imguiInterface->getNotificationManager()
+                               .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error")
+                               .createChild<ig::Text>(ig::uniqueId(), errMsg);
                            fmt::print(stderr, errMsg);
                          },
                          [&](const auto &path) {
-                           ui.imguiInterface->showNotification(
-                               ig::NotificationType::Success,
-                               fmt::format("Recording has been saved to '{}'", path.string()));
+                           ui.imguiInterface->getNotificationManager()
+                               .createNotification(ig::NotificationType::Success, ig::uniqueId(), "Success")
+                               .createChild<ig::Text>(ig::uniqueId(), fmt::format("Recording has been saved to '{}'", path.string()));
                          }};
 
   const auto startRecording = [&] {
@@ -250,8 +262,9 @@ int main(int argc, char *argv[]) {
           const auto res =
               recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
           if (res.has_value()) {
-            ui.imguiInterface->showNotification(ig::NotificationType::Error,
-                                                fmt::format("Error while starting recording: '{}'", *res));
+            ui.imguiInterface->getNotificationManager()
+                .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error")
+                .createChild<ig::Text>(ig::uniqueId(), fmt::format("Error while starting recording: '{}'", *res));
             ui.recorderPanel->setValue(RecordingState::Stopped);
           }
           ui.recorderPanel->startCounter();
@@ -282,6 +295,7 @@ int main(int argc, char *argv[]) {
     try {
       glfw.setSwapInterval(0);
       if (window->shouldClose()) { MainLoop::Get()->stop(); }
+      ui.particleCountText->setText("Particle count: {}", sim->getParticleCount());
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       const float currentTime =
@@ -301,12 +315,13 @@ int main(int argc, char *argv[]) {
         timeSinceLastFpsLabelUpdate = std::chrono::milliseconds{0};
         ui.fpsLabel->setText("Average FPS: {}", fpsCounter.averageFPS());
       }
+
       ui.imguiInterface->render();
       window->swapBuffers();
       glfw.pollEvents();
       fpsCounter.onFrame();
       if (recorder.isRecording() && !isRecordingPaused) {
-        const auto& texture = renderer.getRenderTexture();
+        const auto &texture = renderer.getRenderTexture();
         auto imageData = texture->getData(0, GL_RGBA, GL_UNSIGNED_BYTE);// TODO: speed this up somehow
         recorder.write(std::move(imageData));
       }

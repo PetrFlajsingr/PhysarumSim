@@ -46,6 +46,8 @@ class UI {
     ui::ig::SubMenu *helpSubmenu;
       ui::ig::MenuButtonItem *helpButton;
       ui::ig::MenuButtonItem *aboutButton;
+  ui::ig::AppStatusBar *statusBar;
+    ui::ig::Text *particleCountText;
   ui::ig::Window *dockWindow;
     ui::ig::DockSpace *mainDockspace;
   ui::ig::Window *interactionWindow;

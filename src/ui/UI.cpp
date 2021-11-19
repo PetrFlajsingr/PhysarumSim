@@ -47,6 +47,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   helpButton = &helpSubmenu->addButtonItem("help_button", ICON_FK_QUESTION_CIRCLE " Help");
   aboutButton = &helpSubmenu->addButtonItem("about_button", ICON_FK_INFO " About");
 
+  statusBar = &imguiInterface->createStatusBar("status_bar");
+  particleCountText = &statusBar->createChild<Text>("part_count_text", "Particle count: ");
+
   interactionWindow = &imguiInterface->createWindow("interaction_window", ICON_FK_MOUSE_POINTER " Interaction");
   interactionWindow->addCloseListener([&]() { viewInteractWin->setValue(false); });
   viewInteractWin->addValueListener(

@@ -12,7 +12,7 @@ namespace pf::physarum {
 
 class ParticleGenerator {
  public:
-  virtual std::vector<Particle> generateParticles(std::size_t count) = 0;
+  virtual std::vector<Particle> generateParticles(std::size_t count, std::uint32_t speciesID) = 0;
 
   virtual ~ParticleGenerator() = default;
 };
