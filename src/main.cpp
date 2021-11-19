@@ -19,6 +19,7 @@
 #include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
+#include <geGL/DebugMessage.h>
 
 // TODO: clean this up, divide
 /**
@@ -49,6 +50,11 @@ void saveConfig(toml::table config, pf::ogl::UI &ui) {
   config.insert_or_assign("imgui", imguiConfig);
   auto ofstream = std::ofstream(configPathStr);
   ofstream << config;
+}
+typedef void (APIENTRY *GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+
+void glDebugMessage(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam) {
+  fmt::print("{}\n", std::string(message, length));
 }
 
 glm::vec2 mousePosToTexPos(pf::glfw::Position<double> mousePos, pf::glfw::Size<int> winSize, glm::ivec2 texSize) {
@@ -289,6 +295,7 @@ int main(int argc, char *argv[]) {
     try {
       glfw.setSwapInterval(0);
       if (window->shouldClose()) { MainLoop::Get()->stop(); }
+      ui.particleCountText->setText("Particle count: {}", sim->getParticleCount());
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       const float currentTime =
@@ -308,6 +315,7 @@ int main(int argc, char *argv[]) {
         timeSinceLastFpsLabelUpdate = std::chrono::milliseconds{0};
         ui.fpsLabel->setText("Average FPS: {}", fpsCounter.averageFPS());
       }
+
       ui.imguiInterface->render();
       window->swapBuffers();
       glfw.pollEvents();

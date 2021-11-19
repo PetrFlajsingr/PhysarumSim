@@ -83,6 +83,10 @@ class PhysarumSimulator {
 
   void addParticles(std::span<Particle> particles);
 
+  [[nodiscard]] std::size_t getParticleCount() const {
+    return totalParticleCount;
+  }
+
  private:
   glm::uvec2 textureSize;
 

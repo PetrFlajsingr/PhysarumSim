@@ -116,7 +116,7 @@ void PhysarumSimulator::initialize(const std::vector<PopulationConfig> &populati
     ++speciesID;
   });
   currentParticleCapacity = allParticles.size() + EXTRA_PARTICLE_ALLOC;
-  particleBuffer = std::make_shared<Buffer>(currentParticleCapacity * sizeof(Particle));
+  particleBuffer = std::make_shared<Buffer>(currentParticleCapacity * sizeof(Particle), nullptr, GL_DYNAMIC_DRAW);
   particleBuffer->setData(allParticles);
 
   // TODO: fix zero init
@@ -188,15 +188,13 @@ void PhysarumSimulator::addParticles(std::span<Particle> particles) {
   if (totalParticleCount + particles.size() >= currentParticleCapacity) {
     auto oldBuffer = std::move(particleBuffer);
     const auto newBufferCapacity = totalParticleCount + particles.size() + EXTRA_PARTICLE_ALLOC;
-    auto newBuffer = std::make_unique<Buffer>(newBufferCapacity * sizeof(Particle));
+    auto newBuffer = std::make_shared<Buffer>(newBufferCapacity * sizeof(Particle), nullptr, GL_DYNAMIC_DRAW);
     glCopyNamedBufferSubData(oldBuffer->getId(), newBuffer->getId(), 0, 0, totalParticleCount * sizeof(Particle));
     particleBuffer = std::move(newBuffer);
     currentParticleCapacity = newBufferCapacity;
   }
-  auto particleData = reinterpret_cast<Particle *>(particleBuffer->map());
-  auto unmap = RAII{[&] { particleBuffer->unmap(); }};
-  for (std::size_t i = 0; i < particles.size(); ++i) { particleData[totalParticleCount + i] = particles[i]; }
-  totalParticleCount += particles.size();
+  glNamedBufferSubData(particleBuffer->getId(), totalParticleCount * sizeof(Particle),
+                       particles.size() * sizeof(Particle), particles.data());
 }
 
 details::SpeciesShaderSettings::SpeciesShaderSettings(const PopulationConfig &src) {
