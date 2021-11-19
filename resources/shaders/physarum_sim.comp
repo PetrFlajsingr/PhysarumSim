@@ -2,7 +2,24 @@
 
 layout(local_size_x=64) in;
 
-#define DEAD_PARTICLE 0xFFFFFFFFu
+/**********************************************************************************************************************/
+/*************************************************----ENUMS----********************************************************/
+/**********************************************************************************************************************/
+#define MOUSE_INTERACTION int
+#define MOUSE_NONE 0
+#define MOUSE_ATTRACT 1
+#define MOUSE_REPEL 2
+#define MOUSE_DRAW 3
+#define MOUSE_KILL 6
+
+#define INTERACTION_TYPE int
+#define INTERACTION_NONE 0
+#define INTERACTION_FOLLOW 1
+#define INTERACTION_AVOID 2
+
+/**********************************************************************************************************************/
+/************************************************----STRUCTS----*******************************************************/
+/**********************************************************************************************************************/
 struct Particle {
     vec2 position;
     float angleDirection;
@@ -22,28 +39,16 @@ struct Settings {
     float maxSteerRandomness;
 };
 
-#define INTERACTION_TYPE int
-#define INTERACTION_NONE 0
-#define INTERACTION_FOLLOW 1
-#define INTERACTION_AVOID 2
-
 struct SpeciesInteraction {
     INTERACTION_TYPE interactionType;
     float factor;
 };
 const int SizeOfSpeciesInteraction = 4 + 4;
 
-layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
-layout(r32f, binding = 1) uniform image2DArray texTrail;
-layout(binding = 2, std430)buffer SpeciesSettings{ Settings settings[]; };
-layout(binding = 3, std430)buffer InteractionSettings{ SpeciesInteraction interaction[]; };
-
-#define MOUSE_INTERACTION int
-#define MOUSE_NONE 0
-#define MOUSE_ATTRACT 1
-#define MOUSE_REPEL 2
-#define MOUSE_DRAW 3
-#define MOUSE_KILL 6
+/**********************************************************************************************************************/
+/***********************************************----CONSTANTS----******************************************************/
+/**********************************************************************************************************************/
+#define DEAD_PARTICLE 0xFFFFFFFFu
 
 #define PI 3.1415
 #define TRUE 1
@@ -51,6 +56,17 @@ layout(binding = 3, std430)buffer InteractionSettings{ SpeciesInteraction intera
 
 #define ALL_SPECIES_INTERACT -1
 
+/**********************************************************************************************************************/
+/*************************************************----LAYOUT----*******************************************************/
+/**********************************************************************************************************************/
+layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
+layout(r32f, binding = 1)  uniform image2DArray texTrail;
+layout(binding = 2, std430)buffer SpeciesSettings{ Settings settings[]; };
+layout(binding = 3, std430)buffer InteractionSettings{ SpeciesInteraction interaction[]; };
+
+/**********************************************************************************************************************/
+/************************************************----UNIFORMS----******************************************************/
+/**********************************************************************************************************************/
 uniform int mouseInteractionActive;
 uniform MOUSE_INTERACTION mouseInteractionType;
 uniform vec2 mousePosition;
@@ -64,6 +80,9 @@ uniform float time;
 
 uniform uint totalParticleCount;
 
+/**********************************************************************************************************************/
+/*********************************************----UTIL_FUNCTIONS----***************************************************/
+/**********************************************************************************************************************/
 vec2 rotate(vec2 v, float a) {
     float s = sin(a);
     float c = cos(a);
@@ -85,6 +104,9 @@ float scaleToRange01(uint state) {
     return float(state) / 4294967295.0;
 }
 
+/**********************************************************************************************************************/
+/**********************************************----SIM_FUNCTIONS----***************************************************/
+/**********************************************************************************************************************/
 float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSettings) {
     const uint speciesId = particle.speciesID;
     const float angle = particle.angleDirection + sensorAngle;
@@ -101,13 +123,13 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
         for (int y = -halfSensorSize; y <= halfSensorSize; ++y) {
             for (int s = 0; s < speciesCount; ++s) {
                 SpeciesInteraction sInter = interaction[speciesId * speciesCount + s];
-                if (sInter.interactionType == INTERACTION_NONE) {
+                const int mult = int(sInter.interactionType != INTERACTION_NONE);
+                /*if (sInter.interactionType == INTERACTION_NONE) {
                     continue;
-                }
+                }*/
                 const float mod = sInter.interactionType == INTERACTION_FOLLOW ? 1 : -1;
-                tmp += mod * sInter.factor * imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), s)).r;
+                tmp += mult * (mod * sInter.factor * imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), s)).r);
             }
-           // tmp += imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), speciesId)).r * interaction[speciesId * speciesCount + speciesId].factor;
         }
     }
 
@@ -116,17 +138,14 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
 // TODO: add deltaT mult
 vec2 mouseInteractionDelta(Particle particle) {
     const uint speciesId = particle.speciesID;
-    if (mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE || mouseInteractionType == MOUSE_DRAW) { return vec2(0, 0); }
-    if (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId) { return vec2(0, 0); }
-    vec2 dir = mousePosition - particle.position;
+    const bool returnZero = mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE || mouseInteractionType == MOUSE_DRAW || (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId);
+    if (returnZero) { return vec2(0, 0); }
+    vec2 dir = normalize(mousePosition - particle.position);
     const float dist = length(dir);
-    if (dist < mouseIntDistance) {
-        dir = normalize(dir);
-        const float effect = (1 - dist / mouseIntDistance) * mouseIntPower;
-
-        return (int(mouseInteractionType == MOUSE_ATTRACT) * dir + int(mouseInteractionType == MOUSE_REPEL) * -dir) * effect;
-    }
-    return vec2(0, 0);
+    const bool isWithinDistance = dist < mouseIntDistance;
+    const float effect = (1 - dist / mouseIntDistance) * mouseIntPower;
+    const vec2 resultDelta = (int(mouseInteractionType == MOUSE_ATTRACT) * dir + int(mouseInteractionType == MOUSE_REPEL) * -dir) * effect;
+    return float(isWithinDistance) * resultDelta;
 }
 
 uint updateSpecies(Particle particle) {
@@ -193,32 +212,3 @@ void main() {
     const vec2 attractionDelta = mouseInteractionDelta(particle);
     particles[gl_GlobalInvocationID.x].position = newPos + attractionDelta;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
