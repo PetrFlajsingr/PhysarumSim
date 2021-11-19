@@ -51,6 +51,7 @@ class MouseInteractionPanel : public ui::ig::Element,
     ui::ig::Combobox<physarum::MouseInteraction> *mouseInteractionCombobox;
     ui::ig::DragInput<float> *distanceDrag;
     ui::ig::DragInput<float> *powerDrag;
+    ui::ig::DragInput<int> *particleCountDrag;
     ui::ig::Checkbox *drawFalloffCheckbox;
     ui::ig::Combobox<MouseInteractionSpecies> *mouseInteractionSpeciesCombobox;
   // clang-format on

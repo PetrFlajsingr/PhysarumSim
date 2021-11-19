@@ -183,12 +183,6 @@ int main(int argc, char *argv[]) {
     const auto size = ui.outImage->getSize();
     const auto texPos = mousePosToTexPos(mousePos, size, trailTextureSize);
     const auto isBtnDown = window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down;
-    /* if (isBtnDown && ui.mouseInteractionPanel->getConfig().interactionType == physarum::MouseInteraction::None) {
-      auto gen = physarum::PointParticleGenerator{texPos};
-      auto particles = gen.generateParticles(10, 0);
-      sim->addParticles(std::span{particles});
-      return;
-    }*/
     sim->setMouseInteractionActive(isBtnDown);
     sim->setAttractorPosition(texPos);
   });

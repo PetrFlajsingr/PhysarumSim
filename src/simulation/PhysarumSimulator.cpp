@@ -15,11 +15,29 @@
 namespace pf::physarum {
 
 void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
+  if (mouseInteractionActive && interactionConfig.interactionType == MouseInteraction::Emit) {
+    auto gen = physarum::PointParticleGenerator{attractorPosition};
+    std::vector<Particle> particles;
+    if (interactionConfig.interactedSpecies == -1) {
+      for (int i = 0; i < simSpeciesSettings.size(); ++i) {
+        std::ranges::copy(gen.generateParticles(interactionConfig.particleCount, i), std::back_inserter(particles));
+      }
+    } else {
+      particles = gen.generateParticles(interactionConfig.particleCount, interactionConfig.interactedSpecies);
+    }
+    addParticles(std::span{particles});
+  }
   simulateProgram->use();
   simulateProgram->set1f("deltaT", deltaTime);
   simulateProgram->set1f("time", currentTime);
 
-  simulateProgram->set1i("mouseInteractionType", static_cast<int>(interactionConfig.interactionType));
+  int interactionType;
+  switch (interactionConfig.interactionType) {
+    case MouseInteraction::Emit: interactionType = 0; break;
+    default: interactionType = static_cast<int>(interactionConfig.interactionType); break;
+  }
+
+  simulateProgram->set1i("mouseInteractionType", interactionType);
   simulateProgram->set1i("mouseInteractionActive", mouseInteractionActive ? 1 : 0);
   simulateProgram->set2fv("mousePosition", &attractorPosition[0]);
   simulateProgram->set1f("mouseIntDistance", interactionConfig.distance);

@@ -160,7 +160,7 @@ bool PopulationConfig::operator!=(const PopulationConfig &rhs) const { return !(
 
 bool InteractionConfig::operator==(const InteractionConfig &rhs) const {
   return interactionType == rhs.interactionType && distance == rhs.distance && power == rhs.power
-      && interactedSpecies == rhs.interactedSpecies && enableDrawFalloff == rhs.enableDrawFalloff;
+      && interactedSpecies == rhs.interactedSpecies && enableDrawFalloff == rhs.enableDrawFalloff && particleCount == rhs.particleCount;
 }
 
 bool InteractionConfig::operator!=(const InteractionConfig &rhs) const { return !(rhs == *this); }
@@ -172,6 +172,7 @@ InteractionConfig InteractionConfig::FromToml(const toml::table &src) {
       .power = src["power"].value<float>().value(),
       .interactedSpecies = src["interactedSpecies"].value<int>().value(),
       .enableDrawFalloff = src["enableDrawFalloff"].value<bool>().value(),
+      .particleCount = src["particleCount"].value<int>().value(),
   };
 }
 
@@ -182,6 +183,7 @@ toml::table InteractionConfig::toToml() const {
       {"power", power},
       {"interactedSpecies", interactedSpecies},
       {"enableDrawFalloff", enableDrawFalloff},
+      {"particleCount", particleCount},
   }};
 }
 
