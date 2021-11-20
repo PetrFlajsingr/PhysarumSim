@@ -7,12 +7,14 @@
 
 #include <pf_imgui/elements/Button.h>
 #include <pf_imgui/elements/DragInput.h>
+#include <pf_imgui/elements/Checkbox.h>
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/RenderablesContainer.h>
 #include <pf_imgui/layouts/BoxLayout.h>
 
 namespace pf {
 
+// TODO: fixed time step
 class SimulationControlsPanel : public ui::ig::Element, public ui::ig::RenderablesContainer {
  public:
   explicit SimulationControlsPanel(const std::string &name);
@@ -33,6 +35,10 @@ class SimulationControlsPanel : public ui::ig::Element, public ui::ig::Renderabl
 
   Subscription addTimeMultiplierListener(std::invocable<float> auto &&listener) {
     return timeMultiplierDrag->addValueListener(std::forward<decltype(listener)>(listener));
+  }
+
+  Subscription addFixedStepListener(std::invocable<std::optional<float>> auto &&listener) {
+    return fixedStepObservable.addListener(std::forward<decltype(listener)>(listener));
   }
 
   [[nodiscard]] bool isSimRunning() const;
@@ -58,11 +64,15 @@ class SimulationControlsPanel : public ui::ig::Element, public ui::ig::Renderabl
       ui::ig::Button *playPauseButton;
       ui::ig::Button *restartSimButton;
       ui::ig::DragInput<int> *simSpeedDrag;
+    ui::ig::BoxLayout *fixedStepLayout;
+      ui::ig::Checkbox *fixedStepCheckbox;
+      ui::ig::DragInput<float> *fixedStepDrag;
     ui::ig::DragInput<float> *timeMultiplierDrag;
   // clang-format on
 
   bool running = false;
   ui::ig::Observable_impl<bool> runningObservable;
+  ui::ig::Observable_impl<std::optional<float>> fixedStepObservable;
 };
 
 }// namespace pf

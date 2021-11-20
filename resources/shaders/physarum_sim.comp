@@ -40,7 +40,7 @@ struct Settings {
 };
 
 struct SpeciesInteraction {
-    INTERACTION_TYPE interactionType;
+INTERACTION_TYPE interactionType;
     float factor;
 };
 const int SizeOfSpeciesInteraction = 4 + 4;
@@ -123,12 +123,11 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
         for (int y = -halfSensorSize; y <= halfSensorSize; ++y) {
             for (int s = 0; s < speciesCount; ++s) {
                 SpeciesInteraction sInter = interaction[speciesId * speciesCount + s];
-                const int mult = int(sInter.interactionType != INTERACTION_NONE);
-                /*if (sInter.interactionType == INTERACTION_NONE) {
+                if (sInter.interactionType == INTERACTION_NONE) {
                     continue;
-                }*/
+                }
                 const float mod = sInter.interactionType == INTERACTION_FOLLOW ? 1 : -1;
-                tmp += mult * (mod * sInter.factor * imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), s)).r);
+                tmp += mod * sInter.factor * imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), s)).r;
             }
         }
     }
@@ -140,8 +139,9 @@ vec2 mouseInteractionDelta(Particle particle) {
     const uint speciesId = particle.speciesID;
     const bool returnZero = mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE || mouseInteractionType == MOUSE_DRAW || (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId);
     if (returnZero) { return vec2(0, 0); }
-    vec2 dir = normalize(mousePosition - particle.position);
+    vec2 dir = mousePosition - particle.position;
     const float dist = length(dir);
+    dir = normalize(dir);
     const bool isWithinDistance = dist < mouseIntDistance;
     const float effect = (1 - dist / mouseIntDistance) * mouseIntPower;
     const vec2 resultDelta = (int(mouseInteractionType == MOUSE_ATTRACT) * dir + int(mouseInteractionType == MOUSE_REPEL) * -dir) * effect;

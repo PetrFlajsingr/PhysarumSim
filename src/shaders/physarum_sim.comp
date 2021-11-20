@@ -139,8 +139,9 @@ vec2 mouseInteractionDelta(Particle particle) {
     const uint speciesId = particle.speciesID;
     const bool returnZero = mouseInteractionActive == FALSE || mouseInteractionType == MOUSE_NONE || mouseInteractionType == MOUSE_DRAW || (interactedSpeciesId != ALL_SPECIES_INTERACT && interactedSpeciesId != speciesId);
     if (returnZero) { return vec2(0, 0); }
-    vec2 dir = normalize(mousePosition - particle.position);
+    vec2 dir = mousePosition - particle.position;
     const float dist = length(dir);
+    dir = normalize(dir);
     const bool isWithinDistance = dist < mouseIntDistance;
     const float effect = (1 - dist / mouseIntDistance) * mouseIntPower;
     const vec2 resultDelta = (int(mouseInteractionType == MOUSE_ATTRACT) * dir + int(mouseInteractionType == MOUSE_REPEL) * -dir) * effect;

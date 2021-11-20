@@ -29,12 +29,29 @@ void SimulationControlsPanel::createElements() {
                                                              1, Persistent::Yes);
   timeMultiplierDrag = &layout.createChild<DragInput<float>>(getName() + "time_nult_drag", "Time multiplier", .01f,
                                                              .01f, 10.f, 1.f, Persistent::Yes);
+
+  fixedStepLayout =
+      &layout.createChild<BoxLayout>(getName() + "fixed_layout", LayoutDirection::LeftToRight, Size{Width::Auto(), 30});
+  fixedStepCheckbox =
+      &fixedStepLayout->createChild<Checkbox>(getName() + "chkbx", "Fixed step", false, Persistent::Yes);
+  fixedStepDrag = &fixedStepLayout->createChild<DragInput<float>>(getName() + "fix_drag", "Time step", 0.001f, 0.001f,
+                                                                  1.f, 1.f / 60.f);
 }
 
 void SimulationControlsPanel::registerListeners() {
   playPauseButton->addClickListener([&] {
     setSimRunning(!running);
     runningObservable.notify(running);
+  });
+  fixedStepCheckbox->addValueListener(
+      [this](const auto enabled) {
+        fixedStepDrag->setVisibility(enabled ? Visibility::Visible : Visibility::Invisible);
+        timeMultiplierDrag->setVisibility(enabled ? Visibility::Invisible : Visibility::Visible);
+        fixedStepObservable.notify(enabled ? std::optional{fixedStepDrag->getValue()} : std::nullopt);
+      },
+      true);
+  fixedStepDrag->addValueListener([this](const auto value) {
+    if (fixedStepCheckbox->getValue()) { fixedStepObservable.notify(value); }
   });
 }
 
@@ -43,6 +60,8 @@ void SimulationControlsPanel::addTooltips() {
   restartSimButton->setTooltip("Restart simulation");
   simSpeedDrag->setTooltip("Set how many simulations steps are computed per frame");
   timeMultiplierDrag->setTooltip("Set simulation time multiplier");
+  fixedStepCheckbox->setTooltip("Run the simulation with fixed time step");
+  fixedStepDrag->setTooltip("Fixed time step of the simulation");
 }
 
 bool SimulationControlsPanel::isSimRunning() const { return running; }

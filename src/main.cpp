@@ -5,6 +5,7 @@
 #include "utils/files.h"
 #include <filesystem>
 #include <fmt/format.h>
+#include <geGL/DebugMessage.h>
 #include <images/VideoRecorder.h>
 #include <images/save.h>
 #include <magic_enum.hpp>
@@ -19,7 +20,6 @@
 #include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
-#include <geGL/DebugMessage.h>
 
 // TODO: clean this up, divide
 /**
@@ -51,9 +51,11 @@ void saveConfig(toml::table config, pf::ogl::UI &ui) {
   auto ofstream = std::ofstream(configPathStr);
   ofstream << config;
 }
-typedef void (APIENTRY *GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+typedef void(APIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                                    const GLchar *message, const void *userParam);
 
-void glDebugMessage(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam) {
+void glDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message,
+                    const void *userParam) {
   fmt::print("{}\n", std::string(message, length));
 }
 
@@ -210,8 +212,7 @@ int main(int argc, char *argv[]) {
       } catch (...) {
         MainLoop::Get()->enqueue([&ui] {
           ui.imguiInterface->getNotificationManager()
-              .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error",
-                                  std::chrono::seconds{5})
+              .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error", std::chrono::seconds{5})
               .createChild<ig::Text>(ig::uniqueId(), "Image failed to save");
         });
       }
@@ -226,6 +227,7 @@ int main(int argc, char *argv[]) {
   const auto updateUIPosition = [&] {
     const auto winSize = window->getSize();
     ui.dockWindow->setPosition(ImVec2{0.f, 19.f});
+    const auto dockSize = ig::Size{winSize.width, winSize.height - 19 - ui.statusBar->getHeight()};
     ui.dockWindow->setSize(ig::Size{winSize.width, winSize.height - 19});
   };
 
@@ -251,7 +253,8 @@ int main(int argc, char *argv[]) {
                          [&](const auto &path) {
                            ui.imguiInterface->getNotificationManager()
                                .createNotification(ig::NotificationType::Success, ig::uniqueId(), "Success")
-                               .createChild<ig::Text>(ig::uniqueId(), fmt::format("Recording has been saved to '{}'", path.string()));
+                               .createChild<ig::Text>(ig::uniqueId(),
+                                                      fmt::format("Recording has been saved to '{}'", path.string()));
                          }};
 
   const auto startRecording = [&] {
@@ -291,6 +294,9 @@ int main(int argc, char *argv[]) {
     }
   });
 
+  std::optional<float> fixedStep = std::nullopt;
+  ui.simControlsPanel->addFixedStepListener([&](const auto val) { fixedStep = val; });
+
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     try {
       glfw.setSwapInterval(0);
@@ -300,8 +306,11 @@ int main(int argc, char *argv[]) {
 
       const float currentTime =
           std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
-      const float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f
+      float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f
           * ui.simControlsPanel->getTimeMultiplier();
+      if (fixedStep.has_value()) {
+        timeDelta = *fixedStep;
+      }
 
       if (anySpecies) { renderer.render(); }
 
