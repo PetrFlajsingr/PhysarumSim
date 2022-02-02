@@ -87,6 +87,11 @@ class PhysarumSimulator {
     return totalParticleCount;
   }
 
+  void setBackgroundImage(const std::shared_ptr<Texture> &background) {
+    backgroundTexture = background;
+    backgroundActive = true;
+  }
+
  private:
   glm::uvec2 textureSize;
 
@@ -113,6 +118,9 @@ class PhysarumSimulator {
 
   InteractionConfig interactionConfig;
   std::size_t currentParticleCapacity;
+
+  bool backgroundActive = false;
+  std::shared_ptr<Texture> backgroundTexture = nullptr;
 };
 
 }// namespace pf::physarum

@@ -45,11 +45,13 @@ void PhysarumSimulator::simulate(float currentTime, float deltaTime) {
   simulateProgram->set1i("interactedSpeciesId", interactionConfig.interactedSpecies);
   simulateProgram->set1i("speciesCount", simSpeciesSettings.size());
   simulateProgram->set1ui("totalParticleCount", totalParticleCount);
+  simulateProgram->set1i("backgroundActive", backgroundActive ? 1 : 0);
 
   particleBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 0);
   trailTexture->bindImage(1);
   speciesSettingsBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 2);
   speciesInteractionBuffer->bindBase(GL_SHADER_STORAGE_BUFFER, 3);
+  if (backgroundActive) { backgroundTexture->bindImage(4); }
   simulateProgram->dispatch(totalParticleCount / 64 + 1, 1, 1);
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 

@@ -1,0 +1,21 @@
+#version 460 core
+
+layout(local_size_x=8, local_size_y=8)in;
+
+layout(rgba32f, binding = 0) uniform image2D inputImage;
+layout(rgba32f, binding = 1) uniform image2D outputImage;
+
+void main() {
+    const ivec2 dimensions = imageSize(inputImage);
+
+    if (gl_GlobalInvocationID.x >= dimensions.x) {
+        return;
+    }
+    if (gl_GlobalInvocationID.y >= dimensions.y) {
+        return;
+    }
+    const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+    const vec3 color = imageLoad(inputImage, texCoord).rgb;
+    const float grayscale = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b;
+    imageStore(outputImage, texCoord, vec4(grayscale, grayscale, grayscale, 1.0));
+}

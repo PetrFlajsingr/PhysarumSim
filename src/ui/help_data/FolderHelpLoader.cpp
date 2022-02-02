@@ -3,10 +3,7 @@
 //
 
 #include "FolderHelpLoader.h"
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#endif
-#include <stb/stb_image.h>
+#include <utils/files.h>
 
 namespace pf {
 using namespace ui::ig;
@@ -65,26 +62,21 @@ std::optional<MarkdownText::ImageData> FolderHelpLoader::loadImageImpl(std::stri
   if (const auto iter = textures.find(imgID); iter != textures.end()) {
     return MarkdownText::ImageData{(ImTextureID) (iter->second.texture->getId()), iter->second.size};
   }
-  int width;
-  int height;
-  int channels;
-  auto stbImgDeleter = [](stbi_uc *ptr) { stbi_image_free(ptr); };
-  const auto texPath = folder / path;
-  std::unique_ptr<stbi_uc, decltype(stbImgDeleter)> stbImage(
-      stbi_load(absolute(texPath).string().c_str(), &width, &height, &channels, 0), stbImgDeleter);
-  if (stbImage == nullptr) { return std::nullopt; }
-  auto texture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_RGBA, 0, width, height);
+
+  auto imgData = loadImage(folder / path);
+  if (!imgData.has_value()) { return std::nullopt; }
+  auto texture = std::make_shared<Texture>(GL_TEXTURE_2D, GL_RGBA, 0, imgData->width, imgData->height);
   texture->texParameteri(GL_TEXTURE_WRAP_S, GL_REPEAT);
   texture->texParameteri(GL_TEXTURE_WRAP_T, GL_REPEAT);
   texture->texParameteri(GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   texture->texParameteri(GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
   std::vector<unsigned char> data;
-  data.reserve(height * width * 4);
-  auto s = std::span{stbImage.get(), static_cast<std::size_t>(width * height * channels)};
-  switch (channels) {
+  data.reserve(imgData->height * imgData->width * imgData->channels);
+  auto s = std::span{reinterpret_cast<unsigned char*>(imgData->data.data()), imgData->data.size()};
+  switch (imgData->channels) {
     case 1:
-      for (int i = 0; i < width * height; ++i) {
+      for (int i = 0; i < imgData->width * imgData->height; ++i) {
         data.emplace_back(s[i]);
         data.emplace_back(s[i]);
         data.emplace_back(s[i]);
@@ -92,7 +84,7 @@ std::optional<MarkdownText::ImageData> FolderHelpLoader::loadImageImpl(std::stri
       }
       break;
     case 3:
-      for (int i = 0; i < width * height * 3; i += 3) {
+      for (int i = 0; i < imgData->width * imgData->height * 3; i += 3) {
         data.emplace_back(s[i]);
         data.emplace_back(s[i + 1]);
         data.emplace_back(s[i + 2]);
@@ -102,7 +94,7 @@ std::optional<MarkdownText::ImageData> FolderHelpLoader::loadImageImpl(std::stri
     case 4: std::ranges::copy(s, std::back_inserter(data)); break;
   }
   texture->setData2D(data.data());
-  auto cachedData = TextureCacheData{texture, Size{width, height}};
+  auto cachedData = TextureCacheData{texture, Size{static_cast<float>(imgData->width), static_cast<float>(imgData->height)}};
   textures[imgID] = cachedData;
   return MarkdownText::ImageData{(ImTextureID) (cachedData.texture->getId()), cachedData.size};
 }

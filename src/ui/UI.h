@@ -83,9 +83,13 @@ class UI {
     ui::ig::Checkbox *showHelpOnStartupCheckbox;
   ui::ig::Window *aboutWindow;
     AboutPanel *aboutPanel;
+  ui::ig::Window *tmpWindow;
+    ui::ig::StretchLayout *tmpStretch;
+      ui::ig::Image *tmpImage;
   // clang-format on
 
   void setOutImage(const std::shared_ptr<Texture> &texture);
+  void setTmpImage(const std::shared_ptr<Texture> &texture);
 
   Subscription addResetListener(std::invocable auto &&listener) {
     return resetObservable.addListener(std::forward<decltype(listener)>(listener));

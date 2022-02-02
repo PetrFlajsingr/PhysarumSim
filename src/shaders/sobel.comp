@@ -1,0 +1,38 @@
+#version 460 core
+
+layout(local_size_x=8, local_size_y=8)in;
+
+layout(rgba32f, binding = 0) uniform image2D inputImage;
+layout(rgba32f, binding = 1) uniform image2D outputImage;
+
+void getData(inout float data[9], ivec2 coord) {
+    data[0] = imageLoad(inputImage, coord + ivec2(-1, -1)).r;
+    data[1] = imageLoad(inputImage, coord + ivec2( 0, -1)).r;
+    data[2] = imageLoad(inputImage, coord + ivec2( 1, -1)).r;
+    data[3] = imageLoad(inputImage, coord + ivec2(-1,  0)).r;
+    data[4] = imageLoad(inputImage, coord + ivec2( 0,  0)).r;
+    data[5] = imageLoad(inputImage, coord + ivec2( 1,  0)).r;
+    data[6] = imageLoad(inputImage, coord + ivec2(-1,  1)).r;
+    data[7] = imageLoad(inputImage, coord + ivec2( 0,  1)).r;
+    data[8] = imageLoad(inputImage, coord + ivec2( 1,  1)).r;
+}
+
+void main() {
+    const ivec2 dimensions = imageSize(inputImage);
+
+    if (gl_GlobalInvocationID.x >= dimensions.x) {
+        return;
+    }
+    if (gl_GlobalInvocationID.y >= dimensions.y) {
+        return;
+    }
+    const ivec2 texCoord = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
+
+    float data[9];
+    getData(data, texCoord);
+
+    const float edgeHorizontal = data[2] + (2.0 * data[5]) + data[8] - (data[0] + (2.0 * data[3]) + data[6]);
+    const float edgeVertical = data[0] + (2.0 * data[1]) + data[2] - (data[6] + (2.0 * data[7]) + data[8]);
+    const float result = sqrt((edgeHorizontal * edgeHorizontal) + (edgeVertical * edgeVertical));
+    imageStore(outputImage, texCoord, vec4(result, result, result, 1.0));
+}

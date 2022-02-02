@@ -22,7 +22,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
                             .defaultFontSize = 13.f});
   setDarkStyle(*imguiInterface);
 
-  dockWindow = &imguiInterface->createWindow("dock_window", "Test");
+  dockWindow = &imguiInterface->createWindow("dock_window", "DOCK_WINDOW");
   dockWindow->setUserResizable(false);
   dockWindow->setUserMovable(false);
   dockWindow->setTitleBarVisible(false);
@@ -240,6 +240,9 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
     aboutWindow->setVisibility(Visibility::Visible);
   });
 
+  tmpWindow = &imguiInterface->createWindow("asdsadasda", "Tfdfgdgest");
+  tmpStretch = &tmpWindow->createChild<StretchLayout>("tmp_img_stretch", Size::Auto(), Stretch::All);
+
   updateSpeciesTabBarFromConfig(config);
 
   if (speciesPanels.empty()) {
@@ -256,7 +259,12 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
 
 void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture> &texture) {
   using namespace ui::ig;
-  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080});
+  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), outImageStretch->getSize());
+}
+
+void pf::ogl::UI::setTmpImage(const std::shared_ptr<Texture> &texture) {
+  using namespace ui::ig;
+  tmpImage = &tmpStretch->createChild<Image>("tmp_image", (ImTextureID) texture->getId(), Size::Fill());
 }
 
 void pf::ogl::UI::setAllWinVisibility(bool visible) {

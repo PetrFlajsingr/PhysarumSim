@@ -1,25 +1,20 @@
 #include "GlobalThreadpool.h"
 #include "app_icon.h"
 #include "renderers/PhysarumRenderer.h"
-#include "simulation/generators/RandomParticleGenerator.h"
-#include "utils/files.h"
 #include <filesystem>
-#include <fmt/format.h>
-#include <geGL/DebugMessage.h>
 #include <images/VideoRecorder.h>
 #include <images/save.h>
 #include <magic_enum.hpp>
 #include <numbers>
 #include <pf_glfw/GLFW.h>
 #include <pf_imgui/dialogs/FileDialog.h>
-#include <pf_imgui/enums.h>
 #include <pf_mainloop/MainLoop.h>
-#include <toml++/toml.h>
 #include <ui/UI.h>
 #include <ui/about_data/FolderAboutDataLoader.h>
 #include <ui/help_data/FolderHelpLoader.h>
 #include <utils/FPSCounter.h>
 #include <utils/rand.h>
+#include "simulation/ImgTransform.h"
 
 // TODO: clean this up, divide
 /**
@@ -296,6 +291,14 @@ int main(int argc, char *argv[]) {
 
   std::optional<float> fixedStep = std::nullopt;
   ui.simControlsPanel->addFixedStepListener([&](const auto val) { fixedStep = val; });
+
+  //const auto img = loadImage("C:\\Users\\xflajs00\\Desktop\\render2.png", 4).value();
+  const auto img = loadImage("C:\\Users\\xflajs00\\Desktop\\img.jpg", 4).value();
+  ImgTransform transform{shaderFolder};
+  transform.setInputData(std::span{img.data.begin(),  img.data.end()}, img.width, img.height);
+  transform.transform();
+  ui.setTmpImage(transform.getOutputTexture());
+  sim->setBackgroundImage(transform.getOutputTexture());
 
   MainLoop::Get()->setOnMainLoop([&](std::chrono::nanoseconds deltaT) {
     try {

@@ -59,10 +59,11 @@ const int SizeOfSpeciesInteraction = 4 + 4;
 /**********************************************************************************************************************/
 /*************************************************----LAYOUT----*******************************************************/
 /**********************************************************************************************************************/
-layout(binding = 0, std430)buffer Particles{ Particle particles[]; };
+layout(binding = 0, std430) buffer Particles{ Particle particles[]; };
 layout(r32f, binding = 1)  uniform image2DArray texTrail;
-layout(binding = 2, std430)buffer SpeciesSettings{ Settings settings[]; };
-layout(binding = 3, std430)buffer InteractionSettings{ SpeciesInteraction interaction[]; };
+layout(binding = 2, std430) buffer SpeciesSettings{ Settings settings[]; };
+layout(binding = 3, std430) buffer InteractionSettings{ SpeciesInteraction interaction[]; };
+layout(rgba32f, binding = 4) uniform image2D backgroundTex;
 
 /**********************************************************************************************************************/
 /************************************************----UNIFORMS----******************************************************/
@@ -79,6 +80,8 @@ uniform float deltaT;
 uniform float time;
 
 uniform uint totalParticleCount;
+
+uniform int backgroundActive;
 
 /**********************************************************************************************************************/
 /*********************************************----UTIL_FUNCTIONS----***************************************************/
@@ -107,6 +110,21 @@ float scaleToRange01(uint state) {
 /**********************************************************************************************************************/
 /**********************************************----SIM_FUNCTIONS----***************************************************/
 /**********************************************************************************************************************/
+ivec2 trailTexToBkgCoord(vec2 coord) {
+    const ivec2 bkgSize = imageSize(backgroundTex).xy;
+    const ivec2 texSize = imageSize(texTrail).xy;
+    coord /= texSize;
+    return ivec2(bkgSize * coord);
+}
+
+float getBackgroundValue(vec2 coord) {
+    if (backgroundActive == FALSE) {
+        return 0;
+    }
+    const ivec2 bkgCoord = trailTexToBkgCoord(coord);
+    return imageLoad(backgroundTex, bkgCoord).r * 1000;
+}
+
 float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSettings) {
     const uint speciesId = particle.speciesID;
     const float angle = particle.angleDirection + sensorAngle;
@@ -121,14 +139,16 @@ float sense(Particle particle, float sensorAngle, ivec2 texSize, Settings sSetti
     float tmp = 0;
     for (int x = -halfSensorSize; x <= halfSensorSize; ++x) {
         for (int y = -halfSensorSize; y <= halfSensorSize; ++y) {
+            const ivec2 sensorPos = texSensorPos + ivec2(x, y);
             for (int s = 0; s < speciesCount; ++s) {
                 SpeciesInteraction sInter = interaction[speciesId * speciesCount + s];
                 if (sInter.interactionType == INTERACTION_NONE) {
                     continue;
                 }
                 const float mod = sInter.interactionType == INTERACTION_FOLLOW ? 1 : -1;
-                tmp += mod * sInter.factor * imageLoad(texTrail, ivec3(texSensorPos + ivec2(x, y), s)).r;
+                tmp += mod * sInter.factor * imageLoad(texTrail, ivec3(sensorPos, s)).r;
             }
+            tmp += getBackgroundValue(sensorPos);
         }
     }
 
