@@ -14,15 +14,19 @@ include(${CPM_DOWNLOAD_LOCATION})
 
 
 HunterGate(
-        URL "https://github.com/cpp-pm/hunter/archive/v0.23.269.tar.gz"
-        SHA1 "64024b7b95b4c86d50ae05b926814448c93a70a0"
+        URL "https://github.com/cpp-pm/hunter/archive/v0.23.321.tar.gz"
+        SHA1 "5e53cbb0429037ea8e2592bfd92704b8ff3ab492"
 )
 
 
 project(PhysarumSim)
 
 
-set(CMAKE_CXX_STANDARD 20)
+if (MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.29.30129 AND CMAKE_VERSION VERSION_GREATER 3.20.3)
+    set(CMAKE_CXX_STANDARD 23) # /std:c++latest - unlocks the non stable cpp20 features. For new 16.11 versions
+else ()
+    set(CMAKE_CXX_STANDARD 20) # /std:c++latest for msvc and -std=c++20 for everyone else.
+endif ()
 
 add_compile_definitions(GLFW_INCLUDE_NONE)
 add_compile_definitions(GLM_FORCE_SWIZZLE)
