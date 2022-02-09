@@ -61,7 +61,7 @@ class HelpPanel : public ui::ig::Element {
       ui::ig::Tree<ui::ig::TreeType::Simple> &menuTree;
     ui::ig::StackedLayout &helpStack;
   // clang-format on
-  cppcoro::generator<int> idGenerator = iota<int>();
+  std::size_t idCounter{};
   std::unique_ptr<HelpLoader> loader;
 };
 

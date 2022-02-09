@@ -34,7 +34,7 @@ class SpeciesPanel : public ui::ig::Element,
 
  protected:
   void unserialize_impl(const toml::table &src) override;
-  toml::table serialize_impl() override;
+  toml::table serialize_impl() const override;
 
   void renderImpl() override;
 

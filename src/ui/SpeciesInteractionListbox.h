@@ -33,7 +33,7 @@ class SpeciesInteractionRow : public ui::ig::Element,
   void renderImpl() override;
 
   void unserialize_impl(const toml::table &src) override;
-  toml::table serialize_impl() override;
+  toml::table serialize_impl() const override;
 
  private:
   // clang-format off
@@ -45,7 +45,7 @@ class SpeciesInteractionRow : public ui::ig::Element,
 };
 
 struct SpeciesInteractionRowFactory {
-  static inline cppcoro::generator<std::size_t> idGenerator = iota<std::size_t>();
+  static inline std::size_t IdCounter{};
   const std::string idStart = ui::ig::uniqueId();
   std::unique_ptr<SpeciesInteractionRow> operator()(const physarum::SpeciesInteractionConfig &item);
 };

@@ -3,6 +3,7 @@
 //
 
 #include "UI.h"
+#include <filesystem>
 #include <pf_imgui/backends/ImGuiGlfwOpenGLInterface.h>
 #include <pf_imgui/enums.h>
 #include <pf_imgui/styles/dark.h>
@@ -12,14 +13,14 @@ using namespace pf::enum_operators;
 pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader,
                 std::unique_ptr<AboutDataLoader> aboutLoader) {
   using namespace ui::ig;
+  using namespace std::string_literals;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(
-      ImGuiGlfwOpenGLConfig{.windowHandle = windowHandle,
-                            .flags = {},
-                            .enableMultiViewport = false,
-                            .config = config,
-                            .pathToIconFolder = *config["path_icons"].value<std::string>(),
-                            .enabledIconPacks = IconPack::ForkAwesome,
-                            .defaultFontSize = 13.f});
+      ImGuiGlfwOpenGLConfig{.imgui{.flags = ui::ig::ImGuiConfigFlags::DockingEnable,
+                                   .config = config,
+                                   .iconFontDirectory = *config["path_icons"].value<std::string>(),
+                                   .enabledIconPacks = IconPack::ForkAwesome,
+                                   .iconSize = 13.f},
+                            .windowHandle = windowHandle});
   setDarkStyle(*imguiInterface);
 
   dockWindow = &imguiInterface->createWindow("dock_window", "Test");
@@ -145,7 +146,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
                                          Flags{MessageButtons::Ok}, [](auto) { return true; });
             return;
           }
-          createSpeciesTab(input);
+          createSpeciesTab(std::string{input});
         },
         [] {});
   });
@@ -165,41 +166,46 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   });
 
   saveSpeciesButton->addClickListener([&] {
-    imguiInterface->openFileDialog(
-        "Select save location", {FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
-        [&](const auto &selected) {
+    imguiInterface->buildFileDialog(FileDialogType::File)
+        .label("Select save location")
+        .extension({{"toml"}, "toml", ImVec4{1, 0, 0, 1}})
+        .onSelect([&](const auto &selected) {
           const auto &dst = selected[0];
           toml::table data;
           data.insert("species", speciesToToml());
           std::ofstream ostream{dst};
           ostream << data;
-        },
-        [] {}, Size{500, 400});
+        })
+        .size(Size{500, 400})
+        .build();
   });
 
   loadSpeciesButton->addClickListener([&] {
-    imguiInterface->openFileDialog(
-        "Select file to load", {FileExtensionSettings{{"toml"}, "toml", ImVec4{1, 0, 0, 1}}},
-        [&](const auto &selected) {
+    imguiInterface->buildFileDialog(FileDialogType::File)
+        .label("Select file to load")
+        .extension({{"toml"}, "toml", ImVec4{1, 0, 0, 1}})
+        .onSelect([&](const auto &selected) {
           const auto &dst = selected[0];
           const auto config = toml::parse_file(std::filesystem::absolute(dst).string());
           loadFromToml(config);
-        },
-        [] {}, Size{500, 400});
+        })
+        .size(Size{500, 400})
+        .build();
   });
 
   saveImageButton->addClickListener([&]() {
-    auto extensions =
-        std::vector<FileExtensionSettings>{FileExtensionSettings{{"png"}, "png", ImVec4{1, 0, 0, 1}},
-                                           FileExtensionSettings{{"jpg", "jpeg"}, "jpg", ImVec4{1, 0, 0, 1}},
-                                           FileExtensionSettings{{"bmp"}, "bmp", ImVec4{1, 0, 0, 1}}};
-    imguiInterface->openFileDialog(
-        "Select save location", extensions,
-        [&](const auto &selected) {
-          const auto &dst = selected[0];
-          onScreenshotSave(dst);
-        },
-        [] {}, Size{500, 400});
+    imguiInterface->buildFileDialog(FileDialogType::File)
+        .label("Select save location")
+        .extension({{"toml"}, "toml", ImVec4{1, 0, 0, 1}})
+        .extension({{"png"}, "png", ImVec4{1, 0, 0, 1}})
+        .extension({{"bmp"}, "bmp", ImVec4{1, 0, 0, 1}})
+        .onSelect(
+            [&](const auto &selected) {
+              const auto &dst = selected[0];
+              onScreenshotSave(dst);
+            })
+        .size(Size{500, 400})
+        .build();
   });
 
   recordingWindow = &imguiInterface->createWindow("rec_window", "REC");
@@ -236,9 +242,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
       &aboutWindow->createChild<AboutPanel>("about_panel", Size::Auto(), std::move(aboutLoader), *imguiInterface);
   aboutWindow->setCloseable(true);
   aboutWindow->setVisibility(Visibility::Invisible);
-  aboutButton->addClickListener([&] {
-    aboutWindow->setVisibility(Visibility::Visible);
-  });
+  aboutButton->addClickListener([&] { aboutWindow->setVisibility(Visibility::Visible); });
 
   updateSpeciesTabBarFromConfig(config);
 

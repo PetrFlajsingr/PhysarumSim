@@ -98,7 +98,7 @@ void HelpPanel::setMenuWidth(float width) { menuLayout.setSize(Size{width, menuL
 
 void HelpPanel::renderImpl() { layout.render(); }
 
-std::string HelpPanel::getNextChildName() { return fmt::format("{}_child_{}", getName(), getNext(idGenerator)); }
+std::string HelpPanel::getNextChildName() { return fmt::format("{}_child_{}", getName(), idCounter++); }
 
 ui::ig::StackedLayout::Stack &HelpPanel::addItemStart(const HelpPanel::SearchResult &res,
                                                       std::span<const std::string> section) {

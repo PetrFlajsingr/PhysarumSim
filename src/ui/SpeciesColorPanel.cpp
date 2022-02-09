@@ -24,7 +24,7 @@ void SpeciesColorPanel::unserialize_impl(const toml::table &src) {
   setColor(config);
 }
 
-toml::table SpeciesColorPanel::serialize_impl() { return getValue().toToml(); }
+toml::table SpeciesColorPanel::serialize_impl() const { return getValue().toToml(); }
 
 PopulationColor SpeciesColorPanel::getColor() const {
   PopulationColor result{};

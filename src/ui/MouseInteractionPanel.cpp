@@ -76,7 +76,7 @@ void MouseInteractionPanel::unserialize_impl(const toml::table &src) {
   setConfig(physarum::InteractionConfig::FromToml(src));
 }
 
-toml::table MouseInteractionPanel::serialize_impl() { return getValue().toToml(); }
+toml::table MouseInteractionPanel::serialize_impl() const { return getValue().toToml(); }
 
 physarum::InteractionConfig MouseInteractionPanel::getConfig() const {
   return {

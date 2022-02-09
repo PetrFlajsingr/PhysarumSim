@@ -26,7 +26,7 @@ void SpeciesPanel::unserialize_impl(const toml::table &src) {
   setConfig(config);
 }
 
-toml::table SpeciesPanel::serialize_impl() {
+toml::table SpeciesPanel::serialize_impl() const {
   auto result = getConfig().toToml();
   return result;
 }

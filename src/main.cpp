@@ -51,6 +51,7 @@ void saveConfig(toml::table config, pf::ogl::UI &ui) {
   auto ofstream = std::ofstream(configPathStr);
   ofstream << config;
 }
+
 typedef void(APIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
                                     const GLchar *message, const void *userParam);
 
@@ -156,7 +157,7 @@ int main(int argc, char *argv[]) {
 
     sim->setMouseInteractionActive(window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down);
     sim->setAttractorPosition(attractorPosition);
-  });
+  }, true);
   window->setKeyCallback(
       [&](Key key, KeyAction action, const Flags<ModifierKey> &mods) {
         if (key == Key::H && action == KeyAction::Down && mods.is(ModifierKey::Alt)) {
@@ -226,15 +227,16 @@ int main(int argc, char *argv[]) {
 
   const auto updateUIPosition = [&] {
     const auto winSize = window->getSize();
-    ui.dockWindow->setPosition(ImVec2{0.f, 19.f});
+    ui.dockWindow->setPosition({0.f, 19.f});
     const auto dockSize = ig::Size{winSize.width, winSize.height - 19 - ui.statusBar->getHeight()};
-    ui.dockWindow->setSize(ig::Size{winSize.width, winSize.height - 19});
+    ui.dockWindow->setSize(dockSize);
+   // ui.dockWindow->setSize(ig::Size{winSize.width, winSize.height - 19});
   };
 
   window->setSizeListener([&](const auto &size) {
     updateUIPosition();
     glViewport(0, 0, size.width, size.height);
-  });
+  }, true);
 
   updateUIPosition();
 
@@ -258,9 +260,11 @@ int main(int argc, char *argv[]) {
                          }};
 
   const auto startRecording = [&] {
-    ui.imguiInterface->openFileDialog(
-        "Select save location", {ig::FileExtensionSettings{{"mp4"}, "mp4", ImVec4{1, 0, 0, 1}}},
-        [&](const auto &selected) {
+    using namespace pf::ui::ig;
+    ui.imguiInterface->buildFileDialog(FileDialogType::File)
+        .label("Select save location")
+        .extension({{"mp4"}, "mp4", ImVec4{1, 0, 0, 1}})
+        .onSelect( [&](const auto &selected) {
           const auto &dst = selected[0];
           const auto res =
               recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
@@ -271,8 +275,10 @@ int main(int argc, char *argv[]) {
             ui.recorderPanel->setValue(RecordingState::Stopped);
           }
           ui.recorderPanel->startCounter();
-        },
-        [&] { ui.recorderPanel->setValue(RecordingState::Stopped); }, ig::Size{500, 400});
+        })
+        .onCancel([&] { ui.recorderPanel->setValue(RecordingState::Stopped); })
+        .size(pf::ui::ig::Size{500, 400})
+        .build();
   };
 
   auto isRecordingPaused = false;

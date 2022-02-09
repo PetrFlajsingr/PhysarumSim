@@ -41,13 +41,13 @@ SpeciesInteractionRow::SpeciesInteractionRow(const std::string &name, const Spec
 SpeciesInteractionConfig SpeciesInteractionRow::getConfig() const {
   return {.interactionType = interactionCombobox->getValue(),
           .factor = factorDrag->getValue(),
-          .speciesName = otherSpeciesText->getText()};
+          .speciesName = std::string{otherSpeciesText->getValue()}};
 }
 
 void SpeciesInteractionRow::setConfig(const SpeciesInteractionConfig &config) {
   interactionCombobox->setValue(config.interactionType);
   factorDrag->setValue(config.factor);
-  otherSpeciesText->setText(config.speciesName);
+  otherSpeciesText->setValue(config.speciesName);
 }
 
 void SpeciesInteractionRow::renderImpl() {
@@ -59,10 +59,10 @@ void SpeciesInteractionRow::unserialize_impl(const toml::table &src) {
   setConfig(SpeciesInteractionConfig::FromToml(src));
 }
 
-toml::table SpeciesInteractionRow::serialize_impl() { return getConfig().toToml(); }
+toml::table SpeciesInteractionRow::serialize_impl() const { return getConfig().toToml(); }
 
 std::unique_ptr<SpeciesInteractionRow> SpeciesInteractionRowFactory::operator()(const SpeciesInteractionConfig &item) {
-  return std::make_unique<SpeciesInteractionRow>(idStart + std::to_string(getNext(idGenerator)), item);
+  return std::make_unique<SpeciesInteractionRow>(idStart + std::to_string(IdCounter++), item);
 }
 
 SpeciesInteractionListbox::SpeciesInteractionListbox(const std::string &elementName, const std::string &label,
