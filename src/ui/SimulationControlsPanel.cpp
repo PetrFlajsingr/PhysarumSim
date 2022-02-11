@@ -9,8 +9,10 @@ namespace pf {
 using namespace ui::ig;
 
 SimulationControlsPanel::SimulationControlsPanel(const std::string &name)
-    : Element(name),
-      layout({name + "_root", LayoutDirection::TopToBottom, Size::Auto(), AllowCollapse::No, ShowBorder::Yes}) {
+    : Element(name), layout({.name = name + "_root",
+                             .layoutDirection = LayoutDirection::TopToBottom,
+                             .size = Size::Auto(),
+                             .showBorder = ShowBorder::Yes}) {
   createElements();
   registerListeners();
   addTooltips();

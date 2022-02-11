@@ -13,18 +13,24 @@ using namespace physarum;
 SpeciesInteractionRow::SpeciesInteractionRow(const std::string &name, const SpeciesInteractionConfig &config,
                                              Persistent persistent)
     : Element(name), Savable(persistent), ValueObservable(config),
-      layout(name + "layout", LayoutDirection::LeftToRight, Size{Width::Auto(), 19}, AllowCollapse::No,
-             Persistent::No) {
-  otherSpeciesText =
-      &layout.createChild<WidthDecorator<InputText>>(name + "species_name_test", 70, "", config.speciesName);
+      layout({.name = name + "layout", .layoutDirection = LayoutDirection::LeftToRight, .size = {Width::Auto(), 19}}) {
+
+  otherSpeciesText = &layout.createChild(WidthDecorator<InputText>::Config{
+      .width = 70,
+      .config{.name = name + "species_name_test", .label = "", .value = config.speciesName}});
   otherSpeciesText->setReadOnly(true);
   otherSpeciesText->setTooltip("Other species");
-  interactionCombobox = &layout.createChild<WidthDecorator<Combobox<SpeciesInteraction>>>(
-      name + "interaction_combobox", 70, "", "Select", magic_enum::enum_values<SpeciesInteraction>());
+
+  interactionCombobox = &layout.createChild(WidthDecorator<Combobox<SpeciesInteraction>>::Config{
+      .width = 70,
+      .config{.name = name + "interaction_combobox", .label = "", .preview = "Select"}});
+  interactionCombobox->setItems(magic_enum::enum_values<SpeciesInteraction>());
   interactionCombobox->setSelectedItem(config.interactionType);
   interactionCombobox->setTooltip("Type of interaction");
-  factorDrag =
-      &layout.createChild<WidthDecorator<DragInput<float>>>(name + "factor_drag", 70, "Factor", .01f, .01f, 10.f, 1.f);
+
+  factorDrag = &layout.createChild(WidthDecorator<DragInput<float>>::Config{
+      .width = 70,
+      .config{.name = name + "factor_drag", .label = "Factor", .speed = .01f, .min = .01f, .max = 10.f, .value = 1.f}});
   factorDrag->setValue(config.factor);
   factorDrag->setTooltip("Weight of the species's trail");
 
@@ -73,9 +79,8 @@ SpeciesInteractionListbox::SpeciesInteractionListbox(const std::string &elementN
 SpeciesInteractionRow &SpeciesInteractionListbox::addItem(const SpeciesInteractionConfig &item) {
   auto &result = ui::ig::CustomListbox<physarum::SpeciesInteractionConfig, SpeciesInteractionRow>::addItem(item);
   const auto itemIndex = items.size() - 1;
-  result.addValueListener([this, itemIndex](const physarum::SpeciesInteractionConfig &item) {
-    items[itemIndex].first = item;
-  });
+  result.addValueListener(
+      [this, itemIndex](const physarum::SpeciesInteractionConfig &item) { items[itemIndex].first = item; });
   return result;
 }
 }// namespace pf

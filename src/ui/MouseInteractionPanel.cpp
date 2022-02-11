@@ -27,7 +27,10 @@ bool MouseInteractionSpecies::operator!=(const MouseInteractionSpecies &rhs) con
 
 MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Persistent persistent)
     : Element(name), ValueObservable(physarum::InteractionConfig{}), Savable(persistent),
-      layout(name + "layout", LayoutDirection::TopToBottom, Size::Auto(), ShowBorder::Yes) {
+      layout({.name = name + "layout",
+              .layoutDirection = LayoutDirection::TopToBottom,
+              .size = Size::Auto(),
+              .showBorder = ShowBorder::Yes}) {
   mouseInteractionCombobox = &layout.createChild<Combobox<MouseInteraction>>(
       name + "mouse_int_type_combobox", "Mouse interaction", "Select", magic_enum::enum_values<MouseInteraction>());
   mouseInteractionCombobox->setSelectedItem(MouseInteraction::None);
@@ -45,8 +48,13 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
   const auto onChange = [&](auto) { setValue(getConfig()); };
   mouseInteractionCombobox->addValueListener(
       [this, onChange](const auto type) {
-        const auto distanceVisibility = isIn(type, std::vector{MouseInteraction::None, MouseInteraction::Emit}) ? Visibility::Invisible : Visibility::Visible;
-        const auto powerVisibility = isIn(type, std::vector{MouseInteraction::None, MouseInteraction::Emit, MouseInteraction::Kill})? Visibility::Invisible : Visibility::Visible;
+        const auto distanceVisibility = isIn(type, std::vector{MouseInteraction::None, MouseInteraction::Emit})
+            ? Visibility::Invisible
+            : Visibility::Visible;
+        const auto powerVisibility =
+            isIn(type, std::vector{MouseInteraction::None, MouseInteraction::Emit, MouseInteraction::Kill})
+            ? Visibility::Invisible
+            : Visibility::Visible;
         distanceDrag->setVisibility(distanceVisibility);
         powerDrag->setVisibility(powerVisibility);
         drawFalloffCheckbox->setVisibility(type == MouseInteraction::Draw || type == MouseInteraction::Erase
@@ -79,14 +87,12 @@ void MouseInteractionPanel::unserialize_impl(const toml::table &src) {
 toml::table MouseInteractionPanel::serialize_impl() const { return getValue().toToml(); }
 
 physarum::InteractionConfig MouseInteractionPanel::getConfig() const {
-  return {
-      .interactionType = mouseInteractionCombobox->getValue(),
-      .distance = distanceDrag->getValue(),
-      .power = powerDrag->getValue(),
-      .interactedSpecies = mouseInteractionSpeciesCombobox->getValue().speciesId.value_or(-1),
-      .enableDrawFalloff = drawFalloffCheckbox->getValue(),
-      .particleCount = particleCountDrag->getValue()
-  };
+  return {.interactionType = mouseInteractionCombobox->getValue(),
+          .distance = distanceDrag->getValue(),
+          .power = powerDrag->getValue(),
+          .interactedSpecies = mouseInteractionSpeciesCombobox->getValue().speciesId.value_or(-1),
+          .enableDrawFalloff = drawFalloffCheckbox->getValue(),
+          .particleCount = particleCountDrag->getValue()};
 }
 
 void MouseInteractionPanel::setConfig(const InteractionConfig &config) {

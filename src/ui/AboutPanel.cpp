@@ -10,11 +10,15 @@ using namespace ui::ig;
 
 AboutPanel::AboutPanel(const std::string &name, const ui::ig::Size &size, std::unique_ptr<AboutDataLoader> dataLoader,
                        ui::ig::ImGuiInterface &imguiInterface)
-    : ui::ig::Element(name), layout(name + "_layout", LayoutDirection::LeftToRight, size, ShowBorder::Yes),
+    : ui::ig::Element(name), layout({.name = name + "_layout",
+                                     .layoutDirection = LayoutDirection::LeftToRight,
+                                     .size = size,
+                                     .showBorder = ShowBorder::Yes}),
       listLayout(layout.createChild<BoxLayout>(name + "_list_layout", LayoutDirection::TopToBottom,
                                                Size{200, Height::Auto()})),
       libList(listLayout.createChild<Listbox<std::string>>(name + "_list_tree", "", Size::Fill())),
-      textStack(layout.createChild<StackedLayout>(name + "_stack", Size::Auto(), ShowBorder::Yes)),
+      textStack(layout.createChild(
+          StackedLayout::Config{.name = name + "_stack", .size = Size::Auto(), .showBorder = ShowBorder::Yes})),
       loader(std::move(dataLoader)) {
   auto aboutData = loader->getAboutData();
   if (auto iter = std::ranges::find(aboutData, "PhysarumSim", &AboutData::label); iter != aboutData.end()) {

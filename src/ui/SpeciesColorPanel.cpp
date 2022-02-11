@@ -11,7 +11,10 @@ using namespace physarum;
 
 SpeciesColorPanel::SpeciesColorPanel(const std::string &name, pf::ui::ig::Persistent persistent)
     : Element(name), ValueObservable(physarum::PopulationColor{ColorType::Simple}), Savable(persistent),
-      layout(name + "layout", LayoutDirection::TopToBottom, Size{Width::Auto(), 140}, ShowBorder::Yes) {
+      layout({.name = name + "layout",
+              .layoutDirection = LayoutDirection::TopToBottom,
+              .size = Size{Width::Auto(), 140},
+              .showBorder = ShowBorder::Yes}) {
   createChildren();
   registerListeners();
   addTooltips();

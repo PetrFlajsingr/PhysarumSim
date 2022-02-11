@@ -71,19 +71,29 @@ CPMAddPackage(
 
 add_compile_definitions(PF_IMGUI_ENABLE_STYLES)
 
-find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE REQUIRED) #add here the list of ffmpeg components required
 
-if(FFMPEG_FOUND)
-    #  FFMPEG_INCLUDE_DIRS  - Include directory necessary for using the required components headers.
-    #  FFMPEG_LIBRARIES     - Link these to use the required ffmpeg components.
-    #  FFMPEG_DEFINITIONS   - Compiler switches required for using the required ffmpeg components.
-    message("FFMPEG_INCLUDE_DIRS = ${FFMPEG_INCLUDE_DIRS} ")
-    message("FFMPEG_LIBRARIES = ${FFMPEG_LIBRARIES} ")
-    message("FFMPEG_DEFINITIONS = ${FFMPEG_DEFINITIONS} ")
-
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE REQUIRED) #add here the list of ffmpeg components required
     include_directories(${FFMPEG_INCLUDE_DIRS})
+else ()
+    find_path(AVCODEC_INCLUDE_DIR libavcodec/avcodec.h)
+    find_library(AVCODEC_LIBRARY avcodec)
 
-endif()
+    find_path(AVFORMAT_INCLUDE_DIR libavformat/avformat.h)
+    find_library(AVFORMAT_LIBRARY avformat)
+
+    find_path(AVUTIL_INCLUDE_DIR libavutil/avutil.h)
+    find_library(AVUTIL_LIBRARY avutil)
+
+    find_path(AVDEVICE_INCLUDE_DIR libavdevice/avdevice.h)
+    find_library(AVDEVICE_LIBRARY avdevice)
+
+    find_path(SWSCALE_INCLUDE_DIR libswscale/swscale.h)
+    find_library(SWSCALE_LIBRARY swscale)
+
+    find_path(SWRESAMPLE_INCLUDE_DIR libswresample/swresample.h)
+    find_library(SWRESAMPLE_LIBRARY swresample)
+endif ()
 
 add_library(glad src/glad.c)
 
@@ -139,16 +149,29 @@ add_executable(PhysarumSim
         src/ui/help_data/FolderHelpLoader.cpp
         src/ui/about_data/AboutData.h src/ui/about_data/AboutDataLoader.h src/ui/about_data/FolderAboutDataLoader.cpp src/ui/about_data/FolderAboutDataLoader.h)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_link_libraries(PhysarumSim
+            glad
+            ${OPENGL_LIBRARIES}
+            pf_common::pf_common
+            pf_imgui::pf_imgui
+            pf_mainloop::pf_mainloop
+            pf_glfw::pf_glfw
+            ${FFMPEG_LIBRARIES}
+            )
+else ()
+    target_include_directories(PhysarumSim PRIVATE ${AVCODEC_INCLUDE_DIR} ${AVFORMAT_INCLUDE_DIR} ${AVUTIL_INCLUDE_DIR} ${AVDEVICE_INCLUDE_DIR} ${SWSCALE_INCLUDE_DIR} ${SWRESAMPLE_INCLUDE_DIR})
+    target_link_libraries(PhysarumSim
+            glad
+            ${OPENGL_LIBRARIES}
+            pf_common::pf_common
+            pf_imgui::pf_imgui
+            pf_mainloop::pf_mainloop
+            pf_glfw::pf_glfw
+            ${AVCODEC_LIBRARY} ${AVFORMAT_LIBRARY} ${AVUTIL_LIBRARY} ${AVDEVICE_LIBRARY} ${SWSCALE_LIBRARY} ${SWRESAMPLE_LIBRARY}
+            )
+endif ()
 
-target_link_libraries(PhysarumSim
-        glad
-        ${OPENGL_LIBRARIES}
-        pf_common::pf_common
-        pf_imgui::pf_imgui
-        pf_mainloop::pf_mainloop
-        pf_glfw::pf_glfw
-        ${FFMPEG_LIBRARIES}
-        )
 
 if(WIN32)
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
