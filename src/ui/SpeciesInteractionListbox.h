@@ -17,6 +17,7 @@
 #include <simulation/SimConfig.h>
 
 namespace pf {
+
 class SpeciesInteractionRow : public ui::ig::Element,
                               public ui::ig::Savable,
                               public ui::ig::ValueObservable<physarum::SpeciesInteractionConfig> {
@@ -27,13 +28,11 @@ class SpeciesInteractionRow : public ui::ig::Element,
   [[nodiscard]] physarum::SpeciesInteractionConfig getConfig() const;
   void setConfig(const physarum::SpeciesInteractionConfig &config);
 
-
-
  protected:
   void renderImpl() override;
 
   void unserialize_impl(const toml::table &src) override;
-  toml::table serialize_impl() const override;
+  [[nodiscard]] toml::table serialize_impl() const override;
 
  private:
   // clang-format off
@@ -59,6 +58,7 @@ class SpeciesInteractionListbox
 
   SpeciesInteractionRow &addItem(const physarum::SpeciesInteractionConfig &item);
 };
+
 }// namespace pf
 
 #endif//PHYSARUMSIM_SRC_UI_SPECIESINTERACTIONLISTBOX_H
