@@ -168,7 +168,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   saveSpeciesButton->addClickListener([&] {
     imguiInterface->buildFileDialog(FileDialogType::File)
         .label("Select save location")
-        .extension({{"toml"}, "toml", ImVec4{1, 0, 0, 1}})
+        .extension({{"toml"}, "toml", Color::Red})
         .onSelect([&](const auto &selected) {
           const auto &dst = selected[0];
           toml::table data;
@@ -183,7 +183,7 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   loadSpeciesButton->addClickListener([&] {
     imguiInterface->buildFileDialog(FileDialogType::File)
         .label("Select file to load")
-        .extension({{"toml"}, "toml", ImVec4{1, 0, 0, 1}})
+        .extension({{"toml"}, "toml", Color::Red})
         .onSelect([&](const auto &selected) {
           const auto &dst = selected[0];
           const auto config = toml::parse_file(std::filesystem::absolute(dst).string());
@@ -196,14 +196,13 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   saveImageButton->addClickListener([&]() {
     imguiInterface->buildFileDialog(FileDialogType::File)
         .label("Select save location")
-        .extension({{"toml"}, "toml", ImVec4{1, 0, 0, 1}})
-        .extension({{"png"}, "png", ImVec4{1, 0, 0, 1}})
-        .extension({{"bmp"}, "bmp", ImVec4{1, 0, 0, 1}})
-        .onSelect(
-            [&](const auto &selected) {
-              const auto &dst = selected[0];
-              onScreenshotSave(dst);
-            })
+        .extension({{"toml"}, "toml", Color::Red})
+        .extension({{"png"}, "png", Color::Red})
+        .extension({{"bmp"}, "bmp", Color::Red})
+        .onSelect([&](const auto &selected) {
+          const auto &dst = selected[0];
+          onScreenshotSave(dst);
+        })
         .size(Size{500, 400})
         .build();
   });
@@ -214,8 +213,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   recordingWindow->setSize(Size{140, 60});
   recordingWindow->setVisibility(Visibility::Invisible);
   recorderPanel = &recordingWindow->createChild<RecorderPanel>("rec_panel");
-  recordingWindow->setColor<style::ColorOf::TitleBackgroundActive>(ImVec4(65, 0, 0, 1));
-  recordingWindow->setColor<style::ColorOf::TitleBackground>(ImVec4(65, 0, 0, 1));
+  recordingWindow->setColor<style::ColorOf::TitleBackgroundActive>(Color::RGB(65, 0, 0));
+  recordingWindow->setColor<style::ColorOf::TitleBackground>(Color::RGB(65, 0, 0));
 
   startRecordingButton->addClickListener([&] { recordingWindow->setVisibility(Visibility::Visible); });
   recorderPanel->addValueListener([&](const auto recState) {

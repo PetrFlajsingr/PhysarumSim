@@ -263,7 +263,7 @@ int main(int argc, char *argv[]) {
     using namespace pf::ui::ig;
     ui.imguiInterface->buildFileDialog(FileDialogType::File)
         .label("Select save location")
-        .extension({{"mp4"}, "mp4", ImVec4{1, 0, 0, 1}})
+        .extension({{"mp4"}, "mp4", Color::Red})
         .onSelect( [&](const auto &selected) {
           const auto &dst = selected[0];
           const auto res =

@@ -52,14 +52,14 @@ HelpPanel::HelpPanel(const std::string &name, const ui::ig::Size &size, std::uni
                   leaf->clearColors();
                   if (filterStr.empty()) { return; }
                   if (strContains(leaf->getLabel(), lowerCaseFilter)) {
-                    leaf->setColor<style::ColorOf::Text>(ImVec4{0, 1, 0, 1});
+                    leaf->setColor<style::ColorOf::Text>(Color::Green);
                   }
                 },
                 [&](TreeNode *node, std::size_t depth) {
                   node->clearColors();
                   if (filterStr.empty()) { return; }
                   if (strContains(node->getLabel(), lowerCaseFilter)) {
-                    node->setColor<style::ColorOf::Text>(ImVec4{0, 1, 0, 1});
+                    node->setColor<style::ColorOf::Text>(Color::Green);
                   }
                   const auto shouldOpen = std::ranges::any_of(node->getTreeNodes(), [](const auto &node) {
                     if (auto nodePtr = dynamic_cast<const TreeNode *>(&node); nodePtr != nullptr) {
