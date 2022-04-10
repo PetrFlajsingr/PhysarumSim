@@ -27,7 +27,7 @@ AboutPanel::AboutPanel(const std::string &name, const ui::ig::Size &size, std::u
     itemLayout.setScrollable(true);
     auto &markdownUI = itemLayout.createChild<MarkdownText>(uniqueId(), imguiInterface, iter->markdown, 12.f);
     auto &selectable = libList.addItem(iter->label);
-    selectable.setColor<style::ColorOf::Text>(ImVec4(0, 255, 0, 1));
+    selectable.setColor<style::ColorOf::Text>(Color::RGB(0, 255, 0));
     selectable.addValueListener([&](const auto selected) {
       if (selected) { stack.setActive(); }
     });

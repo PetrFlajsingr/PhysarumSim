@@ -6,6 +6,7 @@
 #define PHYSARUMSIM_SRC_GLOBALTHREADPOOL_H
 
 #include <pf_common/parallel/ThreadPool.h>
+#include <cassert>
 
 namespace pf {
 namespace details {

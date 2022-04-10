@@ -1,25 +1,4 @@
 cmake_minimum_required(VERSION 3.20)
-include("cmake/HunterGate.cmake")
-
-set(CPM_DOWNLOAD_LOCATION "${CMAKE_SOURCE_DIR}/cmake/CPM.cmake")
-set(CPM_DOWNLOAD_VERSION 0.32.2)
-
-message(https://github.com/TheLartians/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake)
-if (NOT (EXISTS ${CPM_DOWNLOAD_LOCATION} AND CPM_VERSION STREQUAL CPM_DOWNLOAD_VERSION))
-    message(STATUS "Downloading CPM.cmake")
-    file(DOWNLOAD https://github.com/TheLartians/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake ${CPM_DOWNLOAD_LOCATION})
-endif ()
-
-include(${CPM_DOWNLOAD_LOCATION})
-
-
-HunterGate(
-        URL "https://github.com/cpp-pm/hunter/archive/v0.23.321.tar.gz"
-        SHA1 "5e53cbb0429037ea8e2592bfd92704b8ff3ab492"
-)
-
-
-
 project(PhysarumSim)
 
 
@@ -31,7 +10,7 @@ endif ()
 
 add_compile_definitions(GLFW_INCLUDE_NONE)
 add_compile_definitions(GLM_FORCE_SWIZZLE)
-add_compile_definitions(FMT_HEADER_ONLY )
+#add_compile_definitions(FMT_HEADER_ONLY )
 
 find_package(OpenGL REQUIRED)
 
@@ -40,40 +19,22 @@ include_directories(src)
 include_directories(include/stb)
 
 find_package(GLFW3 REQUIRED)
+find_package(pf_common CONFIG REQUIRED)
+find_package(magic_enum CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
+find_package(tomlplusplus CONFIG REQUIRED)
+find_package(pf_glfw CONFIG REQUIRED)
+find_package(pf_mainloop CONFIG REQUIRED)
+find_package(pf_imgui CONFIG REQUIRED)
 
-CPMAddPackage(
-        NAME pf_common
-        GITHUB_REPOSITORY PetrFlajsingr/pf_common
-        GIT_TAG master
-)
-
-
-CPMAddPackage(
-        NAME pf_mainloop
-        GITHUB_REPOSITORY PetrFlajsingr/pf_mainloop
-        GIT_TAG master
-)
-
-CPMAddPackage(
-        NAME pf_glfw
-        GITHUB_REPOSITORY PetrFlajsingr/pf_glfw
-        GIT_TAG master
-        OPTIONS "PF_GLFW_OPENGL ON"
-)
 add_compile_definitions(PF_GLFW_OPENGL)
 
-CPMAddPackage(
-        NAME pf_imgui
-        GITHUB_REPOSITORY PetrFlajsingr/pf_imgui
-        GIT_TAG master
-        OPTIONS "ENABLE_STYLES ON"
-)
-
-add_compile_definitions(PF_IMGUI_ENABLE_STYLES)
 
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE REQUIRED) #add here the list of ffmpeg components required
+    find_package(FFMPEG COMPONENTS AVCODEC AVFORMAT AVUTIL AVDEVICE REQUIRED) #add here the list of ffmpeg components required
     include_directories(${FFMPEG_INCLUDE_DIRS})
 else ()
     find_path(AVCODEC_INCLUDE_DIR libavcodec/avcodec.h)
@@ -105,9 +66,9 @@ add_executable(PhysarumSim
         src/utils/files.cpp
         src/ui/UI.cpp
         src/ui/UI.h
-        ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/ImGuiGlfwOpenGLInterface.cpp
-        ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_glfw.cpp
-        ${pf_imgui_SOURCE_DIR}/src/pf_imgui/backends/impl/imgui_impl_opengl3.cpp
+        src/imgui/ImGuiGlfwOpenGLInterface.cpp
+        src/imgui/impl/imgui_impl_glfw.cpp
+        src/imgui/impl/imgui_impl_opengl3.cpp
         src/renderers/PhysarumRenderer.cpp src/renderers/PhysarumRenderer.h
         include/geGL/Shader.cpp
         include/geGL/Shader.h

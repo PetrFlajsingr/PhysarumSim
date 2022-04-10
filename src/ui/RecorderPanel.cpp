@@ -48,14 +48,14 @@ void RecorderPanel::setRecordingState(RecordingState state) {
       recordDuration = 0ms;
       recordTimeText->setVisibility(Visibility::Invisible);
       startStopRecordButton->setLabel(ICON_FK_CIRCLE);
-      startStopRecordButton->setColor<style::ColorOf::Text>(ImVec4(60, 0, 0, 1));
+      startStopRecordButton->setColor<style::ColorOf::Text>(Color::RGB(60, 0, 0));
       startStopRecordButton->setTooltip("Start recording");
       pauseResumeRecordButton->setVisibility(Visibility::Invisible);
       break;
     case RecordingState::Running:
       recordTimeText->setVisibility(Visibility::Visible);
       startStopRecordButton->setLabel(ICON_FK_STOP);
-      startStopRecordButton->setColor<style::ColorOf::Text>(ImVec4(255, 255, 255, 1));
+      startStopRecordButton->setColor<style::ColorOf::Text>(Color::RGB(255, 255, 255));
       startStopRecordButton->setTooltip("Stop recording");
       pauseResumeRecordButton->setLabel(ICON_FK_PAUSE);
       pauseResumeRecordButton->setVisibility(Visibility::Visible);
@@ -64,7 +64,7 @@ void RecorderPanel::setRecordingState(RecordingState state) {
         if (layout.getColor<style::ColorOf::ChildBackground>().has_value()) {
           layout.unsetColor<style::ColorOf::ChildBackground>();
         } else {
-          layout.setColor<style::ColorOf::ChildBackground>(ImVec4{60, 0, 0, 1});
+          layout.setColor<style::ColorOf::ChildBackground>(Color::RGB(60, 0, 0));
         }
       }, std::chrono::milliseconds{500});
       break;
