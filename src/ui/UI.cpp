@@ -10,8 +10,9 @@
 
 using namespace pf::enum_operators;
 
-pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader,
-                std::unique_ptr<AboutDataLoader> aboutLoader) {
+pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &window,
+                std::unique_ptr<HelpLoader> helpLoader, std::unique_ptr<AboutDataLoader> aboutLoader,
+                bool initDocking) {
   using namespace ui::ig;
   using namespace std::string_literals;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(
@@ -20,16 +21,10 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
                                    .iconFontDirectory = *config["path_icons"].value<std::string>(),
                                    .enabledIconPacks = IconPack::ForkAwesome,
                                    .iconSize = 13.f},
-                            .windowHandle = windowHandle});
+                            .windowHandle = window->getHandle()});
   setDarkStyle(*imguiInterface);
 
-  dockWindow = &imguiInterface->createWindow("dock_window", "Test");
-  dockWindow->setUserResizable(false);
-  dockWindow->setUserMovable(false);
-  dockWindow->setTitleBarVisible(false);
-  dockWindow->setStayInBackground(true);
-  mainDockspace = &dockWindow->createChild<StretchLayout>("dock_stretch_layout", Size::Fill(), Stretch::All)
-                       .createChild<DockSpace>("main_dockspace", Size::Auto());
+  dockingArea = &imguiInterface->createOrGetBackgroundDockingArea();
 
   appMenuBar = &imguiInterface->getMenuBar();
   viewSubmenu = &appMenuBar->addSubmenu("app_view_submenu", "View");
@@ -130,9 +125,8 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
   blendTypeCombobox->setSelectedItem(BlendType::AlphaMix);
   backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background",
                                                                           glm::vec3{.0f}, Persistent::Yes);
-  speciesButtonLayout = &speciesWindow->createChild<BoxLayout>("species_buttons_layout", LayoutDirection::LeftToRight,
-                                                               Size{Width::Fill(), 30}, AllowCollapse::No,
-                                                               ShowBorder::No, Persistent::Yes);
+  speciesButtonLayout =
+      &speciesWindow->createChild<HorizontalLayout>("species_buttons_layout", Size{Width::Fill(), 30});
 
   speciesTabBar = &speciesWindow->createChild<TabBar>("species_tabbar", true);
   addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", ICON_FK_PLUS_SQUARE, TabMod::ForceRight);
@@ -199,11 +193,10 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
         .extension({{"toml"}, "toml", Color::RGB(255, 0, 0)})
         .extension({{"png"}, "png", Color::RGB(255, 0, 0)})
         .extension({{"bmp"}, "bmp", Color::RGB(255, 0, 0)})
-        .onSelect(
-            [&](const auto &selected) {
-              const auto &dst = selected[0];
-              onScreenshotSave(dst);
-            })
+        .onSelect([&](const auto &selected) {
+          const auto &dst = selected[0];
+          onScreenshotSave(dst);
+        })
         .size(Size{500, 400})
         .build();
   });
@@ -254,13 +247,37 @@ pf::ogl::UI::UI(const toml::table &config, GLFWwindow *windowHandle, std::unique
 
   addSpeciesButton->setTooltip("Add new species");
 
+  if (initDocking) {
+    const auto windowSize = window->getSize();
+    const auto dockAreaSize =
+        Size{Width{static_cast<float>(windowSize.width)}, Height{static_cast<float>(windowSize.height)}};
+    // clang-format off
+    auto &dockBuilder = imguiInterface->createDockBuilder(dockingArea->getDockSpace());
+    dockBuilder.setSize(dockAreaSize);
+      auto &topBuilder = dockBuilder.split(VerticalDirection::Up);
+      topBuilder.setSplitRatio(0.15f);
+        auto &infoBuilder = topBuilder.split(HorizontalDirection::Left);
+        infoBuilder.setSplitRatio(0.2f);
+        infoBuilder.setWindow(*infoWindow);
+        auto &simBuilder = topBuilder.split(HorizontalDirection::Left);
+        simBuilder.setSplitRatio(0.3f);
+        simBuilder.setWindow(*simWindow);
+      topBuilder.setWindow(*interactionWindow);
+      auto &speciesBuilder = dockBuilder.split(HorizontalDirection::Right);
+      speciesBuilder.setSplitRatio(0.25f);
+      speciesBuilder.setWindow(*speciesWindow);
+    dockBuilder.setWindow(*imagesWindow);
+    // clang-format on
+  }
+
   imguiInterface->setStateFromConfig();
   helpWindow->setVisibility(showHelpOnStartupCheckbox->getValue() ? Visibility::Visible : Visibility::Invisible);
 }
 
 void pf::ogl::UI::setOutImage(const std::shared_ptr<Texture> &texture) {
   using namespace ui::ig;
-  outImage = &outImageStretch->createChild<Image>("out_image", (ImTextureID) texture->getId(), Size{1920, 1080});
+  outImage = &outImageStretch->createChild<Image>(
+      "out_image", reinterpret_cast<ImTextureID>(static_cast<std::uintptr_t>(texture->getId())), Size{1920, 1080});
 }
 
 void pf::ogl::UI::setAllWinVisibility(bool visible) {
@@ -282,12 +299,10 @@ toml::array pf::ogl::UI::speciesToToml() const {
   const std::string speciesPanelPostfix = "_species_panel";
   toml::array speciesArr;
   std::ranges::for_each(speciesPanels, [&](const auto &panel) {
-    panel->setPersistent(true);
-    auto panelData = panel->serialize().value();
+    auto panelData = panel->toToml();
     const auto name = panel->getName();
     panelData.insert("speciesName", name.substr(0, name.length() - speciesPanelPostfix.length()));
     speciesArr.emplace_back<toml::table>(panelData);
-    panel->setPersistent(false);
   });
   return speciesArr;
 }

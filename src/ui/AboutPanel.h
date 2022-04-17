@@ -8,7 +8,8 @@
 #include "about_data/AboutDataLoader.h"
 #include <filesystem>
 #include <pf_imgui/elements/Listbox.h>
-#include <pf_imgui/layouts/BoxLayout.h>
+#include <pf_imgui/layouts/HorizontalLayout.h>
+#include <pf_imgui/layouts/VerticalLayout.h>
 #include <pf_imgui/layouts/StackedLayout.h>
 #include <utility>
 
@@ -24,8 +25,8 @@ class AboutPanel : public ui::ig::Element {
 
  private:
   // clang-format off
-  ui::ig::BoxLayout layout;
-    ui::ig::BoxLayout &listLayout;
+  ui::ig::HorizontalLayout layout;
+    ui::ig::VerticalLayout &listLayout;
       ui::ig::Listbox<std::string> &libList;
     ui::ig::StackedLayout &textStack;
   // clang-format on

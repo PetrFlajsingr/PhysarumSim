@@ -2,15 +2,16 @@
 #ifndef PHYSARUMSIM_HELPPANEL_H
 #define PHYSARUMSIM_HELPPANEL_H
 
+#include "help_data/HelpLoader.h"
 #include <filesystem>
 #include <geGL/Texture.h>
 #include <pf_imgui/elements/InputText.h>
 #include <pf_imgui/elements/MarkdownText.h>
 #include <pf_imgui/elements/Tree.h>
 #include <pf_imgui/interface/Element.h>
+#include <pf_imgui/layouts/HorizontalLayout.h>
 #include <pf_imgui/layouts/StackedLayout.h>
 #include <variant>
-#include "help_data/HelpLoader.h"
 
 namespace pf {
 
@@ -55,8 +56,8 @@ class HelpPanel : public ui::ig::Element {
   std::string getNextChildName();
 
   // clang-format off
-  ui::ig::BoxLayout layout;
-    ui::ig::BoxLayout &menuLayout;
+  ui::ig::HorizontalLayout layout;
+    ui::ig::VerticalLayout &menuLayout;
       ui::ig::InputText &searchInput;
       ui::ig::Tree<ui::ig::TreeType::Simple> &menuTree;
     ui::ig::StackedLayout &helpStack;

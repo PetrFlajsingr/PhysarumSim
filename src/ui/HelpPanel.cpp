@@ -16,21 +16,17 @@ HelpPanel::SearchResult::SearchResult(ui::ig::TreeLeaf *leaf, std::size_t idx) :
 
 HelpPanel::HelpPanel(const std::string &name, const ui::ig::Size &size, std::unique_ptr<HelpLoader> loader,
                      ImGuiInterface &imguiInterface)
-    : ui::ig::Element(name), layout({.name = name + "_layout",
-                                     .layoutDirection = LayoutDirection::LeftToRight,
-                                     .size = Size::Auto(),
-                                     .showBorder = ShowBorder::Yes}),
-      menuLayout(layout.createChild<BoxLayout>(name + "_menu_layout", LayoutDirection::TopToBottom,
-                                               Size{200, Height::Auto()})),
+    : ui::ig::Element(name), layout({.name = name + "_layout", .size = size, .showBorder = true}),
+      menuLayout(layout.createChild<VerticalLayout>(name + "_menu_layout", Size{200, Height::Auto()})),
       searchInput(menuLayout.createChild<InputText>(name + "_filter_input", "Filter")),
       menuTree(menuLayout.createChild<Tree<TreeType::Simple>>(name + "_menu_tree", ShowBorder::Yes)),
-      helpStack(layout.createChild(
-          StackedLayout::Config{.name = name + "_stack", .size = Size::Auto(), .showBorder = ShowBorder::Yes})),
+      helpStack(
+          layout.createChild(StackedLayout::Config{.name = name + "_stack", .size = Size::Auto(), .showBorder = true})),
       loader(std::move(loader)) {
 
   std::ranges::for_each(this->loader->getHelpData(), [this, &imguiInterface](const HelpData &helpData) {
     auto &stack = addItem(helpData.section);
-    auto &itemLayout = stack.createChild<BoxLayout>(uniqueId(), LayoutDirection::TopToBottom, Size::Auto());
+    auto &itemLayout = stack.createChild<VerticalLayout>(uniqueId(), Size::Auto());
     itemLayout.setScrollable(true);
     auto &markdownUI = itemLayout.createChild<MarkdownText>(uniqueId(), imguiInterface, helpData.markdown, 12.f,
                                                             this->loader->getImageLoader());

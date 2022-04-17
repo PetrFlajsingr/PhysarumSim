@@ -13,7 +13,7 @@ using namespace physarum;
 SpeciesInteractionRow::SpeciesInteractionRow(const std::string &name, const SpeciesInteractionConfig &config,
                                              Persistent persistent)
     : Element(name), Savable(persistent), ValueObservable(config),
-      layout({.name = name + "layout", .layoutDirection = LayoutDirection::LeftToRight, .size = {Width::Auto(), 19}}) {
+      layout({.name = name + "layout", .size = {Width::Auto(), 19}}) {
 
   otherSpeciesText = &layout.createChild(WidthDecorator<InputText>::Config{
       .width = 70,
@@ -61,11 +61,9 @@ void SpeciesInteractionRow::renderImpl() {
   ImGui::Separator();
 }
 
-void SpeciesInteractionRow::unserialize_impl(const toml::table &src) {
-  setConfig(SpeciesInteractionConfig::FromToml(src));
-}
+void SpeciesInteractionRow::setFromToml(const toml::table &src) { setConfig(SpeciesInteractionConfig::FromToml(src)); }
 
-toml::table SpeciesInteractionRow::serialize_impl() const { return getConfig().toToml(); }
+toml::table SpeciesInteractionRow::toToml() const { return getConfig().toToml(); }
 
 std::unique_ptr<SpeciesInteractionRow> SpeciesInteractionRowFactory::operator()(const SpeciesInteractionConfig &item) {
   return std::make_unique<SpeciesInteractionRow>(idStart + std::to_string(IdCounter++), item);

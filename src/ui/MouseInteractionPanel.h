@@ -12,8 +12,8 @@
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/Savable.h>
 #include <pf_imgui/interface/ValueObservable.h>
-#include <pf_imgui/layouts/BoxLayout.h>
 #include <pf_imgui/layouts/StackedLayout.h>
+#include <pf_imgui/layouts/VerticalLayout.h>
 #include <simulation/SimConfig.h>
 
 namespace pf {
@@ -40,14 +40,15 @@ class MouseInteractionPanel : public ui::ig::Element,
 
   void setInteractableSpecies(const std::vector<MouseInteractionSpecies> &species);
 
+  void setFromToml(const toml::table &src) override;
+  [[nodiscard]] toml::table toToml() const override;
+
  protected:
   void renderImpl() override;
-  void unserialize_impl(const toml::table &src) override;
-  toml::table serialize_impl() const override;
 
  private:
   // clang-format off
-  ui::ig::BoxLayout layout;
+  ui::ig::VerticalLayout layout;
     ui::ig::Combobox<physarum::MouseInteraction> *mouseInteractionCombobox;
     ui::ig::DragInput<float> *distanceDrag;
     ui::ig::DragInput<float> *powerDrag;

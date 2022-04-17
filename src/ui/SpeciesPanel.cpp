@@ -11,11 +11,8 @@ using namespace ui::ig;
 using namespace physarum;
 
 SpeciesPanel::SpeciesPanel(const std::string &name, ui::ig::Persistent persistent)
-    : Element(name), ValueObservable(), Savable(persistent), root({.name = name + "_root",
-                                                                   .layoutDirection = LayoutDirection::TopToBottom,
-                                                                   .size = Size::Auto(),
-                                                                   .showBorder = ShowBorder::Yes,
-                                                                   .persistent = persistent}) {
+    : Element(name), ValueObservable(), Savable(persistent),
+      root({.name = name + "_root", .size = Size::Auto(), .showBorder = true}) {
   createElements();
   registerListeners();
   createTooltips();
@@ -23,12 +20,12 @@ SpeciesPanel::SpeciesPanel(const std::string &name, ui::ig::Persistent persisten
 
 void SpeciesPanel::renderImpl() { root.render(); }
 
-void SpeciesPanel::unserialize_impl(const toml::table &src) {
+void SpeciesPanel::setFromToml(const toml::table &src) {
   auto config = PopulationConfig::FromToml(src);
   setConfig(config);
 }
 
-toml::table SpeciesPanel::serialize_impl() const {
+toml::table SpeciesPanel::toToml() const {
   auto result = getConfig().toToml();
   return result;
 }

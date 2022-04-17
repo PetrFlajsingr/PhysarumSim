@@ -9,10 +9,7 @@ namespace pf {
 using namespace ui::ig;
 
 SimulationControlsPanel::SimulationControlsPanel(const std::string &name)
-    : Element(name), layout({.name = name + "_root",
-                             .layoutDirection = LayoutDirection::TopToBottom,
-                             .size = Size::Auto(),
-                             .showBorder = ShowBorder::Yes}) {
+    : Element(name), layout({.name = name + "_root", .size = Size::Auto(), .showBorder = true}) {
   createElements();
   registerListeners();
   addTooltips();
@@ -23,8 +20,7 @@ std::vector<Renderable *> SimulationControlsPanel::getRenderables() { return lay
 void SimulationControlsPanel::renderImpl() { layout.render(); }
 
 void SimulationControlsPanel::createElements() {
-  buttonsLayout = &layout.createChild<BoxLayout>(getName() + "button_layout", LayoutDirection::LeftToRight,
-                                                 Size{Width::Auto(), 30});
+  buttonsLayout = &layout.createChild<HorizontalLayout>(getName() + "button_layout", Size{Width::Auto(), 30});
   playPauseButton = &buttonsLayout->createChild<Button>(getName() + "play_pause_button", ICON_FK_PLAY);
   restartSimButton = &buttonsLayout->createChild<Button>(getName() + "restart_button", ICON_FK_REFRESH);
   simSpeedDrag = &buttonsLayout->createChild<DragInput<int>>(getName() + "sim_speed_drag", "Steps per frame", 1, 1, 10,
@@ -32,8 +28,7 @@ void SimulationControlsPanel::createElements() {
   timeMultiplierDrag = &layout.createChild<DragInput<float>>(getName() + "time_nult_drag", "Time multiplier", .01f,
                                                              .01f, 10.f, 1.f, Persistent::Yes);
 
-  fixedStepLayout =
-      &layout.createChild<BoxLayout>(getName() + "fixed_layout", LayoutDirection::LeftToRight, Size{Width::Auto(), 30});
+  fixedStepLayout = &layout.createChild<HorizontalLayout>(getName() + "fixed_layout", Size{Width::Auto(), 30});
   fixedStepCheckbox =
       &fixedStepLayout->createChild<Checkbox>(getName() + "chkbx", "Fixed step", false, Persistent::Yes);
   fixedStepDrag = &fixedStepLayout->createChild<DragInput<float>>(getName() + "fix_drag", "Time step", 0.001f, 0.001f,

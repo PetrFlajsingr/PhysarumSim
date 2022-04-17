@@ -15,7 +15,7 @@
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/Savable.h>
 #include <pf_imgui/interface/ValueObservable.h>
-#include <pf_imgui/layouts/BoxLayout.h>
+#include <pf_imgui/layouts/VerticalLayout.h>
 #include <simulation/SimConfig.h>
 
 namespace pf {
@@ -32,9 +32,10 @@ class SpeciesPanel : public ui::ig::Element,
   void addInteraction(const physarum::SpeciesInteractionConfig &interConfig);
   void clearInteractions();
 
+  void setFromToml(const toml::table &src) override;
+  [[nodiscard]] toml::table toToml() const override;
+
  protected:
-  void unserialize_impl(const toml::table &src) override;
-  toml::table serialize_impl() const override;
 
   void renderImpl() override;
 
@@ -44,7 +45,7 @@ class SpeciesPanel : public ui::ig::Element,
   void createTooltips();
 
   // clang-format off
-  ui::ig::BoxLayout root;
+  ui::ig::VerticalLayout root;
     ui::ig::DragInput<float> *senseAngleDrag;
     ui::ig::DragInput<float> *senseDistanceDrag;
     ui::ig::DragInput<float> *turnSpeedDrag;

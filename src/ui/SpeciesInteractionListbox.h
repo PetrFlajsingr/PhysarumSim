@@ -13,7 +13,7 @@
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/Savable.h>
 #include <pf_imgui/interface/ValueObservable.h>
-#include <pf_imgui/layouts/BoxLayout.h>
+#include <pf_imgui/layouts/HorizontalLayout.h>
 #include <simulation/SimConfig.h>
 
 namespace pf {
@@ -27,17 +27,15 @@ class SpeciesInteractionRow : public ui::ig::Element,
   [[nodiscard]] physarum::SpeciesInteractionConfig getConfig() const;
   void setConfig(const physarum::SpeciesInteractionConfig &config);
 
-
+  void setFromToml(const toml::table &src) override;
+  [[nodiscard]] toml::table toToml() const override;
 
  protected:
   void renderImpl() override;
 
-  void unserialize_impl(const toml::table &src) override;
-  toml::table serialize_impl() const override;
-
  private:
   // clang-format off
-  ui::ig::BoxLayout layout;
+  ui::ig::HorizontalLayout layout;
     ui::ig::InputText *otherSpeciesText;
     ui::ig::Combobox<physarum::SpeciesInteraction> *interactionCombobox;
     ui::ig::DragInput<float> *factorDrag;

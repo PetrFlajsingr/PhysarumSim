@@ -63,7 +63,8 @@ std::vector<HelpData> FolderHelpLoader::getHelpData() {
 std::optional<MarkdownText::ImageData> FolderHelpLoader::loadImageImpl(std::string_view path) {
   const auto imgID = std::string(path);
   if (const auto iter = textures.find(imgID); iter != textures.end()) {
-    return MarkdownText::ImageData{(ImTextureID) (iter->second.texture->getId()), iter->second.size};
+    return MarkdownText::ImageData{
+        reinterpret_cast<ImTextureID>(static_cast<std::uintptr_t>(iter->second.texture->getId())), iter->second.size};
   }
   int width;
   int height;
@@ -102,7 +103,7 @@ std::optional<MarkdownText::ImageData> FolderHelpLoader::loadImageImpl(std::stri
     case 4: std::ranges::copy(s, std::back_inserter(data)); break;
   }
   texture->setData2D(data.data());
-  auto cachedData = TextureCacheData{texture, Size{width, height}};
+  auto cachedData = TextureCacheData{texture, Size{static_cast<float>(width), static_cast<float>(height)}};
   textures[imgID] = cachedData;
   return MarkdownText::ImageData{(ImTextureID) (cachedData.texture->getId()), cachedData.size};
 }
@@ -111,4 +112,4 @@ FolderHelpLoader::TextureCacheData::TextureCacheData() : texture(nullptr), size(
 
 FolderHelpLoader::TextureCacheData::TextureCacheData(std::shared_ptr<Texture> texture, ui::ig::Size size)
     : texture(std::move(texture)), size(size) {}
-}
+}// namespace pf

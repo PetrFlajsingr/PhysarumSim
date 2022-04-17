@@ -48,6 +48,7 @@ void saveConfig(toml::table config, pf::ogl::UI &ui) {
   auto imguiConfig = ui.imguiInterface->getConfig();
   ui.cleanupConfig(imguiConfig);
   config.insert_or_assign("imgui", imguiConfig);
+  config.insert_or_assign("isFirstRun", false);
   auto ofstream = std::ofstream(configPathStr);
   ofstream << config;
 }
@@ -67,8 +68,8 @@ glm::vec2 mousePosToTexPos(pf::glfw::Position<double> mousePos, pf::glfw::Size<i
 }
 
 glm::vec2 mousePosToTexPos(ImVec2 mousePos, pf::ui::ig::Size winSize, glm::ivec2 texSize) {
-  const auto nX = mousePos.x / winSize.width;
-  const auto nY = mousePos.y / winSize.height;// TODO: check this on windows
+  const auto nX = mousePos.x / static_cast<float>(winSize.width);
+  const auto nY = mousePos.y / static_cast<float>(winSize.height);// TODO: check this on windows
   return glm::vec2{texSize} * glm::vec2{nX, nY};
 }
 
@@ -114,8 +115,13 @@ int main(int argc, char *argv[]) {
   const auto helpFolder = resourcesFolder / "help";
   const auto aboutFolder = resourcesFolder / "licenses";
 
-  auto ui = ogl::UI{*config["imgui"].as_table(), window->getHandle(), std::make_unique<FolderHelpLoader>(helpFolder),
-                    std::make_unique<FolderAboutDataLoader>(aboutFolder)};
+  bool isFirstRun = true;
+  if (auto iter = config.find("isFirstRun"); iter != config.end()) {
+    if (auto val = iter->second.as_boolean(); val != nullptr) { isFirstRun = val->get(); }
+  }
+
+  auto ui = ogl::UI{*config["imgui"].as_table(), window, std::make_unique<FolderHelpLoader>(helpFolder),
+                    std::make_unique<FolderAboutDataLoader>(aboutFolder), isFirstRun};
 
   auto sim = std::make_unique<physarum::PhysarumSimulator>(shaderFolder, trailTextureSize);
 
@@ -151,13 +157,16 @@ int main(int argc, char *argv[]) {
   bool isSimPaused = true;
   ui.simControlsPanel->addSimStateListener([&](bool running) { isSimPaused = !running; });
 
-  window->setCursorPositionCallback([&](const auto &cursorPos) {
-    if (ui.imguiInterface->isWindowHovered()) { return; }
-    const auto attractorPosition = mousePosToTexPos(window->getCursorPosition(), window->getSize(), trailTextureSize);
+  window->setCursorPositionCallback(
+      [&](const auto &cursorPos) {
+        if (ui.imguiInterface->isWindowHovered()) { return; }
+        const auto attractorPosition =
+            mousePosToTexPos(window->getCursorPosition(), window->getSize(), trailTextureSize);
 
-    sim->setMouseInteractionActive(window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down);
-    sim->setAttractorPosition(attractorPosition);
-  }, true);
+        sim->setMouseInteractionActive(window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down);
+        sim->setAttractorPosition(attractorPosition);
+      },
+      true);
   window->setKeyCallback(
       [&](Key key, KeyAction action, const Flags<ModifierKey> &mods) {
         if (key == Key::H && action == KeyAction::Down && mods.is(ModifierKey::Alt)) {
@@ -190,7 +199,7 @@ int main(int argc, char *argv[]) {
 
   ui.outImage->addMousePositionListener([&](const auto &mousePos) {
     const auto size = ui.outImage->getSize();
-    const auto texPos = mousePosToTexPos(mousePos, size, trailTextureSize);
+    const auto texPos = mousePosToTexPos(static_cast<ImVec2>(mousePos), size, trailTextureSize);
     const auto isBtnDown = window->getLastMouseButtonState(MouseButton::Left) == ButtonState::Down;
     sim->setMouseInteractionActive(isBtnDown);
     sim->setAttractorPosition(texPos);
@@ -225,20 +234,7 @@ int main(int argc, char *argv[]) {
   ui.backgroundColorEdit->addValueListener([&](const auto &color) { renderer.setBackgroundColor(color); }, true);
   ui.blendTypeCombobox->addValueListener([&](const auto blendType) { renderer.setBlendType(blendType); }, true);
 
-  const auto updateUIPosition = [&] {
-    const auto winSize = window->getSize();
-    ui.dockWindow->setPosition({0.f, 19.f});
-    const auto dockSize = ig::Size{winSize.width, winSize.height - 19 - ui.statusBar->getHeight()};
-    ui.dockWindow->setSize(dockSize);
-   // ui.dockWindow->setSize(ig::Size{winSize.width, winSize.height - 19});
-  };
-
-  window->setSizeListener([&](const auto &size) {
-    updateUIPosition();
-    glViewport(0, 0, size.width, size.height);
-  }, true);
-
-  updateUIPosition();
+  window->setSizeListener([&](const auto &size) { glViewport(0, 0, size.width, size.height); }, true);
 
   FPSCounter fpsCounter{};
   const auto fpsLabelUpdateFrequency = std::chrono::milliseconds{100};
@@ -264,7 +260,7 @@ int main(int argc, char *argv[]) {
     ui.imguiInterface->buildFileDialog(FileDialogType::File)
         .label("Select save location")
         .extension({{"mp4"}, "mp4", Color::RGB(255, 0, 0)})
-        .onSelect( [&](const auto &selected) {
+        .onSelect([&](const auto &selected) {
           const auto &dst = selected[0];
           const auto res =
               recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
@@ -314,9 +310,7 @@ int main(int argc, char *argv[]) {
           std::chrono::duration_cast<std::chrono::microseconds>(MainLoop::Get()->getRuntime()).count() / 1000000.f;
       float timeDelta = std::chrono::duration_cast<std::chrono::microseconds>(deltaT).count() / 1000000.f
           * ui.simControlsPanel->getTimeMultiplier();
-      if (fixedStep.has_value()) {
-        timeDelta = *fixedStep;
-      }
+      if (fixedStep.has_value()) { timeDelta = *fixedStep; }
 
       if (anySpecies) { renderer.render(); }
 

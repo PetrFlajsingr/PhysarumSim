@@ -16,10 +16,11 @@
 #include <GLFW/glfw3.h>
 #include <geGL/Texture.h>
 #include <pf_common/enums.h>
+#include <pf_glfw/Window.h>
 #include <pf_imgui/ImGuiInterface.h>
 #include <pf_imgui/elements.h>
 #include <pf_imgui/elements/Spinner.h>
-#include <pf_imgui/layouts/layouts.h>
+#include <pf_imgui/layouts.h>
 #include <renderers/PhysarumRenderer.h>
 #include <toml++/toml.h>
 
@@ -30,8 +31,8 @@ namespace pf::ogl {
 // TODO: refactor this hard
 class UI {
  public:
-  UI(const toml::table &config, GLFWwindow *windowHandle, std::unique_ptr<HelpLoader> helpLoader,
-     std::unique_ptr<AboutDataLoader> aboutLoader);
+  UI(const toml::table &config, const std::shared_ptr<glfw::Window> &window, std::unique_ptr<HelpLoader> helpLoader,
+     std::unique_ptr<AboutDataLoader> aboutLoader, bool initDocking);
 
   // clang-format off
   ui::ig::AppMenuBar *appMenuBar;
@@ -46,10 +47,9 @@ class UI {
     ui::ig::SubMenu *helpSubmenu;
       ui::ig::MenuButtonItem *helpButton;
       ui::ig::MenuButtonItem *aboutButton;
+  ui::ig::BackgroundDockingArea *dockingArea;
   ui::ig::AppStatusBar *statusBar;
     ui::ig::Text *particleCountText;
-  ui::ig::Window *dockWindow;
-    ui::ig::DockSpace *mainDockspace;
   ui::ig::Window *interactionWindow;
     MouseInteractionPanel *mouseInteractionPanel;
   ui::ig::Window *infoWindow;
@@ -72,7 +72,7 @@ class UI {
         ui::ig::MenuButtonItem *loadSpeciesButton;
     ui::ig::Combobox<BlendType> *blendTypeCombobox;
     ui::ig::ColorEdit<glm::vec3> *backgroundColorEdit;
-    ui::ig::BoxLayout *speciesButtonLayout;
+    ui::ig::HorizontalLayout *speciesButtonLayout;
     ui::ig::TabBar *speciesTabBar;
       ui::ig::TabButton *addSpeciesButton;
       std::vector<SpeciesPanel*> speciesPanels;

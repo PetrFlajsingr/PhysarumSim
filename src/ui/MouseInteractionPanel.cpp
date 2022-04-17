@@ -27,10 +27,7 @@ bool MouseInteractionSpecies::operator!=(const MouseInteractionSpecies &rhs) con
 
 MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Persistent persistent)
     : Element(name), ValueObservable(physarum::InteractionConfig{}), Savable(persistent),
-      layout({.name = name + "layout",
-              .layoutDirection = LayoutDirection::TopToBottom,
-              .size = Size::Auto(),
-              .showBorder = ShowBorder::Yes}) {
+      layout({.name = name + "layout", .size = Size::Auto(), .showBorder = true}) {
   mouseInteractionCombobox = &layout.createChild<Combobox<MouseInteraction>>(
       name + "mouse_int_type_combobox", "Mouse interaction", "Select", magic_enum::enum_values<MouseInteraction>());
   mouseInteractionCombobox->setSelectedItem(MouseInteraction::None);
@@ -80,11 +77,11 @@ MouseInteractionPanel::MouseInteractionPanel(const std::string &name, ui::ig::Pe
 
 void MouseInteractionPanel::renderImpl() { layout.render(); }
 
-void MouseInteractionPanel::unserialize_impl(const toml::table &src) {
+void MouseInteractionPanel::setFromToml(const toml::table &src) {
   setConfig(physarum::InteractionConfig::FromToml(src));
 }
 
-toml::table MouseInteractionPanel::serialize_impl() const { return getValue().toToml(); }
+toml::table MouseInteractionPanel::toToml() const { return getValue().toToml(); }
 
 physarum::InteractionConfig MouseInteractionPanel::getConfig() const {
   return {.interactionType = mouseInteractionCombobox->getValue(),
@@ -102,6 +99,7 @@ void MouseInteractionPanel::setConfig(const InteractionConfig &config) {
   drawFalloffCheckbox->setValue(config.enableDrawFalloff);
   particleCountDrag->setValue(config.particleCount);
 }
+
 void MouseInteractionPanel::setInteractableSpecies(const std::vector<MouseInteractionSpecies> &species) {
   auto previousSelected = mouseInteractionSpeciesCombobox->getSelectedItem();
   mouseInteractionSpeciesCombobox->removeItemIf([](auto) { return true; });

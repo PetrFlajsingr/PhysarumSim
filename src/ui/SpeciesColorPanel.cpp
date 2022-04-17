@@ -11,10 +11,7 @@ using namespace physarum;
 
 SpeciesColorPanel::SpeciesColorPanel(const std::string &name, pf::ui::ig::Persistent persistent)
     : Element(name), ValueObservable(physarum::PopulationColor{ColorType::Simple}), Savable(persistent),
-      layout({.name = name + "layout",
-              .layoutDirection = LayoutDirection::TopToBottom,
-              .size = Size{Width::Auto(), 140},
-              .showBorder = ShowBorder::Yes}) {
+      layout({.name = name + "layout", .size = Size{Width::Auto(), 140}, .showBorder = true}) {
   createChildren();
   registerListeners();
   addTooltips();
@@ -22,12 +19,12 @@ SpeciesColorPanel::SpeciesColorPanel(const std::string &name, pf::ui::ig::Persis
 
 void SpeciesColorPanel::renderImpl() { layout.render(); }
 
-void SpeciesColorPanel::unserialize_impl(const toml::table &src) {
+void SpeciesColorPanel::setFromToml(const toml::table &src) {
   auto config = PopulationColor::FromToml(src);
   setColor(config);
 }
 
-toml::table SpeciesColorPanel::serialize_impl() const { return getValue().toToml(); }
+toml::table SpeciesColorPanel::toToml() const { return getValue().toToml(); }
 
 PopulationColor SpeciesColorPanel::getColor() const {
   PopulationColor result{};

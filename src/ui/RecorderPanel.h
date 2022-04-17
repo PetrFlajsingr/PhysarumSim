@@ -9,7 +9,7 @@
 #include <pf_imgui/elements/Text.h>
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/ValueObservable.h>
-#include <pf_imgui/layouts/BoxLayout.h>
+#include <pf_imgui/layouts/HorizontalLayout.h>
 #include <pf_mainloop/MainLoop.h>
 #include <optional>
 
@@ -37,7 +37,7 @@ class RecorderPanel : public ui::ig::Element, public ui::ig::ValueObservable<Rec
  private:
   void setRecordTimeText();
   // clang-format off
-  ui::ig::BoxLayout layout;
+  ui::ig::HorizontalLayout layout;
     ui::ig::Button *startStopRecordButton;
     ui::ig::Button *pauseResumeRecordButton;
     ui::ig::Text *recordTimeText;

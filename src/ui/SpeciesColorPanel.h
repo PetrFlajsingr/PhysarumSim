@@ -14,7 +14,7 @@
 #include <pf_imgui/interface/Element.h>
 #include <pf_imgui/interface/Savable.h>
 #include <pf_imgui/interface/ValueObservable.h>
-#include <pf_imgui/layouts/BoxLayout.h>
+#include <pf_imgui/layouts/VerticalLayout.h>
 #include <pf_imgui/layouts/StackedLayout.h>
 #include <simulation/SimConfig.h>
 
@@ -29,10 +29,11 @@ class SpeciesColorPanel : public ui::ig::Element,
   [[nodiscard]] physarum::PopulationColor getColor() const;
   void setColor(const physarum::PopulationColor &color);
 
+  void setFromToml(const toml::table &src) override;
+  toml::table toToml() const override;
+
  protected:
   void renderImpl() override;
-  void unserialize_impl(const toml::table &src) override;
-  toml::table serialize_impl() const override;
 
  private:
   constexpr static auto SIMPLE_INDEX = 0;
@@ -45,7 +46,7 @@ class SpeciesColorPanel : public ui::ig::Element,
   void addTooltips();
 
   // clang-format off
-  ui::ig::BoxLayout layout;
+  ui::ig::VerticalLayout layout;
     ui::ig::Combobox<physarum::ColorType> *colorTypeCombobox;
     ui::ig::DragInput<float> *trailPowDrag;
     ui::ig::StackedLayout *stack;
