@@ -4,7 +4,7 @@
 
 #include "UI.h"
 #include <filesystem>
-#include <pf_imgui/backends/ImGuiGlfwOpenGLInterface.h>
+#include "imgui/ImGuiGlfwOpenGLInterface.h"
 #include <pf_imgui/enums.h>
 #include <pf_imgui/styles/dark.h>
 
