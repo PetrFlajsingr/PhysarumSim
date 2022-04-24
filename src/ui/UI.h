@@ -71,7 +71,7 @@ class UI {
         ui::ig::MenuButtonItem *saveSpeciesButton;
         ui::ig::MenuButtonItem *loadSpeciesButton;
     ui::ig::Combobox<BlendType> *blendTypeCombobox;
-    ui::ig::ColorEdit<glm::vec3> *backgroundColorEdit;
+    ui::ig::ColorEdit<ui::ig::ColorChooserFormat::RGB> *backgroundColorEdit;
     ui::ig::HorizontalLayout *speciesButtonLayout;
     ui::ig::TabBar *speciesTabBar;
       ui::ig::TabButton *addSpeciesButton;

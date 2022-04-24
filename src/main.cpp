@@ -231,7 +231,11 @@ int main(int argc, char *argv[]) {
 
   ui.simControlsPanel->addRestartClickListener(initFromUI);
 
-  ui.backgroundColorEdit->addValueListener([&](const auto &color) { renderer.setBackgroundColor(color); }, true);
+  ui.backgroundColorEdit->addValueListener(
+      [&](const auto &color) {
+        renderer.setBackgroundColor({color.red(), color.green(), color.blue()});
+      },
+      true);
   ui.blendTypeCombobox->addValueListener([&](const auto blendType) { renderer.setBlendType(blendType); }, true);
 
   window->setSizeListener([&](const auto &size) { glViewport(0, 0, size.width, size.height); }, true);
@@ -246,7 +250,7 @@ int main(int argc, char *argv[]) {
                            ui.imguiInterface->getNotificationManager()
                                .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error")
                                .createChild<ig::Text>(ig::uniqueId(), errMsg);
-                           fmt::print(stderr, errMsg);
+                           fmt::print(stderr, "{}", errMsg);
                          },
                          [&](const auto &path) {
                            ui.imguiInterface->getNotificationManager()

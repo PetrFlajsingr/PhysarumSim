@@ -3,8 +3,8 @@
 //
 
 #include "UI.h"
-#include <filesystem>
 #include "imgui/ImGuiGlfwOpenGLInterface.h"
+#include <filesystem>
 #include <pf_imgui/enums.h>
 #include <pf_imgui/styles/dark.h>
 
@@ -123,8 +123,8 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
                                                                        magic_enum::enum_values<BlendType>(),
                                                                        ComboBoxCount::Items8, Persistent::Yes);
   blendTypeCombobox->setSelectedItem(BlendType::AlphaMix);
-  backgroundColorEdit = &speciesWindow->createChild<ColorEdit<glm::vec3>>("background_color_edit", "Background",
-                                                                          glm::vec3{.0f}, Persistent::Yes);
+  backgroundColorEdit = &speciesWindow->createChild<ColorEdit<ColorChooserFormat::RGB>>(
+      "background_color_edit", "Background", Color::RGB(0, 0, 0), Persistent::Yes);
   speciesButtonLayout =
       &speciesWindow->createChild<HorizontalLayout>("species_buttons_layout", Size{Width::Fill(), 30});
 
@@ -358,7 +358,7 @@ void pf::ogl::UI::createSpeciesTab(const std::string &name, const toml::table &s
 
 void pf::ogl::UI::setMouseInteractionSpecies() {
   using namespace ui::ig;
-  std::size_t idx = 0;
+  int idx = 0;
   std::vector<MouseInteractionSpecies> interInfo;
   for (const auto &tab : speciesTabBar->getTabs()) {
     const auto name = tab.getLabel();

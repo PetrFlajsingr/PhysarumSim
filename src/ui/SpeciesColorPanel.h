@@ -51,10 +51,10 @@ class SpeciesColorPanel : public ui::ig::Element,
     ui::ig::DragInput<float> *trailPowDrag;
     ui::ig::StackedLayout *stack;
 
-      ui::ig::ColorEdit<glm::vec3> *simpleColorEdit;
+      ui::ig::ColorEdit<ui::ig::ColorChooserFormat::RGB> *simpleColorEdit;
 
-      ui::ig::ColorEdit<glm::vec3> *gradientStartColorEdit;
-      ui::ig::ColorEdit<glm::vec3> *gradientEndColorEdit;
+      ui::ig::ColorEdit<ui::ig::ColorChooserFormat::RGB> *gradientStartColorEdit;
+      ui::ig::ColorEdit<ui::ig::ColorChooserFormat::RGB> *gradientEndColorEdit;
       ui::ig::Button *flipGradientButton;
 
       ui::ig::Button *randomizeButton;

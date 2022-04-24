@@ -27,21 +27,23 @@ void SpeciesColorPanel::setFromToml(const toml::table &src) {
 toml::table SpeciesColorPanel::toToml() const { return getValue().toToml(); }
 
 PopulationColor SpeciesColorPanel::getColor() const {
+  const auto colorToVec3 = [](Color color) { return glm::vec3{color.red(), color.green(), color.blue()}; };
   PopulationColor result{};
   result.setType(colorTypeCombobox->getValue());
-  result.setSimpleColor(simpleColorEdit->getValue());
-  result.setGradientStart(gradientStartColorEdit->getValue());
-  result.setGradientEnd(gradientEndColorEdit->getValue());
+  result.setSimpleColor(colorToVec3(simpleColorEdit->getValue()));
+  result.setGradientStart(colorToVec3(gradientStartColorEdit->getValue()));
+  result.setGradientEnd(colorToVec3(gradientEndColorEdit->getValue()));
   result.setStartHue(hueSlider->getValue());
   result.setTrailPow(trailPowDrag->getValue());
   return result;
 }
 
 void SpeciesColorPanel::setColor(const physarum::PopulationColor &color) {
+  const auto vec3ToColor = [](glm::vec3 vec3) { return Color::RGB(vec3.r, vec3.g, vec3.b); };
   colorTypeCombobox->setSelectedItem(color.getType());
-  simpleColorEdit->setValue(color.getSimpleColor());
-  gradientStartColorEdit->setValue(color.getGradientStart());
-  gradientEndColorEdit->setValue(color.getGradientEnd());
+  simpleColorEdit->setValue(vec3ToColor(color.getSimpleColor()));
+  gradientStartColorEdit->setValue(vec3ToColor(color.getGradientStart()));
+  gradientEndColorEdit->setValue(vec3ToColor(color.getGradientEnd()));
   hueSlider->setValue(color.getStartHue());
   trailPowDrag->setValue(color.getTrailPow());
   setValue(color);
@@ -57,14 +59,14 @@ void SpeciesColorPanel::createChildren() {
   stack = &layout.createChild<StackedLayout>(getName() + "stack", Size::Auto());
 
   auto &simpleStack = stack->pushStack();
-  simpleColorEdit =
-      &simpleStack.createChild<ColorEdit<glm::vec3>>(getName() + "simple_color_edit", "Color", glm::vec3{1.f});
+  simpleColorEdit = &simpleStack.createChild<ColorEdit<ui::ig::ColorChooserFormat::RGB>>(
+      getName() + "simple_color_edit", "Color", Color::White);
 
   auto &gradientStack = stack->pushStack();
-  gradientStartColorEdit = &gradientStack.createChild<ColorEdit<glm::vec3>>(getName() + "grad_start_color_edit",
-                                                                            "Gradient start", glm::vec3{1.f});
-  gradientEndColorEdit = &gradientStack.createChild<ColorEdit<glm::vec3>>(getName() + "grad_end_color_edit",
-                                                                          "Gradient end", glm::vec3{1.f});
+  gradientStartColorEdit = &gradientStack.createChild<ColorEdit<ui::ig::ColorChooserFormat::RGB>>(
+      getName() + "grad_start_color_edit", "Gradient start", Color::White);
+  gradientEndColorEdit = &gradientStack.createChild<ColorEdit<ui::ig::ColorChooserFormat::RGB>>(
+      getName() + "grad_end_color_edit", "Gradient end", Color::White);
   flipGradientButton = &gradientStack.createChild<Button>(getName() + "flip_gradient_button", "Flip");
 
   auto &randomStack = stack->pushStack();
