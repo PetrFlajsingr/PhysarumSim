@@ -215,15 +215,20 @@ int main(int argc, char *argv[]) {
       try {
         saveImage(path, imgFormat, PixelFormat::RGBA, trailTextureSize.x, trailTextureSize.y, std::span{data});
         MainLoop::Get()->enqueue([&ui, path] {
-          ui.imguiInterface->getNotificationManager()
-              .createNotification(ig::NotificationType::Success, ig::uniqueId(), "Success")
-              .createChild<ig::Text>(ig::uniqueId(), fmt::format("Image saved to '{}'", path.string()));
+          auto &notification =
+              ui.imguiInterface->getNotificationManager().createNotification(ig::uniqueId(), "Success");
+          auto &text =
+              notification.createChild<ig::Text>(ig::uniqueId(), fmt::format("Image saved to '{}'", path.string()));
+          text.setColor<ig::style::ColorOf::Text>(ig::Color::White);
+          notification.setColor<ig::style::ColorOf::Text>(ig::Color::Green);
         });
       } catch (...) {
         MainLoop::Get()->enqueue([&ui] {
-          ui.imguiInterface->getNotificationManager()
-              .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error", std::chrono::seconds{5})
-              .createChild<ig::Text>(ig::uniqueId(), "Image failed to save");
+          auto &notification = ui.imguiInterface->getNotificationManager().createNotification(ig::uniqueId(), "Error",
+                                                                                              std::chrono::seconds{5});
+          auto &text = notification.createChild<ig::Text>(ig::uniqueId(), "Image failed to save");
+          text.setColor<ig::style::ColorOf::Text>(ig::Color::White);
+          notification.setColor<ig::style::ColorOf::Text>(ig::Color::Red);
         });
       }
     });
@@ -244,24 +249,28 @@ int main(int argc, char *argv[]) {
   const auto fpsLabelUpdateFrequency = std::chrono::milliseconds{100};
   auto timeSinceLastFpsLabelUpdate = fpsLabelUpdateFrequency;
 
-  VideoRecorder recorder{[](auto f) { MainLoop::Get()->enqueue(f); },
-                         [&](const auto &msg) {
-                           const auto errMsg = fmt::format("Recording has failed: '{}'", msg);
-                           ui.imguiInterface->getNotificationManager()
-                               .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error")
-                               .createChild<ig::Text>(ig::uniqueId(), errMsg);
-                           fmt::print(stderr, "{}", errMsg);
-                         },
-                         [&](const auto &path) {
-                           ui.imguiInterface->getNotificationManager()
-                               .createNotification(ig::NotificationType::Success, ig::uniqueId(), "Success")
-                               .createChild<ig::Text>(ig::uniqueId(),
-                                                      fmt::format("Recording has been saved to '{}'", path.string()));
-                         }};
+  VideoRecorder recorder{
+      [](auto f) { MainLoop::Get()->enqueue(f); },
+      [&](const auto &msg) {
+        const auto errMsg = fmt::format("Recording has failed: '{}'", msg);
+        auto &notification = ui.imguiInterface->getNotificationManager().createNotification(ig::uniqueId(), "Error");
+        auto &text = notification.createChild<ig::Text>(ig::uniqueId(), errMsg);
+        text.setColor<ig::style::ColorOf::Text>(ig::Color::White);
+        notification.setColor<ig::style::ColorOf::Text>(ig::Color::Red);
+        fmt::print(stderr, "{}", errMsg);
+      },
+      [&](const auto &path) {
+        auto &notification = ui.imguiInterface->getNotificationManager().createNotification(ig::uniqueId(), "Success");
+        auto &text = notification.createChild<ig::Text>(ig::uniqueId(),
+                                                        fmt::format("Recording has been saved to '{}'", path.string()));
+        text.setColor<ig::style::ColorOf::Text>(ig::Color::White);
+        notification.setColor<ig::style::ColorOf::Text>(ig::Color::Green);
+      }};
 
   const auto startRecording = [&] {
     using namespace pf::ui::ig;
-    ui.imguiInterface->buildFileDialog(FileDialogType::File)
+    ui.imguiInterface->getDialogManager()
+        .buildFileDialog(FileDialogType::File)
         .label("Select save location")
         .extension({{"mp4"}, "mp4", Color::RGB(255, 0, 0)})
         .onSelect([&](const auto &selected) {
@@ -269,9 +278,12 @@ int main(int argc, char *argv[]) {
           const auto res =
               recorder.start(trailTextureSize.x, trailTextureSize.y, 60, AVPixelFormat::AV_PIX_FMT_RGBA, dst);
           if (res.has_value()) {
-            ui.imguiInterface->getNotificationManager()
-                .createNotification(ig::NotificationType::Error, ig::uniqueId(), "Error")
-                .createChild<ig::Text>(ig::uniqueId(), fmt::format("Error while starting recording: '{}'", *res));
+            auto &notification =
+                ui.imguiInterface->getNotificationManager().createNotification(ig::uniqueId(), "Error");
+            auto &text = notification.createChild<ig::Text>(ig::uniqueId(),
+                                                            fmt::format("Error while starting recording: '{}'", *res));
+            text.setColor<ig::style::ColorOf::Text>(ig::Color::White);
+            notification.setColor<ig::style::ColorOf::Text>(ig::Color::Red);
             ui.recorderPanel->setValue(RecordingState::Stopped);
           }
           ui.recorderPanel->startCounter();
@@ -340,8 +352,13 @@ int main(int argc, char *argv[]) {
       }
     } catch (const std::exception &e) {
       fmt::print(stderr, "Exception: {}\n", e.what());
-      ui.imguiInterface->createMsgDlg("Exception", e.what(), Flags<ig::MessageButtons>{ig::MessageButtons::Ok},
-                                      [](auto) { return true; });
+      ui.imguiInterface->getDialogManager()
+          .buildMessageDialog()
+          .title("Exception")
+          .message(e.what())
+          .size(ig::Size{200, 150})
+          .buttons(ig::MessageButtons::Ok)
+          .build();
     }
   });
 

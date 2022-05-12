@@ -16,17 +16,20 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   using namespace ui::ig;
   using namespace std::string_literals;
   imguiInterface = std::make_unique<ImGuiGlfwOpenGLInterface>(
-      ImGuiGlfwOpenGLConfig{.imgui{.flags = ui::ig::ImGuiConfigFlags::DockingEnable,
-                                   .config = config,
-                                   .iconFontDirectory = *config["path_icons"].value<std::string>(),
-                                   .enabledIconPacks = IconPack::ForkAwesome,
-                                   .iconSize = 13.f},
+      ImGuiGlfwOpenGLConfig{.imgui{.flags = ui::ig::ImGuiConfigFlags::DockingEnable, .config = config},
                             .windowHandle = window->getHandle()});
+
+  const auto pathIcons = std::filesystem::path{config["path_icons"].value<std::string>().value_or(pf::getExeFolder().string())};
+  imguiInterface->setGlobalFont(imguiInterface->getFontManager()
+                                    .fontBuilder("main")
+                                    .addIconPack(IconPack::ForkAwesome, pathIcons / "forkawesome-webfont.ttf")
+                                    .build());
+
   setDarkStyle(*imguiInterface);
 
   dockingArea = &imguiInterface->createOrGetBackgroundDockingArea();
 
-  appMenuBar = &imguiInterface->getMenuBar();
+  appMenuBar = &imguiInterface->createOrGetMenuBar();
   viewSubmenu = &appMenuBar->addSubmenu("app_view_submenu", "View");
   viewShowAll = &viewSubmenu->addButtonItem("show_all_view", "Show all");
   viewHideAll = &viewSubmenu->addButtonItem("hide_all_view", "Hide all");
@@ -43,7 +46,7 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   helpButton = &helpSubmenu->addButtonItem("help_button", ICON_FK_QUESTION_CIRCLE " Help");
   aboutButton = &helpSubmenu->addButtonItem("about_button", ICON_FK_INFO " About");
 
-  statusBar = &imguiInterface->createStatusBar("status_bar");
+  statusBar = &imguiInterface->createOrGetStatusBar();
   particleCountText = &statusBar->createChild<Text>("part_count_text", "Particle count: ");
 
   interactionWindow = &imguiInterface->createWindow("interaction_window", ICON_FK_MOUSE_POINTER " Interaction");
@@ -52,7 +55,7 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
       [&](bool value) { interactionWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible); }, true);
   interactionWindow->setCloseable(true);
   interactionWindow->setIsDockable(true);
-  interactionWindow->getMenuBar().addButtonItem("inter_help_btn", "Help").addClickListener([this] {
+  interactionWindow->createOrGetMenuBar().addButtonItem("inter_help_btn", "Help").addClickListener([this] {
     openHelp({"Controls", "UI", "Interaction"});
   });
   mouseInteractionPanel = &interactionWindow->createChild<MouseInteractionPanel>("interaction_panel", Persistent::Yes);
@@ -70,7 +73,7 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
       [&](bool value) { infoWindow->setVisibility(value ? Visibility::Visible : Visibility::Invisible); }, true);
   infoWindow->setCloseable(true);
   infoWindow->setIsDockable(true);
-  infoWindow->getMenuBar().addButtonItem("info_help_btn", "Help").addClickListener([this] {
+  infoWindow->createOrGetMenuBar().addButtonItem("info_help_btn", "Help").addClickListener([this] {
     openHelp({"Controls", "UI", "Info"});
   });
 
@@ -80,7 +83,7 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   simWindow->addCloseListener([&]() { viewSimWin->setValue(false); });
   simWindow->setCloseable(true);
   simWindow->setIsDockable(true);
-  simWindow->getMenuBar().addButtonItem("sim_help_btn", "Help").addClickListener([this] {
+  simWindow->createOrGetMenuBar().addButtonItem("sim_help_btn", "Help").addClickListener([this] {
     openHelp({"Controls", "UI", "Simulation"});
   });
 
@@ -93,7 +96,7 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   imagesWindow->setCloseable(true);
   imagesWindow->setIsDockable(true);
 
-  imagesMenuBar = &imagesWindow->getMenuBar();
+  imagesMenuBar = &imagesWindow->createOrGetMenuBar();
   fileImagesSubmenu = &imagesMenuBar->addSubmenu("images_file_submenu", "File");
   saveImageButton = &fileImagesSubmenu->addButtonItem("save_image_btn", ICON_FK_FLOPPY_O " Save screenshot");
   startRecordingButton = &fileImagesSubmenu->addButtonItem("start_rec_btn", ICON_FK_VIDEO_CAMERA " Recording");
@@ -111,7 +114,7 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   speciesWindow->setIsDockable(true);
   speciesWindow->setCollapsible(true);
 
-  speciesMenuBar = &speciesWindow->getMenuBar();
+  speciesMenuBar = &speciesWindow->createOrGetMenuBar();
   fileSpeciesSubmenu = &speciesMenuBar->addSubmenu("species_file_submenu", "File");
   saveSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_save_button", ICON_FK_FLOPPY_O " Save");
   loadSpeciesButton = &fileSpeciesSubmenu->addButtonItem("species_load_button", ICON_FK_FILE_O " Load");
@@ -131,18 +134,25 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   speciesTabBar = &speciesWindow->createChild<TabBar>("species_tabbar", true);
   addSpeciesButton = &speciesTabBar->addTabButton("add_species_button", ICON_FK_PLUS_SQUARE, TabMod::ForceRight);
   addSpeciesButton->addClickListener([&] {
-    imguiInterface->openInputDialog(
-        "Species name", "Input species name",
-        [&](const auto input) {
+    imguiInterface->getDialogManager()
+        .buildInputDialog()
+        .title("Species name")
+        .message("Input species name")
+        .size(Size{200, 150})
+        .onInput([&](const auto input) {
           auto names = getSpeciesNames();
           if (std::ranges::find(names, input) != names.end()) {
-            imguiInterface->createMsgDlg("Duplicate name", fmt::format("The name '{}' is already present.", input),
-                                         Flags{MessageButtons::Ok}, [](auto) { return true; });
+            imguiInterface->getDialogManager()
+                .buildMessageDialog()
+                .title("Duplicate name")
+                .message(fmt::format("The name '{}' is already present.", input))
+                .buttons(MessageButtons::Ok)
+                .build();
             return;
           }
           createSpeciesTab(std::string{input});
-        },
-        [] {});
+        })
+        .build();
   });
 
   simControlsPanel->addRestartClickListener([&] {
@@ -160,7 +170,8 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   });
 
   saveSpeciesButton->addClickListener([&] {
-    imguiInterface->buildFileDialog(FileDialogType::File)
+    imguiInterface->getDialogManager()
+        .buildFileDialog(FileDialogType::File)
         .label("Select save location")
         .extension({{"toml"}, "toml", Color::RGB(255, 0, 0)})
         .onSelect([&](const auto &selected) {
@@ -175,7 +186,8 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   });
 
   loadSpeciesButton->addClickListener([&] {
-    imguiInterface->buildFileDialog(FileDialogType::File)
+    imguiInterface->getDialogManager()
+        .buildFileDialog(FileDialogType::File)
         .label("Select file to load")
         .extension({{"toml"}, "toml", Color::RGB(255, 0, 0)})
         .onSelect([&](const auto &selected) {
@@ -188,7 +200,8 @@ pf::ogl::UI::UI(const toml::table &config, const std::shared_ptr<glfw::Window> &
   });
 
   saveImageButton->addClickListener([&]() {
-    imguiInterface->buildFileDialog(FileDialogType::File)
+    imguiInterface->getDialogManager()
+        .buildFileDialog(FileDialogType::File)
         .label("Select save location")
         .extension({{"toml"}, "toml", Color::RGB(255, 0, 0)})
         .extension({{"png"}, "png", Color::RGB(255, 0, 0)})
@@ -332,11 +345,17 @@ void pf::ogl::UI::addSpeciesTabCloseConfirmation(pf::ui::ig::Tab &tab, const std
   using namespace ui::ig;
   tab.addOpenListener([&, speciesName](bool open) {
     if (open) { return; }
-    imguiInterface->createMsgDlg("Remove species?", fmt::format("Do you want to remove species '{}'", speciesName),
-                                 MessageButtons::Yes | MessageButtons::No, [&tab](auto btn) {
-                                   if (btn == MessageButtons::No) { tab.setOpen(true); }
-                                   return true;
-                                 });
+    imguiInterface->getDialogManager()
+        .buildMessageDialog()
+        .title("Remove species?")
+        .message(fmt::format("Do you want to remove species '{}'", speciesName))
+        .size(Size{200, 150})
+        .buttons(MessageButtons::Yes, MessageButtons::No)
+        .onDone([&tab](auto btn) {
+          if (btn == MessageButtons::No) { tab.setOpen(true); }
+          return true;
+        })
+        .build();
   });
 }
 
