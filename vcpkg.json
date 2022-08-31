@@ -4,7 +4,7 @@
   "dependencies": [
     {
       "name": "pf-common",
-      "version>=": "1.2.2"
+      "version>=": "1.2.5"
     },
     {
       "name": "pf-mainloop",
@@ -12,11 +12,11 @@
     },
     {
       "name": "pf-glfw",
-      "version>=": "0.1.2"
+      "version>=": "0.2.0"
     },
     {
       "name": "pf-imgui",
-      "version>=": "0.8.2"
+      "version>=": "0.8.3"
     },
     {
       "name": "ffmpeg",
